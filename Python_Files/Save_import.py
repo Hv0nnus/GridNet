@@ -161,7 +161,7 @@ def colorize_mask(mask):
 def make_dataset(quality, mode,parameters):
     assert (quality == 'fine' and mode in ['train', 'val']) \
     or (quality == 'coarse' and mode in ['train', 'train_extra', 'val'])
-
+    mode = "train/"
     if quality == 'coarse':
         img_dir_name = '/leftImg8bit'
         mask_path = os.path.join(parameters.path_data, 'gtCoarse', mode)
@@ -172,7 +172,7 @@ def make_dataset(quality, mode,parameters):
         mask_postfix = '_gtFine_labelIds.png'
 
     img_path = os.path.join(parameters.path_data, img_dir_name, mode)
-    assert os.listdir(img_path) == os.listdir(mask_path)
+    assert (len(set(os.listdir(img_path))-set(os.listdir(mask_path))) + len(set(os.listdir(mask_path))-set(os.listdir(img_path))))== 0
     items = []
     categories = os.listdir(img_path)
     for c in categories:
