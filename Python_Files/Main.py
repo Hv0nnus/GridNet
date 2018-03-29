@@ -410,9 +410,3 @@ def main_continue_learning():
 main_new_learning()
 
 #main_continue_learning()
-
-
-
-
-
-
