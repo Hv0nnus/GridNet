@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH -J test_slurm
 #SBATCH -o Output/output_%j.txt
-#SBATCH -D /home_expes/kt82128h/GridNet/
+#SBATCH -D /home_expes/kt82128h/GridNet/Python_Files
 #SBATCH -n 1
 #SBATCH -c 2
 #SBATCH -N 1
@@ -15,4 +15,4 @@ source /home_expes/tools/python/python3_cpu
 export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
 export LD_LIBRARY_PATH=/home_expes/tools/cuda/cuda-8.0/lib64:$LD_LIBRARY_PATH
 
-srun -N1 -n1 -c$SLURM_CPUS_PER_TASK  python Main.ipynb  
+srun -N1 -n1 -c$SLURM_CPUS_PER_TASK  python Main.py  

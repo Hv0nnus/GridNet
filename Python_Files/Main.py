@@ -14,7 +14,6 @@ import torch
 import torch.optim as optim
 from torchvision import datasets, transforms
 from torch.autograd import Variable
-import torchviz
 #from torch.utils import data
 
 
@@ -39,8 +38,8 @@ import pandas as pd
 #import csv
 #import os
 #from PIL import Image
-import seaborn as sns; sns.set()
-
+#import seaborn as sns; sns.set()
+import sys
 
 
 
@@ -50,6 +49,8 @@ import GridNet_structure
 import Save_import
 import Loss_Error
 
+with open("/home_expes/kt82128h/GridNet/Python_Files/Python_print.txt", 'a') as txtfile:
+            txtfile.write('Start of the program\n')
 
 # # Commentaire pour la suite (TODO)
 
@@ -89,8 +90,7 @@ import Loss_Error
 # 
 # Faire les tests sur la base de tests
 # 
-# 
-
+# Taille en octet de ce que j'importe et du réseau 
 # # Code
 
 # In[7]:
@@ -131,14 +131,14 @@ class Parameters():
                  actual_epoch = 0,
 
                  # File where all the parameter model can be store
-                 path_save_net = "../Model/",
+                 path_save_net = "/home_expes/kt82128h/GridNet/Python_Files/Model/",
                  #Name of the network, used for store (name_network and train_number)
                  name_network = "test",
                  train_number = 0,
                  # File where the error will be stored
-                 path_CSV = "../CSV/",
+                 path_CSV = "/home_expes/kt82128h/GridNet/Python_Files/CSV/",
                  # Path of the Data
-                 path_data = "../Cityscapes_Copy/",
+                 path_data = "/home_expes/kt82128h/GridNet/Cityscapes_copy/",
                  # Number of process that will load the Data
                  num_workers = 0):
         
@@ -190,7 +190,7 @@ class Parameters():
 def train(parameters,network,train_loader,val_loader):
     #Store the time at the begining of the training
     timer_init = time.time()
-    
+     
     # create your optimizer
     optimizer = optim.Adam(params = network.parameters(), lr = parameters.learning_rate,
                            betas = (parameters.beta1, parameters.beta2),
@@ -212,12 +212,14 @@ def train(parameters,network,train_loader,val_loader):
         
         for i,(x_batch, y_batch) in enumerate(train_loader):
 
+            timer_batch = time.time()
+
             # zero the gradient buffers
             optimizer.zero_grad()
             
             #Transform into Variable
             x_batch, y_batch = Variable(x_batch), Variable(y_batch)
-            
+
             # Compute the forward function
             y_batch_estimated = network(x_batch)
             
@@ -229,19 +231,24 @@ def train(parameters,network,train_loader,val_loader):
             
             # Does the update according to the optimizer define above
             optimizer.step()
+
             #Save error of the training Dataset
             Save_import.save_error(x = x_batch,y = y_batch, network = network,epoch = epoch, set_type = "train",
                                    parameters = parameters)
 
+            with open("/home_expes/kt82128h/GridNet/Python_Files/Python_print.txt", 'a') as txtfile:
+                txtfile.write('Mini_batch ' + str(i) + 'fini. Loss apprentissage' + str(loss.data[0]) + '\n')
+
         # Validation_error contains the error on the validation set
         validation_error = 0
-        
+
         # Save the error of the validation Dataset
         for i,(x_val_batch, y_val_batch) in enumerate(val_loader):
             x_val_batch, y_val_batch = Variable(x_val_batch), Variable(y_val_batch)
             validation_error += Save_import.save_error(x = x_val_batch,y = y_val_batch,network = network,epoch = epoch,
                                                        set_type = "validation", parameters = parameters)
-        
+            break
+
         # Divise by the the number of element in the entire batch
         validation_error = validation_error/((i+1)*parameters.batch_size_val)
         
@@ -252,11 +259,14 @@ def train(parameters,network,train_loader,val_loader):
                                                                                          index_save_regular,
                                                                                          epoch,network,parameters)
                     
-        
-        print("Epoch :",epoch,"/",parameters.epoch_total - 1,". Last loss : ",loss.data[0],
-              ". Time Epoch :", time.time() - timer_epoch,". Time total", time.time() - timer_init)
+        with open("/home_expes/kt82128h/GridNet/Python_Files/Python_print.txt", 'a') as txtfile:
+            txtfile.write("Epoch :"+str(epoch)+"/"+str(parameters.epoch_total - 1)+". Last loss : "+str(loss.data[0])+
+              ". Time Epoch :"+ str(time.time() - timer_epoch)+". Time total"+ str(time.time() - timer_init)+"\n")
 
-    print("Finish. Total mean time : ", (time.time() - timer_init)/(parameters.epoch_total- parameters.actual_epoch))
+        break
+
+    with open("/home_expes/kt82128h/GridNet/Python_Files/Python_print.txt", 'a') as txtfile:
+        txtfile.write("Finish. Total mean time : "+ str((time.time() - timer_init)/(parameters.epoch_total- parameters.actual_epoch))+"\n")
     
     return()
 
@@ -286,16 +296,16 @@ parameters = Parameters(nColumns = 2,
                             beta1 = 0.9,
                             beta2 = 0.999,
                             epsilon = 1*10**(-8),
-                            batch_size = 1,
-                            batch_size_val = 10,
+                            batch_size = 100,
+                            batch_size_val = 100,
                             epoch_total = 3,
                             actual_epoch = 0,
 
-                            path_save_net = "../Model/",
+                            path_save_net = "/home_expes/kt82128h/GridNet/Python_Files/Model/",
                             name_network = "test",
                             train_number = 0,
-                            path_CSV = "../CSV/",
-                            path_data = "../Cityscapes_Copy/",
+                            path_CSV = "/home_expes/kt82128h/GridNet/Python_Files/CSV/",
+                            path_data = "/home_expes/collections/Cityscapes/",
                             num_workers = 0)
 
 
@@ -406,6 +416,7 @@ def main_continue_learning():
     
     # Train the network
     train(network = network, parameters = parameters, train_loader = train_loader, val_loader = val_loader)
+
 
 main_new_learning()
 
