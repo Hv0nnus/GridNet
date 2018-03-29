@@ -10,7 +10,7 @@ from __future__ import print_function
 import argparse
 import torch
 # import torch.nn as nn
-# import torch.nn.functional as F
+import torch.nn.functional as F
 import torch.optim as optim
 from torchvision import datasets, transforms
 from torch.autograd import Variable
@@ -29,7 +29,6 @@ print(torch.backends.cudnn.version())
 
 # Other package
 import time
-#import random
 #from ggplot import *
 import pandas as pd
 #import numpy as np
@@ -37,9 +36,11 @@ import pandas as pd
 #from os.path import exists
 #import csv
 #import os
-#from PIL import Image
+from PIL import Image
 #import seaborn as sns; sns.set()
 import sys
+import random
+import math
 
 
 
@@ -49,8 +50,11 @@ import GridNet_structure
 import Save_import
 import Loss_Error
 
-with open("/home_expes/kt82128h/GridNet/Python_Files/Python_print.txt", 'a') as txtfile:
-            txtfile.write('Start of the program\n')
+txt_path = "/home_expes/kt82128h/GridNet/Python_Files/Python_print.txt"
+txt_path = "Python_print.txt"
+
+with open(txt_path, 'w') as txtfile:
+            txtfile.write('\n               Start of the program \n')
 
 # # Commentaire pour la suite (TODO)
 
@@ -70,7 +74,7 @@ with open("/home_expes/kt82128h/GridNet/Python_Files/Python_print.txt", 'a') as 
 # Ne pas sauvgarder n importe quand le réseau. Peut ere garder un truc qui a en memoire le meilleur IuO sur 
 # la validation
 # 
-# Quel modification sont a faire sur les donnees  genre pour les augmenter
+# TODO Quel modification sont a faire sur les donnees  genre pour les augmenter
 # 
 # Parallelisation, comment ca marche 
 # 
@@ -110,7 +114,7 @@ class Parameters():
 
                  # Size of initial image
                  width_image_initial = 2048, height_image_initial = 1024,
-                 # Size after the crop
+                 # Size after the crop # 353 the perfect size !
                  width_image_crop = 19, height_image_crop = 19,
 
                  # Probability of a Blockwise dropout
@@ -131,14 +135,14 @@ class Parameters():
                  actual_epoch = 0,
 
                  # File where all the parameter model can be store
-                 path_save_net = "/home_expes/kt82128h/GridNet/Python_Files/Model/",
+                 path_save_net = "../Model/",
                  #Name of the network, used for store (name_network and train_number)
                  name_network = "test",
                  train_number = 0,
                  # File where the error will be stored
-                 path_CSV = "/home_expes/kt82128h/GridNet/Python_Files/CSV/",
+                 path_CSV = "../CSV/",
                  # Path of the Data
-                 path_data = "/home_expes/kt82128h/GridNet/Cityscapes_copy/",
+                 path_data = "../Cityscapes_Copy/",
                  # Number of process that will load the Data
                  num_workers = 0):
         
@@ -209,11 +213,12 @@ def train(parameters,network,train_loader,val_loader):
     for epoch in range(parameters.actual_epoch,parameters.epoch_total):
         #Store the time at the begining of each epoch
         timer_epoch = time.time()
-        
+        timer_batch = time.time()
+
         for i,(x_batch, y_batch) in enumerate(train_loader):
-
-            timer_batch = time.time()
-
+            print(x_batch.size())
+            print(y_batch.size())
+            break
             # zero the gradient buffers
             optimizer.zero_grad()
             
@@ -235,10 +240,13 @@ def train(parameters,network,train_loader,val_loader):
             #Save error of the training Dataset
             Save_import.save_error(x = x_batch,y = y_batch, network = network,epoch = epoch, set_type = "train",
                                    parameters = parameters)
+            with open(txt_path, 'a') as txtfile:
+                txtfile.write("Epoch : "+str(epoch)+". Batch : "+str(i)+". Last loss : "+str(loss.data[0])+ "\n" +
+                              "Time batch : " + str(time.time() - timer_batch) +
+                              ". Time total batch : " + str(time.time() - timer_epoch)+"\n")
 
-            with open("/home_expes/kt82128h/GridNet/Python_Files/Python_print.txt", 'a') as txtfile:
-                txtfile.write('Mini_batch ' + str(i) + 'fini. Loss apprentissage' + str(loss.data[0]) + '\n')
-
+            timer_batch = time.time()
+        break
         # Validation_error contains the error on the validation set
         validation_error = 0
 
@@ -247,26 +255,26 @@ def train(parameters,network,train_loader,val_loader):
             x_val_batch, y_val_batch = Variable(x_val_batch), Variable(y_val_batch)
             validation_error += Save_import.save_error(x = x_val_batch,y = y_val_batch,network = network,epoch = epoch,
                                                        set_type = "validation", parameters = parameters)
-            break
 
         # Divise by the the number of element in the entire batch
-        validation_error = validation_error/((i+1)*parameters.batch_size_val)
+        validation_error = validation_error/(i+1)
         
         # checkpoint will save the network if needed
         validation_error_min,index_save_best,index_save_regular = Save_import.checkpoint(validation_error,
                                                                                          validation_error_min,
                                                                                          index_save_best,
                                                                                          index_save_regular,
-                                                                                         epoch,network,parameters)
+                                                                                         epoch,network,parameters,
+                                                                                         txt_path)
                     
-        with open("/home_expes/kt82128h/GridNet/Python_Files/Python_print.txt", 'a') as txtfile:
-            txtfile.write("Epoch :"+str(epoch)+"/"+str(parameters.epoch_total - 1)+". Last loss : "+str(loss.data[0])+
-              ". Time Epoch :"+ str(time.time() - timer_epoch)+". Time total"+ str(time.time() - timer_init)+"\n")
+        with open(txt_path, 'a') as txtfile:
+            txtfile.write("End of Epoch :" + str(epoch) + "/" + str(parameters.epoch_total - 1) +
+                          ". Validation Loss : " + str(validation_error) + ".\nTime Epoch :" +
+                          str(time.time() - timer_epoch) + ". Time total : " + str(time.time() - timer_init)+"\n \n")
 
-        break
 
-    with open("/home_expes/kt82128h/GridNet/Python_Files/Python_print.txt", 'a') as txtfile:
-        txtfile.write("Finish. Total mean time : "+ str((time.time() - timer_init)/(parameters.epoch_total- parameters.actual_epoch))+"\n")
+    with open(txt_path, 'a') as txtfile:
+        txtfile.write("Finish. Total time : " + str((time.time() - timer_init)) + "\n")
     
     return()
 
@@ -288,7 +296,7 @@ parameters = Parameters(nColumns = 2,
                             label_DF = label_DF,
 
                             width_image_initial = 2048, height_image_initial = 1024,
-                            width_image_crop = 3, height_image_crop = 19,
+                            width_image_crop = 5, height_image_crop = 19,
 
                             dropFactor = 0.1,
                             learning_rate=0.01,
@@ -298,126 +306,142 @@ parameters = Parameters(nColumns = 2,
                             epsilon = 1*10**(-8),
                             batch_size = 100,
                             batch_size_val = 100,
-                            epoch_total = 3,
+                            epoch_total = 1                        ,
                             actual_epoch = 0,
 
-                            path_save_net = "/home_expes/kt82128h/GridNet/Python_Files/Model/",
+                            #path_save_net = "/home_expes/kt82128h/GridNet/Python_Files/Model/",
                             name_network = "test",
                             train_number = 0,
-                            path_CSV = "/home_expes/kt82128h/GridNet/Python_Files/CSV/",
-                            path_data = "/home_expes/collections/Cityscapes/",
+                            #path_CSV = "/home_expes/kt82128h/GridNet/Python_Files/CSV/",
+                            #path_data = "/home_expes/collections/Cityscapes/",
                             num_workers = 0)
 
 
 # In[10]:
 
-def main_new_learning():
+def main(path_continue_learning = None, total_epoch = 0, parameters = parameters):
     
     #Transformation that will be apply on the data just after the import
     transform = transforms.Compose([
-        transforms.CenterCrop(parameters.width_image_crop),
+        #transforms.CenterCrop(parameters.width_image_crop),
+        #transforms.RandomResizedCrop(5, scale=(0.1, 1.0), ratio=(0.75, 1.3333333333333333)),
+        transforms.ToTensor(),
+    ])
+    #Transformation that will be apply on the data just after the import
+    transform_target = transforms.Compose([
+        #transforms.CenterCrop(parameters.width_image_crop),
+        #transforms.RandomResizedCrop(5, scale=(0.1, 1.0), ratio=(0.75, 1.3333333333333333),
+        #                             interpolation= Image.NEAREST),
         transforms.ToTensor(),
     ])
 
-    target_transform = transforms.Compose([
-        transforms.CenterCrop(parameters.width_image_crop),
-        transforms.ToTensor()
-    ])
     
     #Import both dataset with the transformation
     train_dataset = Save_import.CityScapes_final('fine', 'train',transform = transform,
-                                                 target_transform = target_transform,parameters = parameters)
+                                                 transform_target = transform_target,parameters = parameters)
     val_dataset = Save_import.CityScapes_final('fine', 'val',transform = transform,
-                                               target_transform = transform, parameters = parameters)
-
+                                               transform_target=transform_target, parameters=parameters)
     # Creat the DataSet for pytorch used
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=parameters.batch_size, shuffle=True,
-                                               num_workers=parameters.num_workers,drop_last=True)
+                                               num_workers=parameters.num_workers,drop_last=False)
     val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=parameters.batch_size_val, shuffle = True,
-                                             num_workers=parameters.num_workers,drop_last=True)
-    
+                                             num_workers=parameters.num_workers,drop_last=False)
+
     # Define the GridNet
     network = GridNet_structure.gridNet(nInputs = parameters.nFeatureMaps_init,nOutputs = parameters.number_classes,
                       nColumns = parameters.nColumns,nFeatMaps = parameters.nFeatMaps, dropFactor = parameters.dropFactor)
 
-    #Init the csv file that will store the error
-    Save_import.init_csv(name_network = parameters.name_network, train_number = parameters.train_number,
-             path_CSV = parameters.path_CSV)
+    if(path_continue_learning is not None):
+        # Load the trained Network
+        parameters = Save_import.load_from_checkpoint(
+            path_checkpoint=parameters.path_save_net + path_continue_learning,
+            network=network, txt_path=txt_path)
+
+        # Here we can change some parameters
+        parameters.epoch_total = total_epoch
+
+    else:
+        #Init the csv file that will store the error
+        Save_import.init_csv(name_network = parameters.name_network, train_number = parameters.train_number,
+                 path_CSV = parameters.path_CSV,txt_path = txt_path)
 
     #Train the network
     train(network = network, parameters = parameters, train_loader = train_loader, val_loader = val_loader)
 
-    
 
 
-# In[18]:
+class RandomResizedCrop(object):
+    """Crop the given PIL Image to random size and aspect ratio.
+    A crop of random size (default: of 0.08 to 1.0) of the original size and a random
+    aspect ratio (default: of 3/4 to 4/3) of the original aspect ratio is made. This crop
+    is finally resized to given size.
+    This is popularly used to train the Inception networks.
+    Args:
+        size: expected output size of each edge
+        scale: range of size of the origin size cropped
+        ratio: range of aspect ratio of the origin aspect ratio cropped
+        interpolation: Default: PIL.Image.BILINEAR
+    """
 
-def main_continue_learning():
-    parameters = Parameters(nColumns = 2,
-                            nFeatMaps = [3,6],
-                            nFeatureMaps_init = 3,
-                            number_classes = 20-1,
-                            label_DF = label_DF,
+    def __init__(self, size, scale=(0.08, 1.0), ratio=(3. / 4., 4. / 3.), interpolation=Image.BILINEAR):
+        self.size = (size, size)
+        self.interpolation = interpolation
+        self.scale = scale
+        self.ratio = ratio
 
-                            width_image_initial = 2048, height_image_initial = 1024,
-                            width_image_crop = 3, height_image_crop = 19,
+    @staticmethod
+    def get_params(img, scale, ratio):
+        """Get parameters for ``crop`` for a random sized crop.
+        Args:
+            img (PIL Image): Image to be cropped.
+            scale (tuple): range of size of the origin size cropped
+            ratio (tuple): range of aspect ratio of the origin aspect ratio cropped
+        Returns:
+            tuple: params (i, j, h, w) to be passed to ``crop`` for a random
+                sized crop.
+        """
+        for attempt in range(10):
+            area = img.size[0] * img.size[1]
+            target_area = random.uniform(*scale) * area
+            aspect_ratio = random.uniform(*ratio)
 
-                            dropFactor = 0.1,
-                            learning_rate=0.01,
-                            weight_decay = 5*10**(-6),
-                            beta1 = 0.9,
-                            beta2 = 0.999,
-                            epsilon = 1*10**(-8),
-                            batch_size = 1,
-                            batch_size_val = 10,
-                            epoch_total = 3,
-                            actual_epoch = 0,
+            w = int(round(math.sqrt(target_area * aspect_ratio)))
+            h = int(round(math.sqrt(target_area / aspect_ratio)))
 
-                            path_save_net = "../Model/",
-                            name_network = "test",
-                            train_number = 0,
-                            path_CSV = "../CSV/",
-                            path_data = "../Cityscapes_Copy/",
-                            num_workers = 0)
+            if random.random() < 0.5:
+                w, h = h, w
 
-    #Transformation that will be apply on the data just after the import
-    transform = transforms.Compose([
-        transforms.CenterCrop(parameters.width_image_crop),
-        transforms.ToTensor(),
-    ])
+            if w <= img.size[0] and h <= img.size[1]:
+                i = random.randint(0, img.size[1] - h)
+                j = random.randint(0, img.size[0] - w)
+                return i, j, h, w
 
-    target_transform = transforms.Compose([
-        transforms.CenterCrop(parameters.width_image_crop),
-        transforms.ToTensor()
-    ])
-    
-    #Import both dataset with the transformation
-    train_dataset = Save_import.CityScapes_final('fine', 'train',transform = transform,
-                                                 target_transform = target_transform,parameters = parameters)
-    val_dataset = Save_import.CityScapes_final('fine', 'val',transform = transform,
-                                               target_transform = transform, parameters = parameters)
+        # Fallback
+        w = min(img.size[0], img.size[1])
+        i = (img.size[1] - w) // 2
+        j = (img.size[0] - w) // 2
+        return i, j, w, w
 
-    # Creat the DataSet for pytorch used
-    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=parameters.batch_size, shuffle=True,
-                                               num_workers=parameters.num_workers,drop_last=True)
-    val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=parameters.batch_size_val, shuffle = True,
-                                             num_workers=parameters.num_workers,drop_last=True)
-    
-    # Define the GridNet
-    network = GridNet_structure.gridNet(nInputs = parameters.nFeatureMaps_init,nOutputs = parameters.number_classes,
-                      nColumns = parameters.nColumns,nFeatMaps = parameters.nFeatMaps, dropFactor = parameters.dropFactor)
-    
-    # Load the trained Network
-    parameters = Save_import.load_from_checkpoint(path_checkpoint = parameters.path_save_net + "best1test0checkpoint.pth.tar",
-                                      network = network)
-    
-    # Here we can change some parameters
-    parameters.epoch_total = 6
-    
-    # Train the network
-    train(network = network, parameters = parameters, train_loader = train_loader, val_loader = val_loader)
+    def __call__(self, img):
+        """
+        Args:
+            img (PIL Image): Image to be cropped and resized.
+        Returns:
+            PIL Image: Randomly cropped and resized image.
+        """
+        i, j, h, w = self.get_params(img, self.scale, self.ratio)
+        return F.resized_crop(img, i, j, h, w, self.size, self.interpolation)
+
+    def __repr__(self):
+        interpolate_str = _pil_interpolation_to_str[self.interpolation]
+        format_string = self.__class__.__name__ + '(size={0}'.format(self.size)
+        format_string += ', scale={0}'.format(tuple(round(s, 4) for s in self.scale))
+        format_string += ', ratio={0}'.format(tuple(round(r, 4) for r in self.ratio))
+        format_string += ', interpolation={0})'.format(interpolate_str)
+        return format_string
 
 
-main_new_learning()
-
-#main_continue_learning()
+if(len(sys.argv) == 3):
+    main(path_continue_learning = sys.argv[1], total_epoch = sys.argv[2], parameters = parameters)
+if(len(sys.argv) == 1):
+    main()

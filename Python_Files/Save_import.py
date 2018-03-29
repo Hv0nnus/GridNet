@@ -8,6 +8,7 @@ from torch.utils import data
 import torch
 from PIL import Image
 import numpy as np
+import random
 
 import Loss_Error
 # # Save Loss and Error
@@ -19,11 +20,13 @@ import Loss_Error
     (1) = name_network : name of the network associated with the CSV files
     (2) = train_number : number of train associated with the CSV files
 """
-def init_csv(path_CSV,name_network,train_number):
+def init_csv(path_CSV,name_network,train_number,txt_path):
     
     # Stop the program if the CSV file already exist !
     if(exists(path_CSV + "CSV_confMat_" + name_network + str(train_number) + ".csv")):
-        print("TODO ici il faudra faire arreter le programme ! On ecrase les fichiers !")
+        with open(txt_path, 'a') as txtfile:
+            txtfile.write("Ici il faudra faire arreter le programme ! On ecrase les fichiers ! \n")
+
         #TODO ici il faudra faire arreter le programme !
     
     # header of the futur Panda"TODOs DataFrames
@@ -122,19 +125,24 @@ def save_checkpoint(state, filename='checkpoint.pth.tar'):
 """ 
 
 """
-def load_from_checkpoint(path_checkpoint,network):
+def load_from_checkpoint(path_checkpoint,network,txt_path):
     if (os.path.isfile(path_checkpoint)):
-        print("=> loading checkpoint '{}'".format(path_checkpoint))
+        with open(txt_path, 'a') as txtfile:
+            txtfile.write("=> loading checkpoint "+str(format(path_checkpoint)) +  "\n")
+        print()
         
         checkpoint = torch.load(path_checkpoint)
         parameters = checkpoint['parameters']
         parameters.actual_epoch = checkpoint['epoch']
         network.load_state_dict(checkpoint['state_dict'])
-        
-        print("=> loaded checkpoint '{}' (epoch {})"
-              .format(path_checkpoint, checkpoint['epoch']))
+
+        with open(txt_path, 'a') as txtfile:
+            txtfile.write("=> loaded checkpoint '{}' (epoch {})" +
+                          str(format(path_checkpoint, checkpoint['epoch'])) +"\n")
     else:
-        print("=> no checkpoint found at '{}'".format(path_checkpoint))
+        with open(txt_path, 'a') as txtfile:
+            txtfile.write("=> no checkpoint found at '{}'"+ str(format(path_checkpoint)) + "\n")
+        print()
     return(parameters)
 
 
@@ -172,7 +180,8 @@ def make_dataset(quality, mode,parameters):
         mask_postfix = '_gtFine_labelIds.png'
 
     img_path = os.path.join(parameters.path_data, img_dir_name, mode)
-    assert (len(set(os.listdir(img_path))-set(os.listdir(mask_path))) + len(set(os.listdir(mask_path))-set(os.listdir(img_path))))== 0
+    assert (len(set(os.listdir(img_path))-set(os.listdir(mask_path))) +
+            len(set(os.listdir(mask_path))-set(os.listdir(img_path))))== 0
     items = []
     categories = os.listdir(img_path)
     for c in categories:
@@ -184,7 +193,8 @@ def make_dataset(quality, mode,parameters):
 
 
 class CityScapes_final(data.Dataset):
-    def __init__(self, quality, mode,parameters, joint_transform=None, sliding_crop=None, transform=None, target_transform=None):
+    def __init__(self, quality, mode,parameters, joint_transform=None,
+                 sliding_crop=None, transform=None, transform_target = None):
         self.imgs = make_dataset(quality, mode, parameters)
         if len(self.imgs) == 0:
             raise RuntimeError('Found 0 images, please check the data set')
@@ -193,7 +203,7 @@ class CityScapes_final(data.Dataset):
         self.joint_transform = joint_transform
         self.sliding_crop = sliding_crop
         self.transform = transform
-        self.target_transform = target_transform
+        self.transform_target = transform_target
         ignore_label = parameters.number_classes - 1
         self.id_to_trainid = {-1: ignore_label, 0: ignore_label, 1: ignore_label, 2: ignore_label,
                               3: ignore_label, 4: ignore_label, 5: ignore_label, 6: ignore_label,
@@ -224,24 +234,28 @@ class CityScapes_final(data.Dataset):
             img_slices, mask_slices, slices_info = self.sliding_crop(img, mask)
             
             if self.transform is not None:
+                seed = np.random.randint(2147483647)  # make a seed with numpy generator
+                random.seed(seed)  # apply this seed to img transforms
                 img_slices = [self.transform(e) for e in img_slices]
-            if self.target_transform is not None:
-                mask_slices = [self.target_transform(e) for e in mask_slices]
+            if self.transform_target is not None:
+                random.seed(seed)  # apply this seed to mask transforms
+                mask_slices = [self.transform_target(e) for e in mask_slices]
             img, mask = torch.stack(img_slices, 0), torch.stack(mask_slices, 0)
             mask = torch.squeeze(mask)
-            return img, mask.long(), torch.LongTensor(slices_info)
+            return img, mask.long()
         else:
+            seed = np.random.randint(2147483647)  # make a seed with numpy generator
             if self.transform is not None:
+                random.seed(seed)  # apply this seed to img transforms
                 img = self.transform(img)
-            if self.target_transform is not None:
-
-                mask = self.target_transform(mask)*255
+            if self.transform_target is not None:
+                random.seed(seed)  # apply this seed to mask transforms
+                print(np.array(mask))
+                mask = self.transform_target(mask)
+                mask = (mask * 255).round()
+                print(mask)
 
             mask = torch.squeeze(mask)
-            #mask_copy = torch.rand(19,19,19)            
-            #for k in range(19):
-            #    mask_copy[k,:,:] = (mask == k)*1
-
             return img, mask.long()
         
     def __len__(self):
@@ -255,11 +269,12 @@ class CityScapes_final(data.Dataset):
     (1) = validation_error_min : The last best validation error
     (2) = index_save_best : Index is 0 or 1, there is always a checkpoint untouched (best0 or best1)
     (3) = index_save_regular : Index is 0 or 1, there is always a checkpoint untouched(regular0 or regular1)
-    (4) = epoch :
-    (5) = network : 
-    (6) = parameters : 
+    (4) = epoch : Epoch of the algorithm to save where we stop
+    (5) = network : GridNet with all parameter that will be saved
+    (6) = parameters : instance of the parameter class that store many usefull information of the network
 """
-def checkpoint(validation_error,validation_error_min,index_save_best,index_save_regular,epoch,network,parameters):
+def checkpoint(validation_error,validation_error_min,index_save_best,
+               index_save_regular,epoch,network,parameters,txt_Path):
     
     if(validation_error < validation_error_min):    
         #Save the entire model with parameter, network and optimizer
@@ -272,8 +287,10 @@ def checkpoint(validation_error,validation_error_min,index_save_best,index_save_
         
         validation_error_min = validation_error
         
-        print("The network as been saved at the epoch " + str(epoch) + "(best score)" + str(index_save_best))
-        
+        with open(txt_Path, 'a') as txtfile:
+            txtfile.write("The network as been saved at the epoch " + str(epoch) + " (best score) " +
+                          str(index_save_best) + '\n')
+
         index_save_best = (index_save_best+1)%2
         
     else:
