@@ -255,7 +255,7 @@ def train(parameters,network,train_loader,val_loader):
         # Divise by the the number of element in the entire batch
         validation_error = validation_error/(i+1)
         with open(txt_path,'a') as txtfile:
-            txtfile.write("temps necessaire pour effectuer la validation sur toutes les donne : "+str(time.time-time_batch))
+            txtfile.write("temps necessaire pour effectuer la validation sur toutes les donne : "+str(time.time-timer_batch))
         time_before_save = time.time()
         # checkpoint will save the network if needed
         validation_error_min,index_save_best,index_save_regular = Save_import.checkpoint(validation_error,
@@ -329,7 +329,7 @@ def main(path_continue_learning = None, total_epoch = 0, parameters = parameters
         # And put scale in order to always have an image smaller than 1024 for the crop.
         # With 0.2 and 0.37 for scale value we can always crop into the image
         #transforms.RandomResizedCrop(5, scale=(0.2, 0.37), ratio=(0.75, 1.3333333333333333)),
-        # TODO choisir la quel des deux solution
+        # TODO choisir laquel des deux solution
         # Autre option, pas de ratio car cela n a pas de sens de deformer l image
         #transforms.RandomResizedCrop(5, scale=(0.763, 0.5), ratio=(1,1)),
         transforms.RandomSizedCrop(parameters.width_image_crop),
