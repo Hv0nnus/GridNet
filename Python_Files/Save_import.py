@@ -250,10 +250,8 @@ class CityScapes_final(data.Dataset):
                 img = self.transform(img)
             if self.transform_target is not None:
                 random.seed(seed)  # apply this seed to mask transforms
-                print(np.array(mask))
                 mask = self.transform_target(mask)
                 mask = (mask * 255).round()
-                print(mask)
 
             mask = torch.squeeze(mask)
             return img, mask.long()
