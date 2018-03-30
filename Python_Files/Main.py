@@ -238,9 +238,9 @@ def train(parameters,network,train_loader,val_loader):
             Save_import.save_error(x = x_batch,y = y_batch, network = network,epoch = epoch, set_type = "train",
                                    parameters = parameters)
             with open(txt_path, 'a') as txtfile:
-                txtfile.write("Epoch : "+str(epoch)+". Batch : "+str(i)+". Last loss : "+str(loss.data[0])+ "\n" +
+                txtfile.write("\nEpoch : "+str(epoch)+". Batch : "+str(i)+".\nLast loss : "+str(loss.data[0])+ "\n" +
                               "Time batch : " + str(time.time() - timer_batch) +
-                              ". Time total batch : " + str(time.time() - timer_epoch)+"\n")
+                              ". Time total batch : " + str(time.time() - timer_epoch)+"\n \n")
 
             timer_batch = time.time()
         # Validation_error contains the error on the validation set
@@ -254,7 +254,9 @@ def train(parameters,network,train_loader,val_loader):
 
         # Divise by the the number of element in the entire batch
         validation_error = validation_error/(i+1)
-        
+        with open(txt_path,'a') as txtfile:
+            txtfile.write("temps necessaire pour effectuer la validation sur toutes les donne : "+str(time.time-time_batch))
+        time_before_save = time.time()
         # checkpoint will save the network if needed
         validation_error_min,index_save_best,index_save_regular = Save_import.checkpoint(validation_error,
                                                                                          validation_error_min,
@@ -262,9 +264,11 @@ def train(parameters,network,train_loader,val_loader):
                                                                                          index_save_regular,
                                                                                          epoch,network,parameters,
                                                                                          txt_path)
+        with open(txt_path,'a') as txtfile:
+            txtfile.write("temps necessaire pour effectuer la sauvegarde sur toutes les donne : "+str(time.time-time_before_save))
                     
         with open(txt_path, 'a') as txtfile:
-            txtfile.write("End of Epoch :" + str(epoch) + "/" + str(parameters.epoch_total - 1) +
+            txtfile.write("\n              End of Epoch :" + str(epoch) + "/" + str(parameters.epoch_total - 1) +
                           ". Validation Loss : " + str(validation_error) + ".\nTime Epoch :" +
                           str(time.time() - timer_epoch) + ". Time total : " + str(time.time() - timer_init)+"\n \n")
 
@@ -292,7 +296,7 @@ parameters = Parameters(nColumns = 2,
                             label_DF = label_DF,
 
                             width_image_initial = 2048, height_image_initial = 1024,
-                            width_image_crop = 5, height_image_crop = 19,
+                            width_image_crop = 353, height_image_crop = 353,
 
                             dropFactor = 0.1,
                             learning_rate=0.01,
@@ -300,8 +304,9 @@ parameters = Parameters(nColumns = 2,
                             beta1 = 0.9,
                             beta2 = 0.999,
                             epsilon = 1*10**(-8),
+                            # taille memoire : a = 155000 b = 1810000
                             batch_size = 5,
-                            batch_size_val = 100,
+                            batch_size_val = 5,
                             epoch_total = 4,
                             actual_epoch = 0,
 
@@ -326,15 +331,19 @@ def main(path_continue_learning = None, total_epoch = 0, parameters = parameters
         #transforms.RandomResizedCrop(5, scale=(0.2, 0.37), ratio=(0.75, 1.3333333333333333)),
         # TODO choisir la quel des deux solution
         # Autre option, pas de ratio car cela n a pas de sens de deformer l image
-        transforms.RandomResizedCrop(5, scale=(0.763, 0.5), ratio=(1,1)),
+        #transforms.RandomResizedCrop(5, scale=(0.763, 0.5), ratio=(1,1)),
+        transforms.RandomSizedCrop(parameters.width_image_crop),
+        transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
     ])
     #Transformation that will be apply on the data just after the import
     transform_target = transforms.Compose([
         #transforms.CenterCrop(parameters.width_image_crop),
         #transforms.RandomResizedCrop(5, 5, scale=(0.2, 0.37), ratio=(0.75, 1.3333333333333333),
-        transforms.RandomResizedCrop(5, scale=(0.763, 0.5), ratio=(1, 1),
-                                     interpolation= Image.NEAREST),
+        #transforms.RandomResizedCrop(5, scale=(0.763, 0.5), ratio=(1, 1),
+        #                             interpolation= Image.NEAREST),
+        transforms.RandomSizedCrop(parameters.width_image_crop),
+        transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
     ])
 

@@ -129,7 +129,6 @@ def load_from_checkpoint(path_checkpoint,network,txt_path):
     if (os.path.isfile(path_checkpoint)):
         with open(txt_path, 'a') as txtfile:
             txtfile.write("=> loading checkpoint "+str(format(path_checkpoint)) +  "\n")
-        print()
         
         checkpoint = torch.load(path_checkpoint)
         parameters = checkpoint['parameters']
@@ -142,7 +141,6 @@ def load_from_checkpoint(path_checkpoint,network,txt_path):
     else:
         with open(txt_path, 'a') as txtfile:
             txtfile.write("=> no checkpoint found at '{}'"+ str(format(path_checkpoint)) + "\n")
-        print()
     return(parameters)
 
 
