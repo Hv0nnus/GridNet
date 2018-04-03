@@ -126,7 +126,6 @@ def save_checkpoint(state, filename='checkpoint.pth.tar'):
 
 """
 def load_from_checkpoint(path_checkpoint,network,txt_path):
-    path_checkpoint = str(path_checkpoint)
     if (os.path.isfile(path_checkpoint)):
         with open(txt_path, 'a') as txtfile:
             txtfile.write("=> loading checkpoint "+str(format(path_checkpoint)) + "\n")
@@ -135,13 +134,9 @@ def load_from_checkpoint(path_checkpoint,network,txt_path):
         parameters = checkpoint['parameters']
         parameters.actual_epoch = checkpoint['epoch']
         network.load_state_dict(checkpoint['state_dict'])
-        print(type(path_checkpoint))
-        print(type(checkpoint['epoch']))
-        print((path_checkpoint))
-        print((checkpoint['epoch']))
         with open(txt_path, 'a') as txtfile:
             txtfile.write("=> loaded checkpoint '{}' (epoch {})" +
-                          str(format(path_checkpoint, checkpoint['epoch'])) + "\n")
+                          str(format(path_checkpoint, str(checkpoint['epoch']))) + "\n")
     else:
         with open(txt_path, 'a') as txtfile:
             txtfile.write("=> no checkpoint found at '{}'" + str(format(path_checkpoint)) + "\n")
