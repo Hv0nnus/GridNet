@@ -225,8 +225,8 @@ def train(parameters,network,train_loader,val_loader):
             # Similar to a "print" but in a textfile
             with open(txt_path, 'a') as txtfile:
                 txtfile.write("\nEpoch : "+str(epoch)+". Batch : "+str(i)+".\nLast loss : "+str(loss.data[0])+ "\n" +
-                              "Time batch : " + str(time.time() - timer_batch) +
-                              ". Time total batch : " + str(time.time() - timer_epoch)+"\n \n")
+                              "Time batch : " + Save_import.Time_to_string(time.time() - timer_batch) +
+                              ". Time total batch : " + Save_import.Time_to_string(time.time() - timer_epoch)+"\n \n")
 
             timer_batch = time.time()
             if(i == 2):
@@ -238,13 +238,9 @@ def train(parameters,network,train_loader,val_loader):
         # Save the error of the validation Dataset
         for i,(x_val_batch, y_val_batch) in enumerate(val_loader):
             x_val_batch, y_val_batch = Variable(x_val_batch), Variable(y_val_batch)
-            with open(txt_path, 'a') as txtfile:
-                txtfile.write("import done" +str(time.time() - timer_batch) + "\n")
 
             validation_error += Save_import.save_error(x = x_val_batch,y = y_val_batch,network = network,epoch = epoch,
                                                        set_type = "validation", parameters = parameters)
-            with open(txt_path, 'a') as txtfile:
-                txtfile.write("save done" + str(time.time() - timer_batch) + "\n") 
 
         # Divise by the the number of element in the entire batch
         validation_error = validation_error/(i+1)
@@ -261,11 +257,12 @@ def train(parameters,network,train_loader,val_loader):
         with open(txt_path, 'a') as txtfile:
             txtfile.write("\n              End of Epoch :" + str(epoch) + "/" + str(parameters.epoch_total - 1) +
                           ". Validation Loss : " + str(validation_error) + ".\nTime Epoch :" +
-                          str(time.time() - timer_epoch) + ". Time total : " + str(time.time() - timer_init)+"\n \n")
+                          Save_import.Time_to_string(time.time() - timer_epoch) + ". Time total : " +
+                          Save_import.Time_to_string(time.time() - timer_init)+"\n \n")
 
     # Similar to a "print" but in a textfile
     with open(txt_path, 'a') as txtfile:
-        txtfile.write("Finish. Total time : " + str((time.time() - timer_init)) + "\n")
+        txtfile.write("Finish. Total time : " + Save_import.Time_to_string(time.time() - timer_init) + "\n")
     
     return()
 

@@ -126,6 +126,7 @@ def save_checkpoint(state, filename='checkpoint.pth.tar'):
 
 """
 def load_from_checkpoint(path_checkpoint,network,txt_path):
+    path_checkpoint = str(path_checkpoint)
     if (os.path.isfile(path_checkpoint)):
         with open(txt_path, 'a') as txtfile:
             txtfile.write("=> loading checkpoint "+str(format(path_checkpoint)) +  "\n")
@@ -308,3 +309,10 @@ def checkpoint(validation_error,validation_error_min,index_save_best,
         
     return(validation_error_min,index_save_best,index_save_regular)
 
+def Time_to_string(time):
+    q,s = divmod(time,60)
+    q,s = round(q),round(s,2)
+    q,m = divmod(q,60)
+    q,h = divmod(q,60)
+    q,j = divmod(q,24)
+    return("Jours:" + str(j) + " Heures:" + str(h) + " Minutes:" + str(m) + " Secondes:" + str(s))
