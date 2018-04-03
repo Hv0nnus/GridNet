@@ -374,6 +374,6 @@ def main(path_continue_learning = None, total_epoch = 0, parameters = parameters
 
 # Check if there is argument
 if(len(sys.argv) == 3):
-    main(path_continue_learning = sys.argv[1], total_epoch = sys.argv[2], parameters = parameters)
+    main(path_continue_learning = sys.argv[1], total_epoch = int(sys.argv[2]), parameters = parameters)
 if(len(sys.argv) == 1):
     main(parameters = parameters)
