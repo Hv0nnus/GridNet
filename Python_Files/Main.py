@@ -11,10 +11,6 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torchvision import datasets, transforms
 from torch.autograd import Variable
-#from torch.utils import data
-
-
-# In[2]:
 
 #cuda related package
 import torch.cuda
@@ -42,7 +38,7 @@ import Loss_Error
 
 # The information about the actual state of the execution is store in Python_print.txt
 txt_path = "/home_expes/kt82128h/GridNet/Python_Files/Python_print.txt"
-#txt_path = "Python_print.txt"
+txt_path = "Python_print.txt"
 with open(txt_path, 'w') as txtfile:
             txtfile.write('\n               Start of the program \n')
 print('foo',flush=True) 
@@ -226,11 +222,10 @@ def train(parameters,network,train_loader,val_loader):
             with open(txt_path, 'a') as txtfile:
                 txtfile.write("\nEpoch : "+str(epoch)+". Batch : "+str(i)+".\nLast loss : "+str(loss.data[0])+ "\n" +
                               "Time batch : " + Save_import.Time_to_string(time.time() - timer_batch) +
-                              ". Time total batch : " + Save_import.Time_to_string(time.time() - timer_epoch)+"\n \n")
+                              ".\n Time total batch : " + Save_import.Time_to_string(time.time() - timer_epoch)+"\n \n")
 
             timer_batch = time.time()
-            if(i == 2):
-                break
+            break
 
         # Validation_error contains the error on the validation set
         validation_error = 0
@@ -275,14 +270,14 @@ label_name = {'Real_name' : ["road","sidewalk","building","wall","fence","pole",
 label_DF = pd.DataFrame(data=label_name)
  
 # Define all the parameters
-parameters = Parameters(nColumns = 3,
-                            nFeatMaps = [3,6,12],
+parameters = Parameters(nColumns = 2,
+                            nFeatMaps = [3,6],
                             nFeatureMaps_init = 3,
                             number_classes = 20-1,
                             label_DF = label_DF,
 
                             width_image_initial = 2048, height_image_initial = 1024,
-                            width_image_crop = 353, height_image_crop = 353,
+                            width_image_crop = 5, height_image_crop = 353,
 
                             dropFactor = 0.1,
                             learning_rate=0.01,
@@ -293,14 +288,14 @@ parameters = Parameters(nColumns = 3,
                             # taille memoire : a = 155000 b = 1810000
                             batch_size = 5,
                             batch_size_val = 10,
-                            epoch_total = 2,
+                            epoch_total = 20,
                             actual_epoch = 0,
 
-                            path_save_net = "/home_expes/kt82128h/GridNet/Python_Files/Model/",
+                            #path_save_net = "/home_expes/kt82128h/GridNet/Python_Files/Model/",
                             name_network = "test",
                             train_number = 0,
-                            path_CSV = "/home_expes/kt82128h/GridNet/Python_Files/CSV/",
-                            path_data = "/home_expes/collections/Cityscapes/",
+                            #path_CSV = "/home_expes/kt82128h/GridNet/Python_Files/CSV/",
+                            #path_data = "/home_expes/collections/Cityscapes/",
                             num_workers = 0)
 
 """ Main programme : Train the network and save CSV files for the error and also save the network regulary
@@ -320,7 +315,7 @@ def main(path_continue_learning = None, total_epoch = 0, parameters = parameters
         #transforms.RandomResizedCrop(5, scale=(0.2, 0.37), ratio=(0.75, 1.3333333333333333)),
         # TODO choisir laquel des deux solution
         # Autre option, pas de ratio car cela n a pas de sens de deformer l image
-        transforms.RandomResizedCrop(353, scale=(0.39, 0.5), ratio=(1,1)),
+        transforms.RandomResizedCrop(parameters.width_image_crop, scale=(0.39, 0.5), ratio=(1,1)),
         #transforms.RandomSizedCrop(parameters.width_image_crop),
         transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
@@ -329,7 +324,7 @@ def main(path_continue_learning = None, total_epoch = 0, parameters = parameters
     transform_target = transforms.Compose([
         #transforms.CenterCrop(parameters.width_image_crop),
         #transforms.RandomResizedCrop(5, 5, scale=(0.2, 0.37), ratio=(0.75, 1.3333333333333333),
-        transforms.RandomResizedCrop(353, scale=(0.39, 0.5), ratio=(1, 1),
+        transforms.RandomResizedCrop(parameters.width_image_crop, scale=(0.39, 0.5), ratio=(1, 1),
                                      interpolation= Image.NEAREST),
         #transforms.RandomSizedCrop(parameters.width_image_crop),
         transforms.RandomHorizontalFlip(),
