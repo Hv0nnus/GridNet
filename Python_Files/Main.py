@@ -42,10 +42,10 @@ import Loss_Error
 
 # The information about the actual state of the execution is store in Python_print.txt
 txt_path = "/home_expes/kt82128h/GridNet/Python_Files/Python_print.txt"
-txt_path = "Python_print.txt"
+#txt_path = "Python_print.txt"
 with open(txt_path, 'w') as txtfile:
             txtfile.write('\n               Start of the program \n')
-
+print('foo',flush=True) 
 # # Commentaire pour la suite (TODO)
 
 
@@ -229,24 +229,23 @@ def train(parameters,network,train_loader,val_loader):
                               ". Time total batch : " + str(time.time() - timer_epoch)+"\n \n")
 
             timer_batch = time.time()
-            break
+
         # Validation_error contains the error on the validation set
         validation_error = 0
 
         # Save the error of the validation Dataset
         for i,(x_val_batch, y_val_batch) in enumerate(val_loader):
             x_val_batch, y_val_batch = Variable(x_val_batch), Variable(y_val_batch)
+            with open(txt_path, 'a') as txtfile:
+                txtfile.write("import done" +str(time.time() - timer_batch) + "\n")
+
             validation_error += Save_import.save_error(x = x_val_batch,y = y_val_batch,network = network,epoch = epoch,
                                                        set_type = "validation", parameters = parameters)
+            with open(txt_path, 'a') as txtfile:
+                txtfile.write("save done" + str(time.time() - timer_batch) + "\n") 
 
         # Divise by the the number of element in the entire batch
         validation_error = validation_error/(i+1)
-
-        # Similar to a "print" but in a textfile
-        with open(txt_path,'a') as txtfile:
-            txtfile.write("temps necessaire pour effectuer la validation sur toutes les donne : "+str(time.time-timer_batch))
-
-        time_before_save = time.time()
 
         # checkpoint will save the network if needed
         validation_error_min,index_save_best,index_save_regular = Save_import.checkpoint(validation_error,
@@ -255,10 +254,6 @@ def train(parameters,network,train_loader,val_loader):
                                                                                          index_save_regular,
                                                                                          epoch,network,parameters,
                                                                                          txt_path)
-
-        # Similar to a "print" but in a textfile
-        with open(txt_path,'a') as txtfile:
-            txtfile.write("temps necessaire pour effectuer la sauvegarde sur toutes les donne : "+str(time.time-time_before_save))
                     
         # Similar to a "print" but in a textfile
         with open(txt_path, 'a') as txtfile:
@@ -281,8 +276,8 @@ label_name = {'Real_name' : ["road","sidewalk","building","wall","fence","pole",
 label_DF = pd.DataFrame(data=label_name)
  
 # Define all the parameters
-parameters = Parameters(nColumns = 2,
-                            nFeatMaps = [3,6],
+parameters = Parameters(nColumns = 3,
+                            nFeatMaps = [3,6,12],
                             nFeatureMaps_init = 3,
                             number_classes = 20-1,
                             label_DF = label_DF,
@@ -298,8 +293,8 @@ parameters = Parameters(nColumns = 2,
                             epsilon = 1*10**(-8),
                             # taille memoire : a = 155000 b = 1810000
                             batch_size = 5,
-                            batch_size_val = 5,
-                            epoch_total = 4,
+                            batch_size_val = 10,
+                            epoch_total = 2,
                             actual_epoch = 0,
 
                             path_save_net = "/home_expes/kt82128h/GridNet/Python_Files/Model/",
@@ -326,8 +321,8 @@ def main(path_continue_learning = None, total_epoch = 0, parameters = parameters
         #transforms.RandomResizedCrop(5, scale=(0.2, 0.37), ratio=(0.75, 1.3333333333333333)),
         # TODO choisir laquel des deux solution
         # Autre option, pas de ratio car cela n a pas de sens de deformer l image
-        #transforms.RandomResizedCrop(5, scale=(0.763, 0.5), ratio=(1,1)),
-        transforms.RandomSizedCrop(parameters.width_image_crop),
+        transforms.RandomResizedCrop(353, scale=(0.39, 0.5), ratio=(1,1)),
+        #transforms.RandomSizedCrop(parameters.width_image_crop),
         transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
     ])
@@ -335,9 +330,9 @@ def main(path_continue_learning = None, total_epoch = 0, parameters = parameters
     transform_target = transforms.Compose([
         #transforms.CenterCrop(parameters.width_image_crop),
         #transforms.RandomResizedCrop(5, 5, scale=(0.2, 0.37), ratio=(0.75, 1.3333333333333333),
-        #transforms.RandomResizedCrop(5, scale=(0.763, 0.5), ratio=(1, 1),
-        #                             interpolation= Image.NEAREST),
-        transforms.RandomSizedCrop(parameters.width_image_crop),
+        transforms.RandomResizedCrop(353, scale=(0.39, 0.5), ratio=(1, 1),
+                                     interpolation= Image.NEAREST),
+        #transforms.RandomSizedCrop(parameters.width_image_crop),
         transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
     ])
