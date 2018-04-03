@@ -165,9 +165,8 @@ def colorize_mask(mask):
 # In[2]:
 
 def make_dataset(quality, mode,parameters):
-    assert (quality == 'fine' and mode in ['train', 'val']) \
+    assert (quality == 'fine' and mode in ['train', 'val','test']) \
     or (quality == 'coarse' and mode in ['train', 'train_extra', 'val'])
-    mode = "train/"
     if quality == 'coarse':
         img_dir_name = '/leftImg8bit'
         mask_path = os.path.join(parameters.path_data, 'gtCoarse', mode)

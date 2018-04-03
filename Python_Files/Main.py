@@ -1,11 +1,8 @@
-
 # coding: utf-8
 
 # # Package
 
-# In[1]:
-
-#Torch related package
+# Torch related package
 from __future__ import print_function
 import argparse
 import torch
@@ -22,10 +19,6 @@ from torch.autograd import Variable
 #cuda related package
 import torch.cuda
 import torch.backends.cudnn as cudnn
-print(torch.backends.cudnn.version())
-
-
-# In[3]:
 
 # Other package
 import time
@@ -42,31 +35,23 @@ import sys
 import random
 import math
 
-
-
-# In[5]:
-
+# Other python program
 import GridNet_structure
 import Save_import
 import Loss_Error
 
+# The information about the actual state of the execution is store in Python_print.txt
 txt_path = "/home_expes/kt82128h/GridNet/Python_Files/Python_print.txt"
 txt_path = "Python_print.txt"
-
 with open(txt_path, 'w') as txtfile:
             txtfile.write('\n               Start of the program \n')
 
 # # Commentaire pour la suite (TODO)
 
-# On peut enlever le biais dans les convolutions avant la normalisation
-# 
-# Le diminution de la taille des images pas clair cette division par deux....
-# 
+
+#
 # Change la fonction de cout, lien entre fonction de cout et de perte ?
-# 
-# 
-# Il faut enlever les biais quand il y a une batch normalisation apres
-# 
+#
 # Verifier ce qu est la mesure de test IoU
 # 
 # Mettre des commentaire
@@ -94,11 +79,10 @@ with open(txt_path, 'w') as txtfile:
 # 
 # Faire les tests sur la base de tests
 # 
-# Taille en octet de ce que j'importe et du réseau 
-# # Code
+# Taille en octet de ce que j'importe et du réseau
 
-# In[7]:
-
+# Parameters contains many information usefull for the training
+# It is really usefull to just Parameters as argument to the other function
 class Parameters():
     def __init__(self,
                  # Number of columns of the grid
@@ -128,7 +112,7 @@ class Parameters():
                  # Size of the mini batch
                  batch_size = 2,
                  # Size of the mini batch to compute error (if the entire validation set cannot be in loaded)
-                 batch_size_val = 10,
+                 batch_size_val = 5,
                  # Maximum value of epoch iteration
                  epoch_total = 10,
                  # The actual epoch is not null if we train the network which has already been train
@@ -237,6 +221,8 @@ def train(parameters,network,train_loader,val_loader):
             #Save error of the training Dataset
             Save_import.save_error(x = x_batch,y = y_batch, network = network,epoch = epoch, set_type = "train",
                                    parameters = parameters)
+
+            # Similar to a "print" but in a textfile
             with open(txt_path, 'a') as txtfile:
                 txtfile.write("\nEpoch : "+str(epoch)+". Batch : "+str(i)+".\nLast loss : "+str(loss.data[0])+ "\n" +
                               "Time batch : " + str(time.time() - timer_batch) +
@@ -255,9 +241,13 @@ def train(parameters,network,train_loader,val_loader):
 
         # Divise by the the number of element in the entire batch
         validation_error = validation_error/(i+1)
+
+        # Similar to a "print" but in a textfile
         with open(txt_path,'a') as txtfile:
             txtfile.write("temps necessaire pour effectuer la validation sur toutes les donne : "+str(time.time-timer_batch))
+
         time_before_save = time.time()
+
         # checkpoint will save the network if needed
         validation_error_min,index_save_best,index_save_regular = Save_import.checkpoint(validation_error,
                                                                                          validation_error_min,
@@ -265,23 +255,24 @@ def train(parameters,network,train_loader,val_loader):
                                                                                          index_save_regular,
                                                                                          epoch,network,parameters,
                                                                                          txt_path)
+
+        # Similar to a "print" but in a textfile
         with open(txt_path,'a') as txtfile:
             txtfile.write("temps necessaire pour effectuer la sauvegarde sur toutes les donne : "+str(time.time-time_before_save))
                     
+        # Similar to a "print" but in a textfile
         with open(txt_path, 'a') as txtfile:
             txtfile.write("\n              End of Epoch :" + str(epoch) + "/" + str(parameters.epoch_total - 1) +
                           ". Validation Loss : " + str(validation_error) + ".\nTime Epoch :" +
                           str(time.time() - timer_epoch) + ". Time total : " + str(time.time() - timer_init)+"\n \n")
 
-
+    # Similar to a "print" but in a textfile
     with open(txt_path, 'a') as txtfile:
         txtfile.write("Finish. Total time : " + str((time.time() - timer_init)) + "\n")
     
     return()
 
-
-# In[13]:
-
+# Define the Label with a DataFrame type
 label_name = {'Real_name' : ["road","sidewalk","building","wall","fence","pole","traffic light","traffic sign",
                              "vegetation","terrain","sky","person","rider","car","truck","bus","train","motorcycle",
                              "bicycle","autre"],
@@ -289,7 +280,7 @@ label_name = {'Real_name' : ["road","sidewalk","building","wall","fence","pole",
 
 label_DF = pd.DataFrame(data=label_name)
  
-
+# Define all the parameters
 parameters = Parameters(nColumns = 2,
                             nFeatMaps = [3,6],
                             nFeatureMaps_init = 3,
@@ -318,9 +309,12 @@ parameters = Parameters(nColumns = 2,
                             path_data = "/home_expes/collections/Cityscapes/",
                             num_workers = 0)
 
-
-# In[10]:
-
+""" Main programme : Train the network and save CSV files for the error and also save the network regulary
+    (0) = path_continue_learning : Path were the network is already saved
+                                   (don t use if it is the begining of the tranning)
+    (1) = total_epoch : Number of epoch needed don t use if it is the begining of the tranning)
+    (2) = parameters : List of parameters
+"""
 def main(path_continue_learning = None, total_epoch = 0, parameters = parameters):
     
     #Transformation that will be apply on the data just after the import
@@ -364,6 +358,7 @@ def main(path_continue_learning = None, total_epoch = 0, parameters = parameters
     network = GridNet_structure.gridNet(nInputs = parameters.nFeatureMaps_init,nOutputs = parameters.number_classes,
                       nColumns = parameters.nColumns,nFeatMaps = parameters.nFeatMaps, dropFactor = parameters.dropFactor)
 
+    # If the network was already train we import it
     if(path_continue_learning is not None):
         # Load the trained Network
         parameters = Save_import.load_from_checkpoint(
@@ -373,6 +368,7 @@ def main(path_continue_learning = None, total_epoch = 0, parameters = parameters
         # Here we can change some parameters
         parameters.epoch_total = total_epoch
 
+    # If the network was not train we start from scratch
     else:
         #Init the csv file that will store the error
         Save_import.init_csv(name_network = parameters.name_network, train_number = parameters.train_number,
@@ -382,7 +378,8 @@ def main(path_continue_learning = None, total_epoch = 0, parameters = parameters
     train(network = network, parameters = parameters, train_loader = train_loader, val_loader = val_loader)
 
 
+# Check if there is argument
 if(len(sys.argv) == 3):
     main(path_continue_learning = sys.argv[1], total_epoch = sys.argv[2], parameters = parameters)
 if(len(sys.argv) == 1):
-    main()
+    main(parameters = parameters)
