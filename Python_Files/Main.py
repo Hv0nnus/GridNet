@@ -229,6 +229,8 @@ def train(parameters,network,train_loader,val_loader):
                               ". Time total batch : " + str(time.time() - timer_epoch)+"\n \n")
 
             timer_batch = time.time()
+            if(i == 2):
+                break
 
         # Validation_error contains the error on the validation set
         validation_error = 0
