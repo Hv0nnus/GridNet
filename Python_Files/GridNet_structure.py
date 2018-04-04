@@ -1,6 +1,7 @@
 # coding: utf-8
 
 import torch.nn as nn
+import torch
 import random
 
 
@@ -348,5 +349,9 @@ class gridNet(nn.Module):
                                                                  "_" + str(j))(X[i + 1][j]))
 
         x_final = self.lastConv(X[0][self.nColumns - 1])
+
+        if torch.cuda.is_available():
+            with open("/home_expes/kt82128h/GridNet/Python_Files/Python_print.txt", 'w') as txtfile:
+                txtfile.write("\n  In Model: input size" + x.size() + "output size" + x_final.size() + "\n")
 
         return x_final
