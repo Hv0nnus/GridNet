@@ -3,7 +3,7 @@
 # Torch related package
 from __future__ import print_function
 import torch
-from torchvision import datasets, transforms
+from torchvision import transforms
 from torch.autograd import Variable
 
 # cuda related package
@@ -94,21 +94,28 @@ def test_dataset(path_learning=None, parameters=parameters):
     ])
 
     # Import both dataset with the transformation
-    test_dataset = Save_import.CityScapes_final('fine', 'train', transform=transform,parameters=parameters)
+    test_dataset = Save_import.CityScapes_final('fine', 'train',
+                                                transform=transform,
+                                                parameters=parameters)
 
     # Creat the DataSet for pytorch used
-    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=parameters.batch_size, shuffle=True,
-                                               num_workers=parameters.num_workers, drop_last=False)
+    test_loader = torch.utils.data.DataLoader(test_dataset,
+                                              batch_size=parameters.batch_size,
+                                              shuffle=True,
+                                              num_workers=parameters.num_workers,
+                                              drop_last=False)
 
     # Define the GridNet
-    network = GridNet_structure.gridNet(nInputs=parameters.nFeatureMaps_init, nOutputs=parameters.number_classes,
-                                        nColumns=parameters.nColumns, nFeatMaps=parameters.nFeatMaps,
+    network = GridNet_structure.gridNet(nInputs=parameters.nFeatureMaps_init,
+                                        nOutputs=parameters.number_classes,
+                                        nColumns=parameters.nColumns,
+                                        nFeatMaps=parameters.nFeatMaps,
                                         dropFactor=parameters.dropFactor)
 
     # Load the trained Network
     parameters = Save_import.load_from_checkpoint(
         path_checkpoint=parameters.path_save_net + path_learning,
-        network=network, txt_path=txt_path)
+        network=network, txt_path=parameters.path_print)
 
     # How many image per loop of test
     parameters.batch_size = 10

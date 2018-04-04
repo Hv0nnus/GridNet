@@ -38,14 +38,16 @@ def init_csv(path_CSV, name_network, train_number, path_print):
     
     # Try to open the file and write the header
     with open(path_CSV + "CSV_confMat_" + name_network + str(train_number) + ".csv", 'w') as csvfile:
-        cwriter = csv.writer(csvfile=csvfile,
+        cwriter = csv.writer(csvfile,
                              delimiter=',',
                              quoting=csv.QUOTE_MINIMAL)
         cwriter.writerow(header_confMat)
 
     # Try to open the file and write the header
     with open(path_CSV + "CSV_loss_" + name_network + str(train_number) + ".csv", 'w') as csvfile:
-        cwriter = csv.writer(csvfile, delimiter=',', quoting=csv.QUOTE_MINIMAL)
+        cwriter = csv.writer(csvfile,
+                             delimiter=',',
+                             quoting=csv.QUOTE_MINIMAL)
         cwriter.writerow(header_loss)
 
 
