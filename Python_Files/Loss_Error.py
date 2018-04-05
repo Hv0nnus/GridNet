@@ -104,8 +104,9 @@ def IoU_pd_format(y_estimated, y, set_type, epoch, parameters):
             i = cls1 * parameters.number_classes + cls2
 
             target_inds = target == cls2
+
             # Intersection is the value predicted of class cls2 and are in reality class cls1
-            intersection = (pred_inds * target_inds).long().sum().data.cpu()[0]
+            intersection = (pred_inds * target_inds).long().sum().data[0]
 
             # Traning or validation set
             confusion_matrix[i][0] = set_type

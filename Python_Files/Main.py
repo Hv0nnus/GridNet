@@ -112,9 +112,9 @@ def train(parameters, network, train_loader, val_loader):
             # Compute the forward function
             y_batch_estimated = network(x_batch)
             if torch.cuda.is_available():
-                with open("/home_expes/kt82128h/GridNet/Python_Files/Python_print.txt", 'w') as txtfile:
-                    txtfile.write("\n " "Outside: input size" + x_batch.size() +
-                                  "output_size" + y_batch_estimated.size() + "\n")
+                with open("/home_expes/kt82128h/GridNet/Python_Files/Python_print.txt", 'a') as txtfile:
+                    txtfile.write("\n " "Outside: input size" + str(x_batch.size()) +
+                                  "output_size" + str(y_batch_estimated.size()) + "\n")
 
             # Get the error
             loss = Loss_Error.criterion(y_batch_estimated, y_batch, parameters)
@@ -149,7 +149,10 @@ def train(parameters, network, train_loader, val_loader):
         # Save the error of the validation DataSet
         for i, (x_val_batch, y_val_batch) in enumerate(val_loader):
 
-            x_val_batch, y_val_batch = Variable(x_val_batch), Variable(y_val_batch)
+            if torch.cuda.is_available():
+                x_val_batch, y_val_batch = Variable(x_val_batch.cuda()), Variable(y_val_batch.cuda())
+            else:
+                x_val_batch, y_val_batch = Variable(x_val_batch), Variable(y_val_batch)
 
             validation_error += Save_import.save_error(x=x_val_batch, y=y_val_batch,
                                                        network=network,
@@ -196,14 +199,14 @@ def main(path_continue_learning=None, total_epoch=0):
     """
 
     # Define all the parameters
-    parameters = Parameters.Parameters(#nColumns=6,
-                                       #nFeatMaps=[3, 16, 32, 64, 128, 256],
+    parameters = Parameters.Parameters(nColumns=2,
+                                       nFeatMaps=[3,6],
                                        nFeatureMaps_init=3,
                                        number_classes=20 - 1,
                                        label_DF=Label.creat_label(),
 
                                        width_image_initial=2048, height_image_initial=1024,
-                                       size_image_crop=5,
+                                       size_image_crop=353,
 
                                        dropFactor=0.1,
                                        learning_rate=0.01,
@@ -218,12 +221,12 @@ def main(path_continue_learning=None, total_epoch=0):
                                        scale=(0.39, 0.5),
                                        ratio=(1, 1),
 
-                                       #path_save_net = "/home_expes/kt82128h/GridNet/Python_Files/Model/",
+                                       path_save_net = "/home_expes/kt82128h/GridNet/Python_Files/Model/",
                                        name_network="test",
                                        train_number=0,
-                                       #path_CSV = "/home_expes/kt82128h/GridNet/Python_Files/CSV/",
-                                       #path_data = "/home_expes/collections/Cityscapes/",
-                                       #path_print = "/home_expes/kt82128h/GridNet/Python_Files/Python_print.txt",
+                                       path_CSV = "/home_expes/kt82128h/GridNet/Python_Files/CSV/",
+                                       path_data = "/home_expes/collections/Cityscapes/",
+                                       path_print = "/home_expes/kt82128h/GridNet/Python_Files/Python_print.txt",
                                        num_workers=0)
 
     with open(parameters.path_print, 'w') as txtfile:
@@ -259,16 +262,20 @@ def main(path_continue_learning=None, total_epoch=0):
                                         dropFactor=parameters.dropFactor)
 
     if torch.cuda.device_count() > 1:
-        with open(parameters.path_print, 'w') as txtfile:
-            txtfile.write("\nLet's use" + torch.cuda.device_count() + "GPUs! \n")
+        with open(parameters.path_print, 'a') as txtfile:
+            txtfile.write("\nLet's use" + str(torch.cuda.device_count()) + "GPUs! \n")
         # dim = 0 [30, xxx] -> [10, ...], [10, ...], [10, ...] on 3 GPUs
         network = torch.nn.DataParallel(network)
     else:
-        with open(parameters.path_print, 'w') as txtfile:
+        with open(parameters.path_print, 'a') as txtfile:
             txtfile.write("\n We can t use cuda here \n")
 
     if torch.cuda.is_available():
         network.cuda()
+    else:
+        with open(parameters.path_print, 'a') as txtfile:
+            txtfile.write("\n according to torch cuda is not avalable \n")
+
 
     # If the network was already train we import it
     if path_continue_learning is not None:
