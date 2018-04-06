@@ -140,8 +140,6 @@ def train(parameters, network, train_loader, val_loader):
                     ".\n Time total batch : " + Save_import.time_to_string(time.time() - timer_epoch) + "\n \n")
 
             timer_batch = time.time()
-            if(i>1):
-                break
 
         # Validation_error contains the error on the validation set
         validation_error = 0
@@ -159,8 +157,6 @@ def train(parameters, network, train_loader, val_loader):
                                                        epoch=epoch,
                                                        set_type="validation",
                                                        parameters=parameters)
-            if(i>0):
-                break
 
         # Divide by the the number of element in the entire batch
         validation_error /= i + 1
@@ -199,14 +195,14 @@ def main(path_continue_learning=None, total_epoch=0):
     """
 
     # Define all the parameters
-    parameters = Parameters.Parameters(nColumns=2,
-                                       nFeatMaps=[3,6],
+    parameters = Parameters.Parameters(nColumns=6,
+                                       nFeatMaps=[8,16,32,64,128],
                                        nFeatureMaps_init=3,
                                        number_classes=20 - 1,
                                        label_DF=Label.creat_label(),
 
                                        width_image_initial=2048, height_image_initial=1024,
-                                       size_image_crop=353,
+                                       size_image_crop=385,
 
                                        dropFactor=0.1,
                                        learning_rate=0.01,
@@ -214,15 +210,15 @@ def main(path_continue_learning=None, total_epoch=0):
                                        beta1=0.9,
                                        beta2=0.999,
                                        epsilon=1 * 10 ** (-8),
-                                       batch_size=6,
-                                       batch_size_val=6,
-                                       epoch_total=3,
+                                       batch_size=56,
+                                       batch_size_val=56,
+                                       epoch_total=10,
                                        actual_epoch=0,
                                        scale=(0.39, 0.5),
                                        ratio=(1, 1),
 
-                                       path_save_net = "/home_expes/kt82128h/GridNet/Python_Files/Model/",
-                                       name_network="test",
+                                       path_save_net ="/home_expes/kt82128h/GridNet/Python_Files/Model/",
+                                       name_network="LongTest",
                                        train_number=0,
                                        path_CSV = "/home_expes/kt82128h/GridNet/Python_Files/CSV/",
                                        path_data = "/home_expes/collections/Cityscapes/",

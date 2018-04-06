@@ -6,7 +6,7 @@ import random
 
 
 class firstConv(nn.Module):
-    def __init__(self, nInputs):
+    def __init__(self, nInputs,nOutputs):
         """
         This is the first convolution used to enter into the grid.
         :param nInputs: number of features map for the input which is also the same for the output
@@ -28,7 +28,7 @@ class firstConv(nn.Module):
 
         self.ReLU1 = nn.ReLU()
 
-        self.conv2 = nn.Conv2d(in_channels=nInputs, out_channels=nInputs,
+        self.conv2 = nn.Conv2d(in_channels=nInputs, out_channels=nOutputs,
                                kernel_size=(3, 3),
                                stride=(1, 1),
                                padding=(1, 1),
@@ -266,7 +266,7 @@ class gridNet(nn.Module):
                                                affine=True)
 
         # The first convolution before entering into the grid.
-        self.firstConv = firstConv(nInputs=nInputs)
+        self.firstConv = firstConv(nInputs=nInputs,nOutputs=nFeatMaps[0])
 
         # We create the Grid. We will creat conv and sub/up sequences with different name.
         # The name is : "sequenceName" + starting position of the sequence(i,j) + "to" + ending position (k,l)
