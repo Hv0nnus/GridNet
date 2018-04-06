@@ -29,7 +29,8 @@ def init_csv(path_CSV, name_network, train_number, path_print):
     # Stop the program if the CSV file already exist
     if exists(path_CSV + "CSV_confMat_" + name_network + str(train_number) + ".csv"):
         with open(path_print, 'a') as txtfile:
-            txtfile.write("Ici il faudra faire arreter le programme ! On ecrase les fichiers ! \n")
+            txtfile.write("We don t want to delete the files that already exist \n")
+            raise RuntimeError('We don t want to delete the files that already exist')
         # TODO ici il faudra faire arreter le programme !
     
     # header of the futur Pandas DataFrames

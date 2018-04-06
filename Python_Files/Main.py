@@ -212,7 +212,7 @@ def main(path_continue_learning=None, total_epoch=0):
                                        epsilon=1 * 10 ** (-8),
                                        batch_size=56,
                                        batch_size_val=56,
-                                       epoch_total=10,
+                                       epoch_total=450,
                                        actual_epoch=0,
                                        scale=(0.39, 0.5),
                                        ratio=(1, 1),
