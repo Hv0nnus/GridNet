@@ -214,8 +214,8 @@ def main(path_continue_learning=None, total_epoch=0):
                                        beta1=0.9,
                                        beta2=0.999,
                                        epsilon=1 * 10 ** (-8),
-                                       batch_size=5,
-                                       batch_size_val=5,
+                                       batch_size=6,
+                                       batch_size_val=6,
                                        epoch_total=3,
                                        actual_epoch=0,
                                        scale=(0.39, 0.5),
@@ -263,19 +263,18 @@ def main(path_continue_learning=None, total_epoch=0):
 
     if torch.cuda.device_count() > 1:
         with open(parameters.path_print, 'a') as txtfile:
-            txtfile.write("\nLet's use" + str(torch.cuda.device_count()) + "GPUs! \n")
+            txtfile.write("\nLet's use " + str(torch.cuda.device_count()) + " GPUs! \n")
         # dim = 0 [30, xxx] -> [10, ...], [10, ...], [10, ...] on 3 GPUs
         network = torch.nn.DataParallel(network)
     else:
         with open(parameters.path_print, 'a') as txtfile:
-            txtfile.write("\n We can t use cuda here \n")
+            txtfile.write("\n We can t use Cuda here \n")
 
     if torch.cuda.is_available():
         network.cuda()
     else:
         with open(parameters.path_print, 'a') as txtfile:
-            txtfile.write("\n according to torch cuda is not avalable \n")
-
+            txtfile.write("\n according to torch Cuda is not available \n")
 
     # If the network was already train we import it
     if path_continue_learning is not None:
