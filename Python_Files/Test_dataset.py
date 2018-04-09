@@ -8,11 +8,9 @@ from torch.autograd import Variable
 
 # cuda related package
 import torch.cuda
-import torch.backends.cudnn as cudnn
 
 # Other package
 import time
-import pandas as pd
 import sys
 
 # Other python files
