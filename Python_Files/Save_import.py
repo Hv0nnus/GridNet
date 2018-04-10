@@ -14,6 +14,7 @@ import random
 
 # Own python program
 import Loss_Error
+import GridNet_structure
 
 
 def init_csv(path_CSV, name_network, train_number, path_print):
@@ -101,7 +102,7 @@ def save_checkpoint(state, filename='checkpoint.pth.tar'):
     torch.save(state, filename)
 
 
-def load_from_checkpoint(path_checkpoint, network, path_print):
+def load_from_checkpoint(path_checkpoint):
     """
     :param path_checkpoint: path to load the network and the parameters
     :param network: network architecture that will will be updated with all the weights
@@ -113,10 +114,6 @@ def load_from_checkpoint(path_checkpoint, network, path_print):
     # If the file exist we import the Data
     if os.path.isfile(path_checkpoint):
 
-        # Show that the file will be loaded
-        with open(path_print, 'a') as txtfile:
-            txtfile.write("=> loading checkpoint " + str(format(path_checkpoint)) + "\n")
-
         # Load the structure
         checkpoint = torch.load(path_checkpoint)
 
@@ -127,18 +124,18 @@ def load_from_checkpoint(path_checkpoint, network, path_print):
         parameters.actual_epoch = checkpoint['epoch']
 
         # Load the weight
+        network = GridNet_structure.gridNet(nInputs=parameters.nFeatureMaps_init,nOutputs=parameters.number_classes,nColumns=parameters.nColumns,nFeatMaps=parameters.nFeatMaps, dropFactor=parameters.dropFactor)
         network.load_state_dict(checkpoint['state_dict'])
 
         # Show that the file as been loaded correctly
-        with open(path_print, 'a') as txtfile:
+        with open(parameters.path_print, 'a') as txtfile:
             txtfile.write("=> loaded checkpoint '{}' (epoch {})" +
                           str(format(path_checkpoint, str(checkpoint['epoch']))) + "\n")
-        return parameters
+        return parameters, network
 
     # If there is no file, print an error
     else:
-        with open(path_print, 'a') as txtfile:
-            txtfile.write("=> no checkpoint found at '{}'" + str(format(path_checkpoint)) + "\n")
+        raise ValueError('Not file to load here')
         return ()
 
 
@@ -181,13 +178,9 @@ def make_dataset(quality, mode, parameters, only_image):
     items = []
     image_names = []
     categories = os.listdir(img_path)
-    print(img_path)
     for c in categories:
         c_items = [name.split('_leftImg8bit.png')[0] for name in os.listdir(os.path.join(img_path, c))]
-        print(c)
-        print(c_items)
         for it in c_items:
-            print(it)
             if not only_image:
                 item = (os.path.join(img_path, c, it + '_leftImg8bit.png'), os.path.join(mask_path, c, it + mask_postfix))
             else:

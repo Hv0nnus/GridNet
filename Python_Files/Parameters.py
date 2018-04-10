@@ -118,6 +118,7 @@ class Parameters():
             transforms.ToTensor(),
         ])
         self.transforms_test = transforms.Compose([
+            transforms.RandomResizedCrop(size_image_crop, scale=scale, ratio=ratio),
             transforms.ToTensor(),
         ])
 

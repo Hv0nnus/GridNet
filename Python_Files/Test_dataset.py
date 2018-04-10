@@ -13,6 +13,7 @@ import torch.cuda
 import time
 import sys
 import numpy as np
+from PIL import Image
 
 # Other python files
 
@@ -49,17 +50,18 @@ def test_loop(parameters, network, test_loader, dataset):
         y_batch_estimated = torch.max(y_batch_estimated, dim=1)[1]
 
         # Convert into numpy array
-        y_batch_estimated = y_batch_estimated.numpy()
-        break
+        y_batch_estimated = y_batch_estimated.data.numpy()
+
         # Save numpy array
-        for index_image in range(y_batch_estimated.size(0)):
-            np.savetxt("./Result/" + dataset + img_path[index_image], y_batch_estimated, fmt='%d')
+        for index_image in range(y_batch_estimated.shape[0]):
+            im = Image.fromarray(y_batch_estimated[index_image,:,:].astype('uint8'))
+            im.save("./Result/" + dataset + "/" + img_path[index_image])
 
         # Change the color
-        size_y_batch = y_batch_estimated.size()
-        numpy_image = np.zeros((3, size_y_batch[1], size_y_batch[2]))
-        for index_image in range(size_y_batch(0)):
-            numpy_image[:, ] = [index_image]
+        #size_y_batch = y_batch_estimated.size()
+        #numpy_image = np.zeros((3, size_y_batch[1], size_y_batch[2]))
+        #for index_image in range(size_y_batch(0)):
+        #    numpy_image[:, ] = [index_image]
 
         with open(parameters.path_print, 'a') as txtfile:
             txtfile.write("Batch time : " + str(time.time() - timer_batch) + "\n")
@@ -72,33 +74,13 @@ def test_loop(parameters, network, test_loader, dataset):
 
 def main_test_dataset(path_learning=None, dataset='test'):
 
-    parameters = Parameters.Parameters(nColumns=2,
-                                       nFeatMaps=[3, 6],
-                                       nFeatureMaps_init=3,
-                                       number_classes=20 - 1,
-                                       label_DF=Label.create_label(),
+    
+    # Load the trained Network
+    parameters, network = Save_import.load_from_checkpoint(path_checkpoint=path_learning)
 
-                                       width_image_initial=2048, height_image_initial=1024,
-
-                                       dropFactor=0.1,
-                                       learning_rate=0.01,
-                                       weight_decay=5 * 10 ** (-6),
-                                       beta1=0.9,
-                                       beta2=0.999,
-                                       epsilon=1 * 10 ** (-8),
-
-                                       batch_size=5,
-                                       batch_size_val=5,
-                                       epoch_total=4,
-                                       actual_epoch=0,
-
-                                       # path_save_net="/home_expes/kt82128h/GridNet/Python_Files/Model/",
-                                       name_network="test",
-                                       train_number=0,
-                                       # path_CSV="/home_expes/kt82128h/GridNet/Python_Files/CSV/",
-                                       # path_data="/home_expes/collections/Cityscapes/",
-                                       num_workers=0)
-
+    # How many image per loop of test
+    parameters.batch_size = 1
+    
     # Import both dataset with the transformation
     test_dataset = Save_import.CityScapes_final('fine', dataset,
                                                 transform=parameters.transforms_test,
@@ -110,21 +92,6 @@ def main_test_dataset(path_learning=None, dataset='test'):
                                               shuffle=True,
                                               num_workers=parameters.num_workers,
                                               drop_last=False)
-
-    # Define the GridNet
-    network = GridNet_structure.gridNet(nInputs=parameters.nFeatureMaps_init,
-                                        nOutputs=parameters.number_classes,
-                                        nColumns=parameters.nColumns,
-                                        nFeatMaps=parameters.nFeatMaps,
-                                        dropFactor=parameters.dropFactor)
-
-    # Load the trained Network
-    parameters = Save_import.load_from_checkpoint(path_checkpoint=parameters.path_save_net + path_learning,
-                                                  network=network,
-                                                  path_print=parameters.path_print)
-
-    # How many image per loop of test
-    parameters.batch_size = 10
 
     # Train the network
     test_loop(network=network,
