@@ -97,7 +97,7 @@ def train(parameters, network, train_loader, val_loader):
         timer_batch = time.time()
 
         # Loop over the mini-batch, the size of the mini match is define in the train_loader
-        for i, (x_batch, y_batch) in enumerate(train_loader):
+        for i, (x_batch, y_batch, _) in enumerate(train_loader):
 
             # zero the gradient buffers
             optimizer.zero_grad()
@@ -137,7 +137,7 @@ def train(parameters, network, train_loader, val_loader):
                 txtfile.write(
                     "\nEpoch : " + str(epoch) + ". Batch : " + str(i) + ".\nLast loss : " + str(loss.data[0]) + "\n" +
                     "Time batch : " + Save_import.time_to_string(time.time() - timer_batch) +
-                    ".\n Time total batch : " + Save_import.time_to_string(time.time() - timer_epoch) + "\n \n")
+                    ".\nTime total batch : " + Save_import.time_to_string(time.time() - timer_epoch) + "\n \n")
 
             timer_batch = time.time()
 
@@ -145,7 +145,7 @@ def train(parameters, network, train_loader, val_loader):
         validation_error = 0
 
         # Save the error of the validation DataSet
-        for i, (x_val_batch, y_val_batch) in enumerate(val_loader):
+        for i, (x_val_batch, y_val_batch, _) in enumerate(val_loader):
 
             if torch.cuda.is_available():
                 x_val_batch, y_val_batch = Variable(x_val_batch.cuda()), Variable(y_val_batch.cuda())
@@ -176,7 +176,7 @@ def train(parameters, network, train_loader, val_loader):
             txtfile.write("\n              End of Epoch :" + str(epoch) + "/" + str(parameters.epoch_total - 1) +
                           ". Validation Loss : " + str(validation_error) +
                           ".\nTime Epoch :" + Save_import.time_to_string(time.time() - timer_epoch) +
-                          ".\n Time total : " + Save_import.time_to_string(time.time() - timer_init) +
+                          ".\nTime total : " + Save_import.time_to_string(time.time() - timer_init) +
                           ".\n \n")
 
     # Similar to a "print" but in a text file
@@ -195,14 +195,14 @@ def main(path_continue_learning=None, total_epoch=0):
     """
 
     # Define all the parameters
-    parameters = Parameters.Parameters(nColumns=6,
-                                       nFeatMaps=[8,16,32,64,128],
+    parameters = Parameters.Parameters(nColumns=2,
+                                       nFeatMaps=[3,6],
                                        nFeatureMaps_init=3,
                                        number_classes=20 - 1,
-                                       label_DF=Label.creat_label(),
+                                       label_DF=Label.create_label(),
 
                                        width_image_initial=2048, height_image_initial=1024,
-                                       size_image_crop=385,
+                                       size_image_crop=5,
 
                                        dropFactor=0.1,
                                        learning_rate=0.01,
@@ -212,17 +212,17 @@ def main(path_continue_learning=None, total_epoch=0):
                                        epsilon=1 * 10 ** (-8),
                                        batch_size=56,
                                        batch_size_val=56,
-                                       epoch_total=450,
+                                       epoch_total=2,
                                        actual_epoch=0,
                                        scale=(0.39, 0.5),
                                        ratio=(1, 1),
 
-                                       path_save_net ="/home_expes/kt82128h/GridNet/Python_Files/Model/",
-                                       name_network="LongTest",
+                                       #path_save_net ="/home_expes/kt82128h/GridNet/Python_Files/Model/",
+                                       name_network="Test",
                                        train_number=0,
-                                       path_CSV = "/home_expes/kt82128h/GridNet/Python_Files/CSV/",
-                                       path_data = "/home_expes/collections/Cityscapes/",
-                                       path_print = "/home_expes/kt82128h/GridNet/Python_Files/Python_print.txt",
+                                       #path_CSV = "/home_expes/kt82128h/GridNet/Python_Files/CSV/",
+                                       #path_data = "/home_expes/collections/Cityscapes/",
+                                       #path_print = "/home_expes/kt82128h/GridNet/Python_Files/Python_print.txt",
                                        num_workers=0)
 
     with open(parameters.path_print, 'w') as txtfile:

@@ -18,7 +18,6 @@ import Loss_Error
 
 def init_csv(path_CSV, name_network, train_number, path_print):
     """
-
     :param path_CSV: path to store the CSV files
     :param name_network: name of the network associated with the CSV files
     :param train_number: number of train associated with the CSV files
@@ -30,13 +29,13 @@ def init_csv(path_CSV, name_network, train_number, path_print):
     if exists(path_CSV + "CSV_confMat_" + name_network + str(train_number) + ".csv"):
         with open(path_print, 'a') as txtfile:
             txtfile.write("We don t want to delete the files that already exist \n")
-            raise RuntimeError('We don t want to delete the files that already exist')
-        # TODO ici il faudra faire arreter le programme !
-    
+            # raise RuntimeError('We don t want to delete the files that already exist')
+            # TODO ici il faudra faire arreter le programme !
+
     # header of the futur Pandas DataFrames
     header_confMat = ["Set", "Value", "Target", "Prediction", "Epoch"]
     header_loss = ["Value", "Set", "Epoch"]
-    
+
     # Try to open the file and write the header
     with open(path_CSV + "CSV_confMat_" + name_network + str(train_number) + ".csv", 'w') as csvfile:
         cwriter = csv.writer(csvfile,
@@ -52,8 +51,7 @@ def init_csv(path_CSV, name_network, train_number, path_print):
         cwriter.writerow(header_loss)
 
 
-
-def save_error(x,y,network,epoch,set_type,parameters):
+def save_error(x, y, network, epoch, set_type, parameters):
     """
     :param x: Input data of validation or training set
     :param y: Output data expected of validation or training set
@@ -66,7 +64,7 @@ def save_error(x,y,network,epoch,set_type,parameters):
 
     # Result of the network
     y_estimated = network(x)
-    
+
     # Compare the real result and the one of the network
     conf_mat = Loss_Error.IoU_pd_format(y_estimated=y_estimated,
                                         y=y,
@@ -76,7 +74,7 @@ def save_error(x,y,network,epoch,set_type,parameters):
 
     # Store the IoU confusion matrix into a CSV file
     with open(parameters.path_CSV + "CSV_confMat_" + parameters.name_network +
-              str(parameters.train_number) + ".csv", 'a') as csvfile:
+                      str(parameters.train_number) + ".csv", 'a') as csvfile:
         writer = csv.writer(csvfile, quoting=csv.QUOTE_NONNUMERIC)
         writer.writerows(conf_mat)
 
@@ -88,7 +86,7 @@ def save_error(x,y,network,epoch,set_type,parameters):
                                           parameters=parameters)
 
     with open(parameters.path_CSV + "CSV_loss_" + parameters.name_network +
-              str(parameters.train_number) + ".csv", 'a') as csvfile:
+                      str(parameters.train_number) + ".csv", 'a') as csvfile:
         writer = csv.writer(csvfile, quoting=csv.QUOTE_NONNUMERIC)
         writer.writerows([loss])
 
@@ -117,7 +115,7 @@ def load_from_checkpoint(path_checkpoint, network, path_print):
 
         # Show that the file will be loaded
         with open(path_print, 'a') as txtfile:
-            txtfile.write("=> loading checkpoint "+str(format(path_checkpoint)) + "\n")
+            txtfile.write("=> loading checkpoint " + str(format(path_checkpoint)) + "\n")
 
         # Load the structure
         checkpoint = torch.load(path_checkpoint)
@@ -161,35 +159,57 @@ def colorize_mask(mask):
 
 # In[2]:
 
-def make_dataset(quality, mode,parameters):
-    assert (quality == 'fine' and mode in ['train', 'val','test']) \
-    or (quality == 'coarse' and mode in ['train', 'train_extra', 'val'])
+def make_dataset(quality, mode, parameters, only_image):
+    assert (quality == 'fine' and mode in ['train', 'val', 'test']) \
+           or (quality == 'coarse' and mode in ['train', 'train_extra', 'val'])
+    img_dir_name = 'leftImg8bit'
+
     if quality == 'coarse':
-        img_dir_name = '/leftImg8bit'
         mask_path = os.path.join(parameters.path_data, 'gtCoarse', mode)
         mask_postfix = '_gtCoarse_labelIds.png'
     else:
-        img_dir_name = 'leftImg8bit'
-        mask_path = os.path.join(parameters.path_data, 'gtFine', mode)
-        mask_postfix = '_gtFine_labelIds.png'
+        if not only_image:
+            mask_path = os.path.join(parameters.path_data, 'gtFine', mode)
+            mask_postfix = '_gtFine_labelIds.png'
 
     img_path = os.path.join(parameters.path_data, img_dir_name, mode)
-    assert (len(set(os.listdir(img_path))-set(os.listdir(mask_path))) +
-            len(set(os.listdir(mask_path))-set(os.listdir(img_path))))== 0
+
+    if not only_image:
+        assert (len(set(os.listdir(img_path)) - set(os.listdir(mask_path))) +
+                len(set(os.listdir(mask_path)) - set(os.listdir(img_path)))) == 0
+
     items = []
+    image_names = []
     categories = os.listdir(img_path)
+    print(img_path)
     for c in categories:
         c_items = [name.split('_leftImg8bit.png')[0] for name in os.listdir(os.path.join(img_path, c))]
+        print(c)
+        print(c_items)
         for it in c_items:
-            item = (os.path.join(img_path, c, it + '_leftImg8bit.png'), os.path.join(mask_path, c, it + mask_postfix))
+            print(it)
+            if not only_image:
+                item = (os.path.join(img_path, c, it + '_leftImg8bit.png'), os.path.join(mask_path, c, it + mask_postfix))
+            else:
+                item = (os.path.join(img_path, c, it + '_leftImg8bit.png'), None)
+            image_names.append(os.path.join(os.path.join(c, it + '_leftImg8bit.png')))
             items.append(item)
-    return items
+
+    return items, image_names
 
 
 class CityScapes_final(data.Dataset):
-    def __init__(self, quality, mode,parameters, joint_transform=None,
-                 sliding_crop=None, transform=None, transform_target = None):
-        self.imgs = make_dataset(quality, mode, parameters)
+    def __init__(self,
+                 quality,
+                 mode,
+                 parameters,
+                 joint_transform=None,
+                 sliding_crop=None,
+                 transform=None,
+                 transform_target=None,
+                 only_image=False):
+
+        self.imgs, self.image_names = make_dataset(quality, mode, parameters, only_image)
         if len(self.imgs) == 0:
             raise RuntimeError('Found 0 images, please check the data set')
         self.quality = quality
@@ -198,7 +218,7 @@ class CityScapes_final(data.Dataset):
         self.sliding_crop = sliding_crop
         self.transform = transform
         self.transform_target = transform_target
-        ignore_label = parameters.number_classes - 1
+        ignore_label = parameters.number_classes
         self.id_to_trainid = {-1: ignore_label, 0: ignore_label, 1: ignore_label, 2: ignore_label,
                               3: ignore_label, 4: ignore_label, 5: ignore_label, 6: ignore_label,
                               7: 0, 8: 1, 9: ignore_label, 10: ignore_label, 11: 2, 12: 3, 13: 4,
@@ -207,21 +227,26 @@ class CityScapes_final(data.Dataset):
                               28: 15, 29: ignore_label, 30: ignore_label, 31: 16, 32: 17, 33: 18}
 
     def __getitem__(self, index):
-        img_path, mask_path = self.imgs[index]
-        img, mask = Image.open(img_path).convert('RGB'), Image.open(mask_path)
 
-        mask = np.array(mask)
-        
-        mask_copy = mask.copy()
-        
-        for k, v in self.id_to_trainid.items():
-            mask_copy[mask == k] = v
-            
-        mask = Image.fromarray(mask_copy.astype(np.uint8))
+        img_path, mask_path = self.imgs[index]
+
+        if mask_path is not None:
+            mask = Image.open(mask_path)
+
+            mask = np.array(mask)
+
+            mask_copy = mask.copy()
+
+            for k, v in self.id_to_trainid.items():
+                mask_copy[mask == k] = v
+
+            mask = Image.fromarray(mask_copy.astype(np.uint8))
+
+        img = Image.open(img_path).convert('RGB')
 
         if self.joint_transform is not None:
             img, mask = self.joint_transform(img, mask)
-                 
+
         if self.sliding_crop is not None:
             img_slices, mask_slices, slices_info = self.sliding_crop(img, mask)
 
@@ -234,7 +259,7 @@ class CityScapes_final(data.Dataset):
                 mask_slices = [self.transform_target(e) for e in mask_slices]
             img, mask = torch.stack(img_slices, 0), torch.stack(mask_slices, 0)
             mask = torch.squeeze(mask)
-            return img, mask.long()
+            return img, mask.long(), img_path
         else:
             seed = np.random.randint(2147483647)  # make a seed with numpy generator
             if self.transform is not None:
@@ -244,15 +269,18 @@ class CityScapes_final(data.Dataset):
                 random.seed(seed)  # apply this seed to mask transforms
                 mask = self.transform_target(mask)
                 mask = (mask * 255).round()
-            mask = torch.squeeze(mask)
-            return img, mask.long()
-        
+            if mask_path is not None:
+                mask = torch.squeeze(mask)
+                return img, mask.long(), self.image_names
+            else:
+                return img, self.image_names[index]
+
     def __len__(self):
         return len(self.imgs)
 
 
-def checkpoint(validation_error,validation_error_min,index_save_best,
-               index_save_regular,epoch,network,parameters):
+def checkpoint(validation_error, validation_error_min, index_save_best,
+               index_save_regular, epoch, network, parameters):
     """
     :param validation_error: The error on the validation DataSet
     :param validation_error_min: The last best validation error
@@ -264,44 +292,42 @@ def checkpoint(validation_error,validation_error_min,index_save_best,
     :return: The new validation_error_min, the next index_save_best and index_save_regular.
     It also save the network if there is a better validation error
     """
-    
+
     if validation_error < validation_error_min:
 
         # Save the entire model with parameter, network and optimizer
-        save_checkpoint({'epoch': epoch + 1, # +1 because we start to count at 0
+        save_checkpoint({'epoch': epoch + 1,  # +1 because we start to count at 0
                          'parameters': parameters,
                          'state_dict': network.state_dict(),
-                        },
-                        filename = parameters.path_save_net + "best" +str(index_save_best)+ parameters.name_network +
-                        str(parameters.train_number) + "checkpoint.pth.tar")
-        
+                         },
+                        filename=parameters.path_save_net + "best" + str(index_save_best) + parameters.name_network +
+                                 str(parameters.train_number) + "checkpoint.pth.tar")
+
         validation_error_min = validation_error
-        
+
         with open(parameters.path_print, 'a') as txtfile:
             txtfile.write("The network as been saved at the epoch " + str(epoch) + " (best score) " +
                           str(index_save_best) + '\n')
 
-        index_save_best = (index_save_best+1)%2
-        
+        index_save_best = (index_save_best + 1) % 2
+
     else:
-        #Maybe useless to save the network in this way
-        if(False):
-            
-            #Save the entire model with parameter, network and optimizer
-            save_checkpoint({'epoch': epoch + 1, # +1 because we start to count at 0
+        # Maybe useless to save the network in this way
+        if (False):
+            # Save the entire model with parameter, network and optimizer
+            save_checkpoint({'epoch': epoch + 1,  # +1 because we start to count at 0
                              'parameters': parameters,
                              'state_dict': network.state_dict(),
-                            },
-                            filename = parameters.path_save_net + "save" + str(index_save_regular) +
-                            parameters.name_network + str(parameters.train_number) + "checkpoint.pth.tar")
+                             },
+                            filename=parameters.path_save_net + "save" + str(index_save_regular) +
+                                     parameters.name_network + str(parameters.train_number) + "checkpoint.pth.tar")
             validation_error_min = validation_error
-            
 
             print("The network as been saved at the epoch " + str(epoch) + "(regular save)" + str(index_save_regular))
-            
-            index_save_regular = (index_save_regular+1)%2
-        
-    return validation_error_min,index_save_best,index_save_regular
+
+            index_save_regular = (index_save_regular + 1) % 2
+
+    return validation_error_min, index_save_best, index_save_regular
 
 
 def time_to_string(time):

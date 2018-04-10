@@ -113,8 +113,11 @@ class Parameters():
             ])
         # Transformation that will be apply on the output just after the import
         self.transforms_output = transforms.Compose([
-            transforms.RandomResizedCrop(size_image_crop, scale=scale, ratio=ratio, interpolation= Image.NEAREST),
+            transforms.RandomResizedCrop(size_image_crop, scale=scale, ratio=ratio, interpolation=Image.NEAREST),
             transforms.RandomHorizontalFlip(),
+            transforms.ToTensor(),
+        ])
+        self.transforms_test = transforms.Compose([
             transforms.ToTensor(),
         ])
 
