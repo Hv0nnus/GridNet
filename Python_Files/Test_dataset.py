@@ -72,7 +72,7 @@ def test_loop(parameters, network, test_loader, dataset):
     return ()
 
 
-def main_test_dataset(path_learning=None, dataset='test'):
+def main_test_dataset(path_learning=None, dataset='val'):
 
     
     # Load the trained Network
