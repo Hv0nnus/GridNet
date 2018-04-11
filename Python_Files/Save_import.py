@@ -156,20 +156,20 @@ def colorize_mask(mask):
 
 # In[2]:
 
-def make_dataset(quality, mode, parameters, only_image):
+def make_dataset(quality, mode, path_data, only_image):
     assert (quality == 'fine' and mode in ['train', 'val', 'test']) \
            or (quality == 'coarse' and mode in ['train', 'train_extra', 'val'])
     img_dir_name = 'leftImg8bit'
 
     if quality == 'coarse':
-        mask_path = os.path.join(parameters.path_data, 'gtCoarse', mode)
+        mask_path = os.path.join(path_data, 'gtCoarse', mode)
         mask_postfix = '_gtCoarse_labelIds.png'
     else:
         if not only_image:
-            mask_path = os.path.join(parameters.path_data, 'gtFine', mode)
+            mask_path = os.path.join(path_data, 'gtFine', mode)
             mask_postfix = '_gtFine_labelIds.png'
 
-    img_path = os.path.join(parameters.path_data, img_dir_name, mode)
+    img_path = os.path.join(path_data, img_dir_name, mode)
 
     if not only_image:
         assert (len(set(os.listdir(img_path)) - set(os.listdir(mask_path))) +
@@ -185,9 +185,8 @@ def make_dataset(quality, mode, parameters, only_image):
                 item = (os.path.join(img_path, c, it + '_leftImg8bit.png'), os.path.join(mask_path, c, it + mask_postfix))
             else:
                 item = (os.path.join(img_path, c, it + '_leftImg8bit.png'), None)
-            image_names.append(os.path.join(os.path.join(c, it + '_leftImg8bit.png')))
+            image_names.append(os.path.join(c, it + '_leftImg8bit.png'))
             items.append(item)
-
     return items, image_names
 
 
@@ -202,7 +201,7 @@ class CityScapes_final(data.Dataset):
                  transform_target=None,
                  only_image=False):
 
-        self.imgs, self.image_names = make_dataset(quality, mode, parameters, only_image)
+        self.imgs, self.image_names = make_dataset(quality, mode, parameters.path_data, only_image)
         if len(self.imgs) == 0:
             raise RuntimeError('Found 0 images, please check the data set')
         self.quality = quality
