@@ -53,6 +53,8 @@ class Parameters():
                  # Path were the output (print) is store at each iteration
                  # The information about the actual state of the execution is store in Python_print.txt
                  path_print="Python_print.txt",
+                 #Path were the pictures are stored
+                 path_result="./Result",
                  # Number of process that will load the Data
                  num_workers=0,
 
@@ -85,6 +87,7 @@ class Parameters():
         self.path_CSV = path_CSV
         self.path_save_net = path_save_net
         self.path_print = path_print
+        self.path_result = path_result
 
         # Learning
         self.dropFactor = dropFactor

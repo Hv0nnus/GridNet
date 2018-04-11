@@ -24,6 +24,7 @@ import Loss_Error
 import Parameters
 import Label
 
+
 # # Commentaire pour la suite (TODO)
 
 #
@@ -107,7 +108,6 @@ def train(parameters, network, train_loader, val_loader):
                 x_batch, y_batch = Variable(x_batch.cuda()), Variable(y_batch.cuda())
             else:
                 x_batch, y_batch = Variable(x_batch), Variable(y_batch)
-
 
             # Compute the forward function
             y_batch_estimated = network(x_batch)
@@ -199,7 +199,7 @@ def main(path_continue_learning=None, total_epoch=0):
     # If the network was already train we import it
     if path_continue_learning is not None:
         # Load the trained Network
-        parameters,network = Save_import.load_from_checkpoint(path_checkpoint=path_continue_learning)
+        parameters, network = Save_import.load_from_checkpoint(path_checkpoint=path_continue_learning)
 
         # Here we can change some parameters
         parameters.epoch_total = total_epoch
@@ -212,53 +212,51 @@ def main(path_continue_learning=None, total_epoch=0):
     else:
         # Define all the parameters
         parameters = Parameters.Parameters(nColumns=6,
-                                       nFeatMaps=[8,16,32,64,128],
-                                       nFeatureMaps_init=3,
-                                       number_classes=20 - 1,
-                                       label_DF=Label.create_label(),
+                                           nFeatMaps=[8, 16, 32, 64, 128],
+                                           nFeatureMaps_init=3,
+                                           number_classes=20 - 1,
+                                           label_DF=Label.create_label(),
 
-                                       width_image_initial=2048, height_image_initial=1024,
-                                       size_image_crop=353,
+                                           width_image_initial=2048, height_image_initial=1024,
+                                           size_image_crop=353,
 
-                                       dropFactor=0.1,
-                                       learning_rate=0.01,
-                                       weight_decay=5 * 10 ** (-6),
-                                       beta1=0.9,
-                                       beta2=0.999,
-                                       epsilon=1 * 10 ** (-8),
-                                       batch_size=6,
-                                       batch_size_val=6,
-                                       epoch_total=2,
-                                       actual_epoch=0,
-                                       scale=(0.39, 0.5),
-                                       ratio=(1, 1),
+                                           dropFactor=0.1,
+                                           learning_rate=0.01,
+                                           weight_decay=5 * 10 ** (-6),
+                                           beta1=0.9,
+                                           beta2=0.999,
+                                           epsilon=1 * 10 ** (-8),
+                                           batch_size=6,
+                                           batch_size_val=6,
+                                           epoch_total=2,
+                                           actual_epoch=0,
+                                           scale=(0.39, 0.5),
+                                           ratio=(1, 1),
 
-                                       path_save_net ="/home_expes/kt82128h/GridNet/Python_Files/Model/",
-                                       name_network="Test",
-                                       train_number=0,
-                                       path_CSV = "/home_expes/kt82128h/GridNet/Python_Files/CSV/",
-                                       path_data = "/home_expes/collections/Cityscapes/",
-                                       path_print = "/home_expes/kt82128h/GridNet/Python_Files/Python_print.txt",
-                                       num_workers=0)
+                                           path_save_net="./Model/",
+                                           name_network="Test",
+                                           train_number=0,
+                                           path_CSV="./CSV/",
+                                           path_data="/home_expes/collections/Cityscapes/",
+                                           path_print="./Python_print.txt",
+                                           path_result="./Result",
+                                           num_workers=0)
         # Define the GridNet
         network = GridNet_structure.gridNet(nInputs=parameters.nFeatureMaps_init,
-                                        nOutputs=parameters.number_classes,
-                                        nColumns=parameters.nColumns,
-                                        nFeatMaps=parameters.nFeatMaps,
-                                        dropFactor=parameters.dropFactor)
-
+                                            nOutputs=parameters.number_classes,
+                                            nColumns=parameters.nColumns,
+                                            nFeatMaps=parameters.nFeatMaps,
+                                            dropFactor=parameters.dropFactor)
 
         with open(parameters.path_print, 'w') as txtfile:
             txtfile.write('\n               Start of the program \n')
-
 
         # Init the csv file that will store the error
         Save_import.init_csv(name_network=parameters.name_network,
                              train_number=parameters.train_number,
                              path_CSV=parameters.path_CSV,
                              path_print=parameters.path_print)
-    
-    
+
     # Import both DataSets with the transformation
     train_dataset = Save_import.CityScapes_final('fine', 'train',
                                                  transform=parameters.transforms_input,
@@ -281,13 +279,6 @@ def main(path_continue_learning=None, total_epoch=0):
                                              num_workers=parameters.num_workers,
                                              drop_last=False)
 
-    # Define the GridNet
-    network = GridNet_structure.gridNet(nInputs=parameters.nFeatureMaps_init,
-                                        nOutputs=parameters.number_classes,
-                                        nColumns=parameters.nColumns,
-                                        nFeatMaps=parameters.nFeatMaps,
-                                        dropFactor=parameters.dropFactor)
-
     if torch.cuda.device_count() > 1:
         with open(parameters.path_print, 'a') as txtfile:
             txtfile.write("\nLet's use " + str(torch.cuda.device_count()) + " GPUs! \n")
@@ -295,13 +286,13 @@ def main(path_continue_learning=None, total_epoch=0):
         network = torch.nn.DataParallel(network)
     else:
         with open(parameters.path_print, 'a') as txtfile:
-            txtfile.write("\n We can t use Cuda here \n")
+            txtfile.write("\nWe can t use Cuda here \n")
 
     if torch.cuda.is_available():
         network.cuda()
     else:
         with open(parameters.path_print, 'a') as txtfile:
-            txtfile.write("\n according to torch Cuda is not available \n")
+            txtfile.write("\nAccording to torch Cuda is not available \n")
 
     # Train the network
     train(network=network,

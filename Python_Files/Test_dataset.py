@@ -57,12 +57,6 @@ def test_loop(parameters, network, test_loader, dataset):
             im = Image.fromarray(y_batch_estimated[index_image,:,:].astype('uint8'))
             im.save("./Result/" + dataset + "/" + img_path[index_image])
 
-        # Change the color
-        #size_y_batch = y_batch_estimated.size()
-        #numpy_image = np.zeros((3, size_y_batch[1], size_y_batch[2]))
-        #for index_image in range(size_y_batch(0)):
-        #    numpy_image[:, ] = [index_image]
-
         with open(parameters.path_print, 'a') as txtfile:
             txtfile.write("Batch time : " + str(time.time() - timer_batch) + "\n")
 
