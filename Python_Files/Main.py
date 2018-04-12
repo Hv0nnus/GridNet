@@ -220,7 +220,7 @@ def main(path_continue_learning=None, total_epoch=0):
                                            width_image_initial=2048, height_image_initial=1024,
                                            size_image_crop=353,
 
-                                           dropFactor=0.1,
+                                           dropFactor=0.2,
                                            learning_rate=0.01,
                                            weight_decay=5 * 10 ** (-6),
                                            beta1=0.9,
@@ -228,19 +228,19 @@ def main(path_continue_learning=None, total_epoch=0):
                                            epsilon=1 * 10 ** (-8),
                                            batch_size=6,
                                            batch_size_val=6,
-                                           epoch_total=2,
+                                           epoch_total=200,
                                            actual_epoch=0,
                                            scale=(0.39, 0.5),
                                            ratio=(1, 1),
 
                                            path_save_net="./Model/",
-                                           name_network="Test",
+                                           name_network="architecture",
                                            train_number=0,
                                            path_CSV="./CSV/",
                                            path_data="/home_expes/collections/Cityscapes/",
                                            path_print="./Python_print.txt",
                                            path_result="./Result",
-                                           num_workers=0)
+                                           num_workers=2)
         # Define the GridNet
         network = GridNet_structure.gridNet(nInputs=parameters.nFeatureMaps_init,
                                             nOutputs=parameters.number_classes,
