@@ -62,7 +62,98 @@ import Label
 # Dans les fully connected, pourquoi prendre des images de tailles 400
 # *400 plutot que 200*200. Difference...
 
-def():
+def batch_loop(optimizer, train_loader, network, epoch, parameters, timer_batch, timer_epoch):
+    """
+
+    :param optimizer: The optimiser that containt parameter of Adam optimizer
+    :param train_loader: Dataloader which contains input and target of the train dataset
+    :param network: Network that will be learned
+    :param epoch: Actual epoch of the program
+    :param parameters: List of parameters of the network
+    :param timer_batch: The time since the beginning of the batch
+    :param timer_epoch: The time since the beginning of the epoch
+    :return: Nothing but update the network and save the train error
+    """
+    # Loop over the mini-batch, the size of the mini match is define in the train_loader
+    for i, (x_batch, y_batch, _) in enumerate(train_loader):
+
+        # zero the gradient buffers
+        optimizer.zero_grad()
+
+        # Transform into Variable
+        if torch.cuda.is_available():
+            x_batch, y_batch = Variable(x_batch.cuda()), Variable(y_batch.cuda())
+        else:
+            x_batch, y_batch = Variable(x_batch), Variable(y_batch)
+
+        # Compute the forward function
+        y_batch_estimated = network(x_batch)
+        if torch.cuda.is_available():
+            with open("/home_expes/kt82128h/GridNet/Python_Files/Python_print.txt", 'a') as txtfile:
+                txtfile.write("\n " "Outside: input size" + str(x_batch.size()) +
+                              "output_size" + str(y_batch_estimated.size()) + "\n")
+
+        # Get the error
+        loss = Loss_Error.criterion(y_batch_estimated, y_batch, parameters)
+
+        # Compute the backward function
+        loss.backward()
+
+        # Does the update according to the optimizer define above
+        optimizer.step()
+
+        # Save error of the training DataSet
+        Save_import.save_error(x=x_batch, y=y_batch,
+                               network=network,
+                               epoch=epoch,
+                               set_type="train",
+                               parameters=parameters)
+
+        # Similar to a "print" but in a textfile
+        with open(parameters.path_print, 'a') as txtfile:
+            txtfile.write(
+                "\nEpoch : " + str(epoch) + ". Batch : " + str(i) + ".\nLast loss : " + str(loss.data[0]) + "\n" +
+                "Time batch : " + Save_import.time_to_string(time.time() - timer_batch) +
+                ".\nTime total batch : " + Save_import.time_to_string(time.time() - timer_epoch) + "\n \n")
+
+        timer_batch = time.time()
+        return ()
+
+
+def validation_loop(val_loader, network, epoch, parameters, timer_epoch):
+    """
+    validation_loop do a loop over the validation set
+    :param val_loader: Dataloader which contains input and target of the validation dataset
+    :param network: Network that will be learned
+    :param epoch: Actual epoch of the program
+    :param parameters: List of parameters of the network
+    :param timer_epoch: The time since the beginning of the epoch
+    :return: The mean validation_error over the entire validation set. This function also save this error.
+    """
+    # Validation_error contains the error on the validation set
+    validation_error = 0
+
+    # Save the error of the validation DataSet
+    for i, (x_val_batch, y_val_batch, _) in enumerate(val_loader):
+
+        if torch.cuda.is_available():
+            x_val_batch, y_val_batch = Variable(x_val_batch.cuda()), Variable(y_val_batch.cuda())
+        else:
+            x_val_batch, y_val_batch = Variable(x_val_batch), Variable(y_val_batch)
+
+        validation_error += Save_import.save_error(x=x_val_batch, y=y_val_batch,
+                                                   network=network,
+                                                   epoch=epoch,
+                                                   set_type="validation",
+                                                   parameters=parameters)
+        with open(parameters.path_print, 'a') as txtfile:
+            txtfile.write(
+                "\nEpoch : " + str(epoch) + ". Batch : " + str(i) + ".\nValidation error : " + str(
+                    validation_error) + "\n" +
+                ".\nTime total batch : " + Save_import.time_to_string(time.time() - timer_epoch) + "\n \n")
+
+    # Divide by the the number of element in the entire batch
+    return validation_error / (i + 1)
 
 
 def train(parameters, network, train_loader, val_loader):
@@ -99,75 +190,19 @@ def train(parameters, network, train_loader, val_loader):
         timer_epoch = time.time()
         timer_batch = time.time()
 
-        # Loop over the mini-batch, the size of the mini match is define in the train_loader
-        for i, (x_batch, y_batch, _) in enumerate(train_loader):
+        batch_loop(optimizer=optimizer,
+                   train_loader=train_loader,
+                   network=network,
+                   epoch=epoch,
+                   parameters=parameters,
+                   timer_batch=timer_batch,
+                   timer_epoch=timer_epoch)
 
-            # zero the gradient buffers
-            optimizer.zero_grad()
-
-            # Transform into Variable
-            if torch.cuda.is_available():
-                x_batch, y_batch = Variable(x_batch.cuda()), Variable(y_batch.cuda())
-            else:
-                x_batch, y_batch = Variable(x_batch), Variable(y_batch)
-
-            # Compute the forward function
-            y_batch_estimated = network(x_batch)
-            if torch.cuda.is_available():
-                with open("/home_expes/kt82128h/GridNet/Python_Files/Python_print.txt", 'a') as txtfile:
-                    txtfile.write("\n " "Outside: input size" + str(x_batch.size()) +
-                                  "output_size" + str(y_batch_estimated.size()) + "\n")
-
-            # Get the error
-            loss = Loss_Error.criterion(y_batch_estimated, y_batch, parameters)
-
-            # Compute the backward function
-            loss.backward()
-
-            # Does the update according to the optimizer define above
-            optimizer.step()
-
-            # Save error of the training DataSet
-            Save_import.save_error(x=x_batch, y=y_batch,
-                                   network=network,
-                                   epoch=epoch,
-                                   set_type="train",
-                                   parameters=parameters)
-
-            # Similar to a "print" but in a textfile
-            with open(parameters.path_print, 'a') as txtfile:
-                txtfile.write(
-                    "\nEpoch : " + str(epoch) + ". Batch : " + str(i) + ".\nLast loss : " + str(loss.data[0]) + "\n" +
-                    "Time batch : " + Save_import.time_to_string(time.time() - timer_batch) +
-                    ".\nTime total batch : " + Save_import.time_to_string(time.time() - timer_epoch) + "\n \n")
-
-            timer_batch = time.time()
-            break
-
-        # Validation_error contains the error on the validation set
-        validation_error = 0
-
-        # Save the error of the validation DataSet
-        for i, (x_val_batch, y_val_batch, _) in enumerate(val_loader):
-
-            if torch.cuda.is_available():
-                x_val_batch, y_val_batch = Variable(x_val_batch.cuda()), Variable(y_val_batch.cuda())
-            else:
-                x_val_batch, y_val_batch = Variable(x_val_batch), Variable(y_val_batch)
-
-            validation_error += Save_import.save_error(x=x_val_batch, y=y_val_batch,
-                                                       network=network,
-                                                       epoch=epoch,
-                                                       set_type="validation",
-                                                       parameters=parameters)
-            with open(parameters.path_print, 'a') as txtfile:
-                txtfile.write(
-                    "\nEpoch : " + str(epoch) + ". Batch : " + str(i) + ".\nValidation error : " + str(validation_error) + "\n" +
-                    ".\nTime total batch : " + Save_import.time_to_string(time.time() - timer_epoch) + "\n \n")
-
-
-        # Divide by the the number of element in the entire batch
-        validation_error /= i + 1
+        validation_error, i = validation_loop(val_loader=val_loader,
+                                              network=network,
+                                              epoch=epoch,
+                                              parameters=parameters,
+                                              timer_epoch=timer_epoch)
 
         # checkpoint will save the network if needed
         index = Save_import.checkpoint(validation_error=validation_error,
@@ -177,6 +212,7 @@ def train(parameters, network, train_loader, val_loader):
                                        epoch=epoch,
                                        network=network,
                                        parameters=parameters)
+
         validation_error_min, index_save_best, index_save_regular = index
 
         # Similar to a "print" but in a text file
