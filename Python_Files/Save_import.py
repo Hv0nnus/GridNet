@@ -105,10 +105,8 @@ def save_checkpoint(state, filename='checkpoint.pth.tar'):
 def load_from_checkpoint(path_checkpoint):
     """
     :param path_checkpoint: path to load the network and the parameters
-    :param network: network architecture that will will be updated with all the weights
-    :param path_print: path and file were the print are display
     :return: Parameters that contain all the parameter of the previous run and
-    change Network that that all the weight are set to the saved one.
+     Network with all the weight set to the saved one.
     """
 
     # If the file exist we import the Data
@@ -136,7 +134,6 @@ def load_from_checkpoint(path_checkpoint):
     # If there is no file, print an error
     else:
         raise ValueError('Not file to load here')
-        return ()
 
 
 def colorize_mask(mask):
