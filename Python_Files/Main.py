@@ -62,6 +62,8 @@ import Label
 # Dans les fully connected, pourquoi prendre des images de tailles 400
 # *400 plutot que 200*200. Difference...
 
+def():
+
 
 def train(parameters, network, train_loader, val_loader):
     """
@@ -158,7 +160,11 @@ def train(parameters, network, train_loader, val_loader):
                                                        epoch=epoch,
                                                        set_type="validation",
                                                        parameters=parameters)
-            break
+            with open(parameters.path_print, 'a') as txtfile:
+                txtfile.write(
+                    "\nEpoch : " + str(epoch) + ". Batch : " + str(i) + ".\nValidation error : " + str(validation_error) + "\n" +
+                    ".\nTime total batch : " + Save_import.time_to_string(time.time() - timer_epoch) + "\n \n")
+
 
         # Divide by the the number of element in the entire batch
         validation_error /= i + 1
@@ -226,8 +232,8 @@ def main(path_continue_learning=None, total_epoch=0):
                                            beta1=0.9,
                                            beta2=0.999,
                                            epsilon=1 * 10 ** (-8),
-                                           batch_size=6,
-                                           batch_size_val=6,
+                                           batch_size=3,
+                                           batch_size_val=3,
                                            epoch_total=200,
                                            actual_epoch=0,
                                            scale=(0.39, 0.5),
