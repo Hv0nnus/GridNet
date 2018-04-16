@@ -117,7 +117,7 @@ def batch_loop(optimizer, train_loader, network, epoch, parameters, timer_batch,
                 ".\nTime total batch : " + Save_import.time_to_string(time.time() - timer_epoch) + "\n \n")
 
         timer_batch = time.time()
-        return ()
+    return ()
 
 
 def validation_loop(val_loader, network, epoch, parameters, timer_epoch):
@@ -198,7 +198,7 @@ def train(parameters, network, train_loader, val_loader):
                    timer_batch=timer_batch,
                    timer_epoch=timer_epoch)
 
-        validation_error, i = validation_loop(val_loader=val_loader,
+        validation_error  = validation_loop(val_loader=val_loader,
                                               network=network,
                                               epoch=epoch,
                                               parameters=parameters,
@@ -262,21 +262,21 @@ def main(path_continue_learning=None, total_epoch=0):
                                            width_image_initial=2048, height_image_initial=1024,
                                            size_image_crop=353,
 
-                                           dropFactor=0.2,
+                                           dropFactor=0.05,
                                            learning_rate=0.01,
                                            weight_decay=5 * 10 ** (-6),
                                            beta1=0.9,
                                            beta2=0.999,
                                            epsilon=1 * 10 ** (-8),
-                                           batch_size=3,
-                                           batch_size_val=3,
+                                           batch_size=4,    
+                                           batch_size_val=6,
                                            epoch_total=200,
                                            actual_epoch=0,
                                            scale=(0.39, 0.5),
                                            ratio=(1, 1),
 
                                            path_save_net="./Model/",
-                                           name_network="architecture",
+                                           name_network="architecture_gpu",
                                            train_number=0,
                                            path_CSV="./CSV/",
                                            path_data="/home_expes/collections/Cityscapes/",
