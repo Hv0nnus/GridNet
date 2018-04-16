@@ -146,6 +146,7 @@ def validation_loop(val_loader, network, epoch, parameters, timer_epoch):
                                                    epoch=epoch,
                                                    set_type="validation",
                                                    parameters=parameters)
+
         with open(parameters.path_print, 'a') as txtfile:
             txtfile.write(
                 "\nEpoch : " + str(epoch) + ". Batch : " + str(i) + ".\nValidation error : " + str(
@@ -198,11 +199,11 @@ def train(parameters, network, train_loader, val_loader):
                    timer_batch=timer_batch,
                    timer_epoch=timer_epoch)
 
-        validation_error  = validation_loop(val_loader=val_loader,
-                                              network=network,
-                                              epoch=epoch,
-                                              parameters=parameters,
-                                              timer_epoch=timer_epoch)
+        validation_error = validation_loop(val_loader=val_loader,
+                                           network=network,
+                                           epoch=epoch,
+                                           parameters=parameters,
+                                           timer_epoch=timer_epoch)
 
         # checkpoint will save the network if needed
         index = Save_import.checkpoint(validation_error=validation_error,
@@ -268,7 +269,7 @@ def main(path_continue_learning=None, total_epoch=0):
                                            beta1=0.9,
                                            beta2=0.999,
                                            epsilon=1 * 10 ** (-8),
-                                           batch_size=4,    
+                                           batch_size=4,
                                            batch_size_val=6,
                                            epoch_total=200,
                                            actual_epoch=0,

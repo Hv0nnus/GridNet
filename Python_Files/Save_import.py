@@ -60,7 +60,7 @@ def save_error(x, y, network, epoch, set_type, parameters):
     :param epoch: Actual epoch of the training
     :param set_type: Validation or train DataSet
     :param parameters: List of all the parameters
-    :return: Nothing but save the error in CSV : Confusion matrix and loss for training and validation
+    :return: the loss and save the error in CSV : Confusion matrix and loss for the set_type
     """
 
     # Result of the network
@@ -122,7 +122,9 @@ def load_from_checkpoint(path_checkpoint):
         parameters.actual_epoch = checkpoint['epoch']
 
         # Load the weight
-        network = GridNet_structure.gridNet(nInputs=parameters.nFeatureMaps_init,nOutputs=parameters.number_classes,nColumns=parameters.nColumns,nFeatMaps=parameters.nFeatMaps, dropFactor=parameters.dropFactor)
+        network = GridNet_structure.gridNet(nInputs=parameters.nFeatureMaps_init, nOutputs=parameters.number_classes,
+                                            nColumns=parameters.nColumns, nFeatMaps=parameters.nFeatMaps,
+                                            dropFactor=parameters.dropFactor)
         network.load_state_dict(checkpoint['state_dict'])
 
         # Show that the file as been loaded correctly
@@ -179,7 +181,8 @@ def make_dataset(quality, mode, path_data, only_image):
         c_items = [name.split('_leftImg8bit.png')[0] for name in os.listdir(os.path.join(img_path, c))]
         for it in c_items:
             if not only_image:
-                item = (os.path.join(img_path, c, it + '_leftImg8bit.png'), os.path.join(mask_path, c, it + mask_postfix))
+                item = (
+                os.path.join(img_path, c, it + '_leftImg8bit.png'), os.path.join(mask_path, c, it + mask_postfix))
             else:
                 item = (os.path.join(img_path, c, it + '_leftImg8bit.png'), None)
             image_names.append(os.path.join(c, it + '_leftImg8bit.png'))

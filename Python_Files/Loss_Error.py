@@ -54,7 +54,7 @@ def criterion_pd_format(y_estimated, y, epoch, set_type, parameters):
     y_estimated = y_estimated * (y != parameters.number_classes).unsqueeze(1).float()
 
     # Set all target value of number_classes to 0. The nllcrit will do y_estimated[k,0,i,j]*y[k,i,j]
-    # It will be 0 if the class is parameters.number_classes : which is exactly what isexpect for this class
+    # It will be 0 if the class is parameters.number_classes : which is exactly what is expect for this class
     # The other classes remain unchanged
     y[y == parameters.number_classes] = 0
 
@@ -63,8 +63,6 @@ def criterion_pd_format(y_estimated, y, epoch, set_type, parameters):
 
     # Return a vector  usefull to copy to CSV 
     return [loss.data[0], set_type, epoch]
-
-
 
 
 def IoU_pd_format(y_estimated, y, set_type, epoch, parameters):
