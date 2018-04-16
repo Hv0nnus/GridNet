@@ -10,7 +10,7 @@ def criterion(y_estimated, y, parameters):
     :param y_estimated: result of train(x) which is the forward action
     :param y: Label associated with x
     :param parameters: List of parameters of the network
-    :return: difference between y_estimatd and y, according to some function (most of the time, NLLLoss)
+    :return: difference between y_estimated and y, according to some function (most of the time, NLLLoss)
     """
 
     # http://pytorch.org/docs/master/nn.html : torch.nn.NLLLoss
