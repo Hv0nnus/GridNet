@@ -90,6 +90,7 @@ def batch_loop(optimizer, train_loader, network, epoch, parameters, timer_batch,
 
         # Compute the forward function
         y_batch_estimated = network(x_batch)
+        b = y_batch_estimated.copy()
         if torch.cuda.is_available():
             with open("/home_expes/kt82128h/GridNet/Python_Files/Python_print.txt", 'a') as txtfile:
                 txtfile.write("\n " "Outside: input size" + str(x_batch.size()) +
@@ -97,7 +98,8 @@ def batch_loop(optimizer, train_loader, network, epoch, parameters, timer_batch,
 
         # Get the error
         loss = Loss_Error.criterion(y_batch_estimated, y_batch, parameters)
-
+        with open("/home_expes/kt82128h/GridNet/Python_Files/Python_print.txt", 'a') as txtfile:
+            txtfile.write("\n " "COPY ???" + str(b==y_batch_estimated)+"\n")
         # Compute the backward function
         #loss.backward()
 
@@ -112,6 +114,8 @@ def batch_loop(optimizer, train_loader, network, epoch, parameters, timer_batch,
                                parameters=parameters)
         train_error += a
 
+        with open("/home_expes/kt82128h/GridNet/Python_Files/Python_print.txt", 'a') as txtfile:
+            txtfile.write("\n " "COPY222 ???" + str(b==y_batch_estimated)+"\n")
         # Similar to a "print" but in a textfile
         with open(parameters.path_print, 'a') as txtfile:
             txtfile.write(

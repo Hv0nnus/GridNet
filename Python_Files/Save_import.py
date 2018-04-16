@@ -107,7 +107,7 @@ def save_checkpoint(state, filename='checkpoint.pth.tar'):
 def load_from_checkpoint(path_checkpoint):
     """
     :param path_checkpoint: path to load the network and the parameters
-    :return: Parameters that contain all the parameter of the previous run and
+    :return: Parameters that contain all the parameters of the previous run and
      Network with all the weight set to the saved one.
     """
 
@@ -115,7 +115,10 @@ def load_from_checkpoint(path_checkpoint):
     if os.path.isfile(path_checkpoint):
 
         # Load the structure
-        checkpoint = torch.load(path_checkpoint)
+        if torch.cuda.is_available():
+            checkpoint = torch.load(path_checkpoint)
+        else:
+            checkpoint = torch.load('my_file.pt', map_location=lambda storage, loc: storage)
 
         # Set the parameters
         parameters = checkpoint['parameters']
