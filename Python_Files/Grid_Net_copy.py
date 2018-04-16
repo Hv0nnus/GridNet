@@ -93,7 +93,7 @@ class convSequence(nn.Module):
         x = self.ReLU2(x)
         x = self.conv2(x)
         # *1 is a small trick that transform boolean into integer
-        x = ((random.random() > self.dropFactor) * 1) * x
+        #x = ((random.random() > self.dropFactor) * 1) * x
         x += x_init
         return x
 
@@ -166,10 +166,10 @@ class upSamplingSequence(nn.Module):
 
         self.ReLU1 = nn.ReLU()
 
-        self.convTranspose1 = nn.ConvTranspose2d(in_channels=nInputs, out_channels=nOutputs,
+        self.convTranspose1 = nn.Conv2d(in_channels=nInputs, out_channels=nOutputs,
                                                  kernel_size=(3, 3),
-                                                 stride=(2, 2),
-                                                 padding=(1, 1),
+                                                 stride=(1, 1),
+                                                 padding=(2, 2),
                                                  dilation=1,
                                                  groups=1,
                                                  bias=False)
@@ -231,7 +231,7 @@ class lastConv(nn.Module):
                                      affine=True)
 
     def forward(self, x):
-        x = self.batch1(x)
+        #x = self.batch1(x)
         x = self.ReLU1(x)
         x = self.conv1(x)
         x = self.batch2(x)
@@ -266,7 +266,8 @@ class gridNet(nn.Module):
                                                affine=True)
 
         # The first convolution before entering into the grid.
-        self.firstConv = firstConv(nInputs=nInputs,nOutputs=nFeatMaps[0])
+        self.firstConv_GridNet = firstConv(nInputs=nInputs,
+                                           nOutputs=nFeatMaps[0])
 
         # We create the Grid. We will creat conv and sub/up sequences with different name.
         # The name is : "sequenceName" + starting position of the sequence(i,j) + "to" + ending position (k,l)
@@ -310,7 +311,7 @@ class gridNet(nn.Module):
         # A normalisation before any computation
         x = self.batchNormInitial(x)
         # The first convolution before entering into the grid.
-        x = self.firstConv(x)
+        x = self.firstConv_GridNet(x)
 
         # X is the matrix that represente the values of the features maps at the point (i,j) in the grid.
         X = [[0 for i in range(self.nColumns)] for j in range(self.len_nfeatureMaps)]
@@ -328,11 +329,18 @@ class gridNet(nn.Module):
                     X[i][j] = getattr(self, "convSequence"
                                       + str(i) + "_" + str(j - 1) + "to" + str(i) + "_" + str(j))(X[i][j - 1])
 
-                # For the first row, there is only ConvSequence (residual bloc)
-                if i > 0:
-                    X[i][j] = self.addTransform(X[i][j], getattr(self, "subSamplingSequence"
-                                                                 + str(i - 1) + "_" + str(j) + "to" + str(i) +
-                                                                 "_" + str(j))(X[i - 1][j]))
+                    # For the first row, there is only ConvSequence (residual bloc)
+                    if i > 0:
+                        X[i][j] = self.addTransform(X[i][j], getattr(self, "subSamplingSequence"
+                                                                     + str(i - 1) + "_" + str(j) + "to" + str(i) +
+                                                                     "_" + str(j))(X[i - 1][j]))
+                else:
+                    # For the first row, there is only ConvSequence (residual bloc)
+                    if i > 0:
+                        X[i][j] = getattr(self, "subSamplingSequence"
+                                                                     + str(i - 1) + "_" + str(j) + "to" + str(i) +
+                                                                     "_" + str(j))(X[i - 1][j])
+
 
         # Looking on the other half of the grid
         for j in range(self.nColumns // 2, self.nColumns):
