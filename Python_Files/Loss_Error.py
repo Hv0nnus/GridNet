@@ -23,10 +23,11 @@ def criterion(y_estimated, y, parameters):
     # unsqueeze ad a dimension to allowed multiplication and float transform the Variable to a float Variable
     y_estimated = y_estimated * (y != parameters.number_classes).unsqueeze(1).float()
 
-    # Set all target value of number_classes to 0. The nllcrit will do y_estimated[k,0,i,j]*y[k,i,j]
-    # It will be 0 if the class is parameters.number_classes : which is exactly what isexpect for this class
+    # Set all target value of number_classes to 0 (we could have choose another class.
+    # The nllcrit will do y_estimated[k,0,i,j]*y[k,i,j]
+    # It will be 0 if the class is parameters.number_classes : which is exactly what is expect for this class
     # The other classes remain unchanged
-    y[y == parameters.number_classes] = 0
+    y = y * (y != parameters.number_classes).float()
 
     # Apply the criterion define in the first line
     return nllcrit(y_estimated, y)
