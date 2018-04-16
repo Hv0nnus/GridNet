@@ -3,6 +3,8 @@
 # Torch related package
 from torch.utils import data
 import torch
+from collections import OrderedDict
+
 
 # Other package
 from os.path import exists
@@ -125,7 +127,16 @@ def load_from_checkpoint(path_checkpoint):
         network = GridNet_structure.gridNet(nInputs=parameters.nFeatureMaps_init, nOutputs=parameters.number_classes,
                                             nColumns=parameters.nColumns, nFeatMaps=parameters.nFeatMaps,
                                             dropFactor=parameters.dropFactor)
-        network.load_state_dict(checkpoint['state_dict'])
+
+        if(torch.cuda.device_count() > 1):
+            network.load_state_dict(checkpoint['state_dict'])
+        else:
+            new_state_dict = OrderedDict()
+            for k, v in checkpoint['state_dict'].items():
+                    name = k[7:] # remove `module.`
+                    new_state_dict[name] = v
+
+            network.load_state_dict(new_state_dict)
 
         # Show that the file as been loaded correctly
         with open(parameters.path_print, 'a') as txtfile:

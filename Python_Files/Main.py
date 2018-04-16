@@ -64,7 +64,6 @@ import Label
 
 def batch_loop(optimizer, train_loader, network, epoch, parameters, timer_batch, timer_epoch):
     """
-
     :param optimizer: The optimiser that containt parameter of Adam optimizer
     :param train_loader: Dataloader which contains input and target of the train dataset
     :param network: Network that will be learned
@@ -74,6 +73,9 @@ def batch_loop(optimizer, train_loader, network, epoch, parameters, timer_batch,
     :param timer_epoch: The time since the beginning of the epoch
     :return: Nothing but update the network and save the train error
     """
+
+    train_error = 0
+
     # Loop over the mini-batch, the size of the mini match is define in the train_loader
     for i, (x_batch, y_batch, _) in enumerate(train_loader):
 
@@ -97,26 +99,30 @@ def batch_loop(optimizer, train_loader, network, epoch, parameters, timer_batch,
         loss = Loss_Error.criterion(y_batch_estimated, y_batch, parameters)
 
         # Compute the backward function
-        loss.backward()
+        #loss.backward()
 
         # Does the update according to the optimizer define above
-        optimizer.step()
+        #optimizer.step()
 
         # Save error of the training DataSet
-        Save_import.save_error(x=x_batch, y=y_batch,
+        a = Save_import.save_error(x=x_batch, y=y_batch,
                                network=network,
                                epoch=epoch,
                                set_type="train",
                                parameters=parameters)
+        train_error += a
 
         # Similar to a "print" but in a textfile
         with open(parameters.path_print, 'a') as txtfile:
             txtfile.write(
-                "\nEpoch : " + str(epoch) + ". Batch : " + str(i) + ".\nLast loss : " + str(loss.data[0]) + "\n" +
+                "\nEpoch : " + str(epoch) + ". Batch : " + str(i) + ".\nTrain_Error : " + str(train_error/(i+1)) + "\n" +
+                "Valeur reel de train error : " + str(a) +
                 "Time batch : " + Save_import.time_to_string(time.time() - timer_batch) +
                 ".\nTime total batch : " + Save_import.time_to_string(time.time() - timer_epoch) + "\n \n")
 
         timer_batch = time.time()
+        if(i==50):
+            break
     return ()
 
 
@@ -141,18 +147,21 @@ def validation_loop(val_loader, network, epoch, parameters, timer_epoch):
         else:
             x_val_batch, y_val_batch = Variable(x_val_batch), Variable(y_val_batch)
 
-        validation_error += Save_import.save_error(x=x_val_batch, y=y_val_batch,
+        a = Save_import.save_error(x=x_val_batch, y=y_val_batch,
                                                    network=network,
                                                    epoch=epoch,
                                                    set_type="validation",
                                                    parameters=parameters)
 
+        validation_error += a
+
         with open(parameters.path_print, 'a') as txtfile:
             txtfile.write(
                 "\nEpoch : " + str(epoch) + ". Batch : " + str(i) + ".\nValidation error : " + str(
-                    validation_error) + "\n" +
+                    validation_error/(i+1)) + "\n" + "Valeur reel de l error de validation : " + str(a) + 
                 ".\nTime total batch : " + Save_import.time_to_string(time.time() - timer_epoch) + "\n \n")
-
+        if(i==50):
+            break
     # Divide by the the number of element in the entire batch
     return validation_error / (i + 1)
 
@@ -263,21 +272,21 @@ def main(path_continue_learning=None, total_epoch=0):
                                            width_image_initial=2048, height_image_initial=1024,
                                            size_image_crop=353,
 
-                                           dropFactor=0.05,
+                                           dropFactor=0.1,
                                            learning_rate=0.01,
                                            weight_decay=5 * 10 ** (-6),
                                            beta1=0.9,
                                            beta2=0.999,
                                            epsilon=1 * 10 ** (-8),
                                            batch_size=4,
-                                           batch_size_val=6,
+                                           batch_size_val=4,
                                            epoch_total=200,
                                            actual_epoch=0,
                                            scale=(0.39, 0.5),
                                            ratio=(1, 1),
 
                                            path_save_net="./Model/",
-                                           name_network="architecture_gpu",
+                                           name_network="batchSizeSame",
                                            train_number=0,
                                            path_CSV="./CSV/",
                                            path_data="/home_expes/collections/Cityscapes/",
@@ -330,7 +339,7 @@ def main(path_continue_learning=None, total_epoch=0):
     else:
         with open(parameters.path_print, 'a') as txtfile:
             txtfile.write("\nWe can t use Cuda here \n")
-
+        network = torch.nn.DataParallel(network) 
     if torch.cuda.is_available():
         network.cuda()
     else:
@@ -341,7 +350,7 @@ def main(path_continue_learning=None, total_epoch=0):
     train(network=network,
           parameters=parameters,
           train_loader=train_loader,
-          val_loader=val_loader)
+          val_loader=train_loader)
 
 
 # Check if there is argument and run the main program with good argument, load previous Data or not.
