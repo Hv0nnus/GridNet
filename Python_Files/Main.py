@@ -90,7 +90,7 @@ def batch_loop(optimizer, train_loader, network, epoch, parameters, timer_batch,
 
         # Compute the forward function
         y_batch_estimated = network(x_batch)
-        b = y_batch_estimated.clone()
+        b = y_batch.clone()
         if torch.cuda.is_available():
             with open("/home_expes/kt82128h/GridNet/Python_Files/Python_print.txt", 'a') as txtfile:
                 txtfile.write("\n " "Outside: input size" + str(x_batch.size()) +
@@ -98,13 +98,13 @@ def batch_loop(optimizer, train_loader, network, epoch, parameters, timer_batch,
 
         # Get the error
         loss = Loss_Error.criterion(y_batch_estimated, y_batch, parameters)
-        with open("/home_expes/kt82128h/GridNet/Python_Files/Python_print.txt", 'a') as txtfile:
-            txtfile.write("\n " "COPY ???" + str(y_estimated)+"\n")
+        
+
         # Compute the backward function
-        #loss.backward()
+        loss.backward()
 
         # Does the update according to the optimizer define above
-        #optimizer.step()
+        optimizer.step()
 
         # Save error of the training DataSet
         a = Save_import.save_error(x=x_batch, y=y_batch,
@@ -114,19 +114,14 @@ def batch_loop(optimizer, train_loader, network, epoch, parameters, timer_batch,
                                parameters=parameters)
         train_error += a
 
-        with open("/home_expes/kt82128h/GridNet/Python_Files/Python_print.txt", 'a') as txtfile:
-            txtfile.write("\n " "COPY222 ???" + str(b==y_batch_estimated)+"\n")
         # Similar to a "print" but in a textfile
         with open(parameters.path_print, 'a') as txtfile:
             txtfile.write(
                 "\nEpoch : " + str(epoch) + ". Batch : " + str(i) + ".\nTrain_Error : " + str(train_error/(i+1)) + "\n" +
-                "Valeur reel de train error : " + str(a) +
                 "Time batch : " + Save_import.time_to_string(time.time() - timer_batch) +
                 ".\nTime total batch : " + Save_import.time_to_string(time.time() - timer_epoch) + "\n \n")
 
         timer_batch = time.time()
-        if(i==50):
-            break
     return ()
 
 
@@ -162,10 +157,9 @@ def validation_loop(val_loader, network, epoch, parameters, timer_epoch):
         with open(parameters.path_print, 'a') as txtfile:
             txtfile.write(
                 "\nEpoch : " + str(epoch) + ". Batch : " + str(i) + ".\nValidation error : " + str(
-                    validation_error/(i+1)) + "\n" + "Valeur reel de l error de validation : " + str(a) + 
+                    validation_error/(i+1)) + 
                 ".\nTime total batch : " + Save_import.time_to_string(time.time() - timer_epoch) + "\n \n")
-        if(i==50):
-            break
+
     # Divide by the the number of element in the entire batch
     return validation_error / (i + 1)
 
@@ -282,15 +276,15 @@ def main(path_continue_learning=None, total_epoch=0):
                                            beta1=0.9,
                                            beta2=0.999,
                                            epsilon=1 * 10 ** (-8),
-                                           batch_size=2,
-                                           batch_size_val=2,
+                                           batch_size=4,
+                                           batch_size_val=4,
                                            epoch_total=200,
                                            actual_epoch=0,
                                            scale=(0.39, 0.5),
                                            ratio=(1, 1),
 
                                            path_save_net="./Model/",
-                                           name_network="batchSizeSame",
+                                           name_network="basic_1gpu",
                                            train_number=0,
                                            path_CSV="./CSV/",
                                            path_data="/home_expes/collections/Cityscapes/",

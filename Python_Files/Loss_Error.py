@@ -27,7 +27,7 @@ def criterion(y_estimated, y, parameters):
     # The nllcrit will do y_estimated[k,0,i,j]*y[k,i,j]
     # It will be 0 if the class is parameters.number_classes : which is exactly what is expect for this class
     # The other classes remain unchanged
-    y = y * (y != parameters.number_classes).float()
+    y = y * (y != parameters.number_classes).long()
 
     # Apply the criterion define in the first line
     return nllcrit(y_estimated, y)
@@ -57,7 +57,7 @@ def criterion_pd_format(y_estimated, y, epoch, set_type, parameters):
     # Set all target value of number_classes to 0. The nllcrit will do y_estimated[k,0,i,j]*y[k,i,j]
     # It will be 0 if the class is parameters.number_classes : which is exactly what is expect for this class
     # The other classes remain unchanged
-    y[y == parameters.number_classes] = 0
+    y = y * (y != parameters.number_classes).long()
 
     # Apply the criterion define in the first line
     loss = nllcrit(y_estimated, y)
