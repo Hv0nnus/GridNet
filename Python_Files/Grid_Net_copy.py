@@ -93,7 +93,7 @@ class convSequence(nn.Module):
         x = self.ReLU2(x)
         x = self.conv2(x)
         # *1 is a small trick that transform boolean into integer
-        #x = ((random.random() > self.dropFactor) * 1) * x
+        x = ((random.random() > self.dropFactor) * 1) * x
         x += x_init
         return x
 
@@ -213,7 +213,7 @@ class lastConv(nn.Module):
         self.batch1 = nn.BatchNorm2d(num_features=nInputs,
                                      eps=1e-05,
                                      momentum=0.1,
-                                     affine=False)
+                                     affine=True)
 
         self.ReLU1 = nn.ReLU()
 
@@ -231,7 +231,7 @@ class lastConv(nn.Module):
                                      affine=True)
 
     def forward(self, x):
-        #x = self.batch1(x)
+        x = self.batch1(x)
         x = self.ReLU1(x)
         x = self.conv1(x)
         x = self.batch2(x)

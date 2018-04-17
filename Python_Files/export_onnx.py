@@ -47,10 +47,10 @@ parameters = Parameters.Parameters(nColumns=2,
 
 # Define the GridNet
 network = Grid_Net_copy.gridNet(nInputs=parameters.nFeatureMaps_init,
-                                    nOutputs=parameters.number_classes,
-                                    nColumns=parameters.nColumns,
-                                    nFeatMaps=parameters.nFeatMaps,
-                                    dropFactor=parameters.dropFactor)
+                                nOutputs=parameters.number_classes,
+                                nColumns=parameters.nColumns,
+                                nFeatMaps=parameters.nFeatMaps,
+                                dropFactor=parameters.dropFactor)
 print(network)
 torch_model = network
 
@@ -64,5 +64,5 @@ x = Variable(torch.randn(batch_size, 3, 5, 5), requires_grad=True)
 torch_out = torch.onnx._export(torch_model,             # model being run
                                x,                       # model input (or a tuple for multiple inputs)
                                "GridNet.onnx",          # where to save the model (can be a file or file-like object)
-                               export_params=True)    # store the trained parameter weights inside the model file
-                               #verbose=True)
+                               export_params=True,    # store the trained parameter weights inside the model file
+                               verbose=True)
