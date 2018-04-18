@@ -98,7 +98,6 @@ def batch_loop(optimizer, train_loader, network, epoch, parameters, timer_batch,
 
         # Get the error
         loss = Loss_Error.criterion(y_batch_estimated, y_batch, parameters)
-        
 
         # Compute the backward function
         loss.backward()
@@ -107,17 +106,17 @@ def batch_loop(optimizer, train_loader, network, epoch, parameters, timer_batch,
         optimizer.step()
 
         # Save error of the training DataSet
-        a = Save_import.save_error(x=x_batch, y=y_batch,
-                               network=network,
-                               epoch=epoch,
-                               set_type="train",
-                               parameters=parameters)
-        train_error += a
+        train_error += Save_import.save_error(x=x_batch, y=y_batch,
+                                              network=network,
+                                              epoch=epoch,
+                                              set_type="train",
+                                              parameters=parameters)
 
         # Similar to a "print" but in a textfile
         with open(parameters.path_print, 'a') as txtfile:
             txtfile.write(
-                "\nEpoch : " + str(epoch) + ". Batch : " + str(i) + ".\nTrain_Error : " + str(train_error/(i+1)) + "\n" +
+                "\nEpoch : " + str(epoch) + ". Batch : " + str(i) + ".\nTrain_Error : " + str(
+                    train_error / (i + 1)) + "\n" +
                 "Time batch : " + Save_import.time_to_string(time.time() - timer_batch) +
                 ".\nTime total batch : " + Save_import.time_to_string(time.time() - timer_epoch) + "\n \n")
 
@@ -146,18 +145,16 @@ def validation_loop(val_loader, network, epoch, parameters, timer_epoch):
         else:
             x_val_batch, y_val_batch = Variable(x_val_batch), Variable(y_val_batch)
 
-        a = Save_import.save_error(x=x_val_batch, y=y_val_batch,
+        validation_error += Save_import.save_error(x=x_val_batch, y=y_val_batch,
                                                    network=network,
                                                    epoch=epoch,
                                                    set_type="validation",
                                                    parameters=parameters)
 
-        validation_error += a
-
         with open(parameters.path_print, 'a') as txtfile:
             txtfile.write(
                 "\nEpoch : " + str(epoch) + ". Batch : " + str(i) + ".\nValidation error : " + str(
-                    validation_error/(i+1)) + 
+                    validation_error / (i + 1)) +
                 ".\nTime total batch : " + Save_import.time_to_string(time.time() - timer_epoch) + "\n \n")
 
     # Divide by the the number of element in the entire batch
@@ -337,7 +334,7 @@ def main(path_continue_learning=None, total_epoch=0):
     else:
         with open(parameters.path_print, 'a') as txtfile:
             txtfile.write("\nWe can t use Cuda here \n")
-        network = torch.nn.DataParallel(network) 
+        network = torch.nn.DataParallel(network)
     if torch.cuda.is_available():
         network.cuda()
     else:
