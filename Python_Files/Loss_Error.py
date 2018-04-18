@@ -12,25 +12,41 @@ def criterion(y_estimated, y, parameters):
     :param parameters: List of parameters of the network
     :return: difference between y_estimated and y, according to some function (most of the time, NLLLoss)
     """
+    if False:
+        #http://pytorch.org/docs/master/nn.html : torch.nn.NLLLoss
+        nllcrit = nn.NLLLoss2d(reduce=True)
 
-    # http://pytorch.org/docs/master/nn.html : torch.nn.NLLLoss
-    nllcrit = nn.NLLLoss2d(reduce=True)
+        # Apply softmax then the log on the result
+        y_estimated = F.log_softmax(input=y_estimated, dim=1)
 
-    # Apply softmax then the log on the result
-    y_estimated = F.log_softmax(input=y_estimated, dim=1)
+        # (y!= parameters.number_classes) is a matrix with 0 on position were the target is class parameters.number_classes
+        # unsqueeze ad a dimension to allowed multiplication and float transform the Variable to a float Variable
+        y_estimated = y_estimated * (y != parameters.number_classes).unsqueeze(1).float()
 
-    # (y!= parameters.number_classes) is a matrix with 0 on position were the target is class parameters.number_classes
-    # unsqueeze ad a dimension to allowed multiplication and float transform the Variable to a float Variable
-    y_estimated = y_estimated * (y != parameters.number_classes).unsqueeze(1).float()
+        # Set all target value of number_classes to 0 (we could have choose another class.
+        # The nllcrit will do y_estimated[k,0,i,j]*y[k,i,j]
+        # It will be 0 if the class is parameters.number_classes : which is exactly what is expect for this class
+        # The other classes remain unchanged
+        y = y * (y != parameters.number_classes).long()
 
-    # Set all target value of number_classes to 0 (we could have choose another class.
-    # The nllcrit will do y_estimated[k,0,i,j]*y[k,i,j]
-    # It will be 0 if the class is parameters.number_classes : which is exactly what is expect for this class
-    # The other classes remain unchanged
-    y = y * (y != parameters.number_classes).long()
+        # Apply the criterion define in the first line
+        return nllcrit(y_estimated, y)
 
-    # Apply the criterion define in the first line
-    return nllcrit(y_estimated, y)
+    if True:
+        # Apply softmax then the log on the result
+        y_estimated = F.softmax(input=y_estimated, dim=1)
+
+        IoU = 0
+
+        for k in range(parameters.number_classes):
+            y_only_k = (y == k).float()
+
+            intersection = torch.sum(y_estimated[:, k, :, :] * y_only_k)
+            union = torch.sum(y_only_k + y_estimated[:, k, :, :] - y_estimated[:, k, :, :] * y_only_k)
+
+            IoU += intersection / union
+
+        return IoU / parameters.number_classes
 
 
 def criterion_pd_format(y_estimated, y, epoch, set_type, parameters):
@@ -44,23 +60,7 @@ def criterion_pd_format(y_estimated, y, epoch, set_type, parameters):
     and if the criterion is used on training or validation set.
     """
 
-    # http://pytorch.org/docs/master/nn.html : torch.nn.NLLLoss
-    nllcrit = nn.NLLLoss2d(reduce=True)
-
-    # Apply softmax then the log on the result
-    y_estimated = F.log_softmax(y_estimated, dim=1)
-
-    # (y!= parameters.number_classes) is a matrix with 0 on position were the target is class parameters.number_classes
-    # unsqueeze ad a dimension to allowed multiplication and float transform the Variable to a float Variable
-    y_estimated = y_estimated * (y != parameters.number_classes).unsqueeze(1).float()
-
-    # Set all target value of number_classes to 0. The nllcrit will do y_estimated[k,0,i,j]*y[k,i,j]
-    # It will be 0 if the class is parameters.number_classes : which is exactly what is expect for this class
-    # The other classes remain unchanged
-    y = y * (y != parameters.number_classes).long()
-
-    # Apply the criterion define in the first line
-    loss = nllcrit(y_estimated, y)
+    loss = criterion(y_estimated, y, parameters)
 
     # Return a vector  usefull to copy to CSV 
     return [loss.data[0], set_type, epoch]
@@ -98,7 +98,6 @@ def IoU_pd_format(y_estimated, y, set_type, epoch, parameters):
         pred_inds = pred == cls1
 
         for cls2 in range(parameters.number_classes):
-
             # i increase by one at each iteration
             i = cls1 * parameters.number_classes + cls2
 
