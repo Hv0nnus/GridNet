@@ -1,8 +1,90 @@
 # coding: utf-8
 
+
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+
 import torch.nn as nn
 import torch
 import random
+
+import argparse
+from collections import defaultdict
+import json
+from onnx import ModelProto
+import pydot
+
+OP_STYLE = {
+    'shape': 'box',
+    'color': '#0F9D58',
+    'style': 'filled',
+    'fontcolor': '#FFFFFF'
+}
+
+BLOB_STYLE = {'shape': 'octagon'}
+
+
+def _escape_label(name):
+    # json.dumps is poor man's escaping
+    return json.dumps(name)
+
+
+def _form_and_sanitize_docstring(s):
+    url = 'javascript:alert('
+    url += _escape_label(s).replace('"', '\'').replace('<', '').replace('>', '')
+    url += ')'
+    return url
+
+
+number_add = 0
+number_mul = 0
+number_conv = 0
+number_batch = 0
+
+row = 2
+column = 2
+distance = 20
+
+
+def batchNormalization(op_style):
+    op_style['color'] = '#0F9D58'
+    return op_style
+
+
+def mul(op_style):
+    op_style['color'] = '#d84d0d'
+    return op_style
+
+
+def add(op_style):
+    op_style['color'] = '#c119a8'
+    return op_style
+
+
+def conv(op_style):
+    op_style['color'] = '#266570'
+    return op_style
+
+
+def constant(op_style):
+    op_style['color'] = '#fff200'
+    return op_style
+
+
+def relu(op_style):
+    op_style['color'] = '#0021ff'
+    return op_style
+
+
+style = {"BatchNormalization": batchNormalization,
+         "Mul": mul,
+         "Add": add,
+         "Conv": conv,
+         "Constant": constant,
+         "Relu": relu,
+         }
 
 
 class firstConv(nn.Module):
@@ -14,9 +96,9 @@ class firstConv(nn.Module):
         super(firstConv, self).__init__()
 
         self.conv1 = nn.Conv2d(in_channels=nInputs, out_channels=nInputs,
-                               kernel_size=(3, 3),
+                               kernel_size=(1, 1),
                                stride=(1, 1),
-                               padding=(1, 1),
+
                                dilation=1,
                                groups=1,
                                bias=False)
@@ -29,9 +111,9 @@ class firstConv(nn.Module):
         self.ReLU1 = nn.ReLU()
 
         self.conv2 = nn.Conv2d(in_channels=nInputs, out_channels=nOutputs,
-                               kernel_size=(3, 3),
+                               kernel_size=(1, 1),
                                stride=(1, 1),
-                               padding=(1, 1),
+
                                dilation=1,
                                groups=1,
                                bias=False)
@@ -63,9 +145,9 @@ class convSequence(nn.Module):
         self.ReLU1 = nn.ReLU()
 
         self.conv1 = nn.Conv2d(in_channels=nInputs, out_channels=nOutputs,
-                               kernel_size=(3, 3),
+                               kernel_size=(1, 1),
                                stride=(1, 1),
-                               padding=(1, 1),
+
                                dilation=1,
                                groups=1,
                                bias=False)
@@ -78,9 +160,9 @@ class convSequence(nn.Module):
         self.ReLU2 = nn.ReLU()
 
         self.conv2 = nn.Conv2d(in_channels=nOutputs, out_channels=nOutputs,
-                               kernel_size=(3, 3),
+                               kernel_size=(1, 1),
                                stride=(1, 1),
-                               padding=(1, 1),
+
                                dilation=1,
                                groups=1,
                                bias=False)
@@ -115,9 +197,9 @@ class subSamplingSequence(nn.Module):
         self.ReLU1 = nn.ReLU()
 
         self.conv1 = nn.Conv2d(in_channels=nInputs, out_channels=nOutputs,
-                               kernel_size=(3, 3),
-                               stride=(2, 2),
-                               padding=(1, 1),
+                               kernel_size=(1, 1),
+                               stride=(1, 1),
+
                                dilation=1,
                                groups=1,
                                bias=False)
@@ -130,9 +212,9 @@ class subSamplingSequence(nn.Module):
         self.ReLU2 = nn.ReLU()
 
         self.conv2 = nn.Conv2d(in_channels=nOutputs, out_channels=nOutputs,
-                               kernel_size=(3, 3),
+                               kernel_size=(1, 1),
                                stride=(1, 1),
-                               padding=(1, 1),
+
                                dilation=1,
                                groups=1,
                                bias=False)
@@ -165,12 +247,12 @@ class upSamplingSequence(nn.Module):
         self.ReLU1 = nn.ReLU()
 
         self.convTranspose1 = nn.Conv2d(in_channels=nInputs, out_channels=nOutputs,
-                                                 kernel_size=(3, 3),
-                                                 stride=(1, 1),
-                                                 padding=(2, 2),
-                                                 dilation=1,
-                                                 groups=1,
-                                                 bias=False)
+                                        kernel_size=(1, 1),
+                                        stride=(1, 1),
+
+                                        dilation=1,
+                                        groups=1,
+                                        bias=False)
 
         self.batch2 = nn.BatchNorm2d(num_features=nOutputs,
                                      eps=1e-05,
@@ -180,9 +262,9 @@ class upSamplingSequence(nn.Module):
         self.ReLU2 = nn.ReLU()
 
         self.conv2 = nn.Conv2d(in_channels=nOutputs, out_channels=nOutputs,
-                               kernel_size=(3, 3),
+                               kernel_size=(1, 1),
                                stride=(1, 1),
-                               padding=(1, 1),
+
                                dilation=1,
                                groups=1,
                                bias=False)
@@ -195,6 +277,29 @@ class upSamplingSequence(nn.Module):
         x = self.ReLU2(x)
         x = self.conv2(x)
         return x
+
+
+def creat_node(type, id, input, output, pos):
+    node_name = '%s (op#%d)' % (type, id)
+
+    for i, input in enumerate(input):
+        node_name += '\n input' + str(i) + ' ' + input
+    for i, output in enumerate(output):
+        node_name += '\n output' + str(i) + ' ' + output
+
+    OP_STYLE_init = {
+        'shape': 'box',
+        'color': '#0F9D58',
+        'style': 'filled',
+        'fontcolor': '#FFFFFF',
+        'pos': str(pos[0]) + "," + str(pos[1]) + "!",
+    }
+
+    OP_STYLE_final = style[type](OP_STYLE_init)
+
+    node = pydot.Node(node_name, **OP_STYLE_final)
+
+    return node
 
 
 class lastConv(nn.Module):
@@ -215,9 +320,9 @@ class lastConv(nn.Module):
         self.ReLU1 = nn.ReLU()
 
         self.conv1 = nn.Conv2d(in_channels=nInputs, out_channels=nOutputs,
-                               kernel_size=(3, 3),
+                               kernel_size=(1, 1),
                                stride=(1, 1),
-                               padding=(1, 1),
+
                                dilation=1,
                                groups=1,
                                bias=False)
@@ -302,9 +407,14 @@ class gridNet(nn.Module):
         return X_i_j + SamplingSequence
 
     def forward(self, x):
+        id =0
+
+        pydot_graph = pydot.Dot("GridNet_tanguy", rankdir='LR')
 
         # A normalisation before any computation
         x = self.batchNormInitial(x)
+        #pydot_graph.add_node(creat_node(type="BatchNormalization", id=id, input = None, output=, pos=[0,0]))
+
         # The first convolution before entering into the grid.
         x = self.firstConv(x)
 
@@ -346,6 +456,7 @@ class gridNet(nn.Module):
 
                 # There is no upSampling on the last row
                 if i < (self.len_nfeatureMaps - 1):
+
                     X[i][j] = self.addTransform(X[i][j], getattr(self, "upSamplingSequence"
                                                                  + str(i + 1) + "_" + str(j) + "to" + str(i) +
                                                                  "_" + str(j))(X[i + 1][j]))
