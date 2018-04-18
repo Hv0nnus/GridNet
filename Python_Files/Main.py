@@ -276,15 +276,15 @@ def main(path_continue_learning=None, total_epoch=0):
                                            beta1=0.9,
                                            beta2=0.999,
                                            epsilon=1 * 10 ** (-8),
-                                           batch_size=4,
-                                           batch_size_val=4,
+                                           batch_size=16,
+                                           batch_size_val=16,
                                            epoch_total=200,
                                            actual_epoch=0,
                                            scale=(0.39, 0.5),
                                            ratio=(1, 1),
 
                                            path_save_net="./Model/",
-                                           name_network="basic_1gpu",
+                                           name_network="256featuremap_gpu",
                                            train_number=0,
                                            path_CSV="./CSV/",
                                            path_data="/home_expes/collections/Cityscapes/",
@@ -348,7 +348,7 @@ def main(path_continue_learning=None, total_epoch=0):
     train(network=network,
           parameters=parameters,
           train_loader=train_loader,
-          val_loader=train_loader)
+          val_loader=val_loader)
 
 
 # Check if there is argument and run the main program with good argument, load previous Data or not.
