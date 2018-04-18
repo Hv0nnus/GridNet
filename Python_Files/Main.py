@@ -273,19 +273,19 @@ def main(path_continue_learning=None, total_epoch=0):
                                            beta1=0.9,
                                            beta2=0.999,
                                            epsilon=1 * 10 ** (-8),
-                                           batch_size=16,
-                                           batch_size_val=16,
+                                           batch_size=8,
+                                           batch_size_val=8,
                                            epoch_total=200,
                                            actual_epoch=0,
                                            scale=(0.39, 0.5),
                                            ratio=(1, 1),
 
                                            path_save_net="./Model/",
-                                           name_network="256featuremap_gpu",
+                                           name_network="IoU_loss8",
                                            train_number=0,
                                            path_CSV="./CSV/",
                                            path_data="/home_expes/collections/Cityscapes/",
-                                           path_print="./Python_print.txt",
+                                           path_print="./Python_print8.txt",
                                            path_result="./Result",
                                            num_workers=2)
         # Define the GridNet
