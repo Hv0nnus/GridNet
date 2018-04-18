@@ -46,7 +46,7 @@ def criterion(y_estimated, y, parameters):
 
             IoU += intersection / union
 
-        return IoU / parameters.number_classes
+        return 1 - (IoU / parameters.number_classes)
 
 
 def criterion_pd_format(y_estimated, y, epoch, set_type, parameters):
