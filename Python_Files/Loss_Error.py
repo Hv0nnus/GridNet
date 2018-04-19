@@ -3,6 +3,7 @@
 import torch.nn as nn
 import torch.nn.functional as F
 import torch
+from torch.autograd import Variable
 
 
 def criterion(y_estimated, y, parameters):
@@ -18,6 +19,11 @@ def criterion(y_estimated, y, parameters):
                                 2.31467787, 31.84411732, 9.17388852, 30.24691356,
                                 272.86243109, 5.27120742, 137.85345999, 156.76451618,
                                 158.30407732, 373.71255691, 89.07728323])
+
+    if torch.cuda.is_available():
+        weight = Variable(weight.cuda())
+    else:
+        weight = Variable(weight)
 
     if True:
         # http://pytorch.org/docs/master/nn.html : torch.nn.NLLLoss
