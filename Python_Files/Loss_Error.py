@@ -13,13 +13,14 @@ def criterion(y_estimated, y, parameters):
     :return: difference between y_estimated and y, according to some function (most of the time, NLLLoss)
     """
 
-    weight = torch.FloatTensor(["road", "sidewalk", "building", "wall", "fence", "pole", "traffic light", "traffic sign",
-                      "vegetation", "terrain", "sky", "person", "rider", "car", "truck", "bus", "train", "motorcycle",
-                      "bicycle", "other"])
+    weight = torch.FloatTensor([1., 6.05912619, 1.61538805, 56.25538031,
+                                42.02768709, 30.04029159, 177.43320666, 66.881359,
+                                2.31467787, 31.84411732, 9.17388852, 30.24691356,
+                                272.86243109, 5.27120742, 137.85345999, 156.76451618,
+                                158.30407732, 373.71255691, 89.07728323])
 
     if True:
-
-        #http://pytorch.org/docs/master/nn.html : torch.nn.NLLLoss
+        # http://pytorch.org/docs/master/nn.html : torch.nn.NLLLoss
         nllcrit = nn.NLLLoss2d(weight=weight, reduce=True)
 
         # Apply softmax then the log on the result
