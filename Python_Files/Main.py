@@ -90,7 +90,7 @@ def batch_loop(optimizer, train_loader, network, epoch, parameters, timer_batch,
 
         # Compute the forward function
         y_batch_estimated = network(x_batch)
-        b = y_batch.clone()
+
         if torch.cuda.is_available():
             with open("/home_expes/kt82128h/GridNet/Python_Files/Python_print.txt", 'a') as txtfile:
                 txtfile.write("\n " "Outside: input size" + str(x_batch.size()) +

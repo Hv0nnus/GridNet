@@ -131,7 +131,7 @@ def load_from_checkpoint(path_checkpoint):
                                             nColumns=parameters.nColumns, nFeatMaps=parameters.nFeatMaps,
                                             dropFactor=parameters.dropFactor)
 
-        if(torch.cuda.device_count() > 1):
+        if torch.cuda.device_count() > 1:
             network.load_state_dict(checkpoint['state_dict'])
         else:
             new_state_dict = OrderedDict()
@@ -167,8 +167,6 @@ def colorize_mask(mask):
     new_mask.putpalette(palette)
 
 
-# In[2]:
-
 def make_dataset(quality, mode, path_data, only_image):
     assert (quality == 'fine' and mode in ['train', 'val', 'test']) \
            or (quality == 'coarse' and mode in ['train', 'train_extra', 'val'])
@@ -195,8 +193,8 @@ def make_dataset(quality, mode, path_data, only_image):
         c_items = [name.split('_leftImg8bit.png')[0] for name in os.listdir(os.path.join(img_path, c))]
         for it in c_items:
             if not only_image:
-                item = (
-                os.path.join(img_path, c, it + '_leftImg8bit.png'), os.path.join(mask_path, c, it + mask_postfix))
+                item = (os.path.join(img_path, c, it + '_leftImg8bit.png'),
+                        os.path.join(mask_path, c, it + mask_postfix))
             else:
                 item = (os.path.join(img_path, c, it + '_leftImg8bit.png'), None)
             image_names.append(os.path.join(c, it + '_leftImg8bit.png'))

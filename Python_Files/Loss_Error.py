@@ -12,9 +12,15 @@ def criterion(y_estimated, y, parameters):
     :param parameters: List of parameters of the network
     :return: difference between y_estimated and y, according to some function (most of the time, NLLLoss)
     """
-    if False:
+
+    weight = torch.FloatTensor(["road", "sidewalk", "building", "wall", "fence", "pole", "traffic light", "traffic sign",
+                      "vegetation", "terrain", "sky", "person", "rider", "car", "truck", "bus", "train", "motorcycle",
+                      "bicycle", "other"])
+
+    if True:
+
         #http://pytorch.org/docs/master/nn.html : torch.nn.NLLLoss
-        nllcrit = nn.NLLLoss2d(reduce=True)
+        nllcrit = nn.NLLLoss2d(weight=weight, reduce=True)
 
         # Apply softmax then the log on the result
         y_estimated = F.log_softmax(input=y_estimated, dim=1)
@@ -32,7 +38,7 @@ def criterion(y_estimated, y, parameters):
         # Apply the criterion define in the first line
         return nllcrit(y_estimated, y)
 
-    if True:
+    if False:
         # Apply softmax then the log on the result
         y_estimated = F.softmax(input=y_estimated, dim=1)
 

@@ -1,0 +1,16 @@
+GPU : 1GPU 2 noeud 25Go total et batch size 4 et validation 5 avec 6 column et [8,16,32,64,128] et image size 353. 200 epoch et temps:
+
+CPU : 25GO memoire, lancement avec batch_size = 6 et validation = 8  avec 6 column et [8,16,32,64,128] et image size 353. BUG, 31GO de memoire utilise.
+
+
+CPU : 25GO memoire, lancement avec batch_size = 4 et validation = 6  avec 6 column et [8,16,32,64,128] et image size 353. Avec 1 GPU. Fini 200 epochen 13h. nom : architecture_gpu. Dropout de 0.5 au lieu de 1.
+
+GPU : 40 Go memoire batchsize 4 1 coeur. Et 6 column [8,16,32,64,128] et image de 353 avec 1 GPU.
+
+
+GPU : 40 Go memoire batchsize 3, 1 coeur. Et 6 column [16,32,64,128,256] et image de 353 avec 1 GPU.
+
+Avec nouvelle optimisationde memoire qui appelle des fonction. Et la nouvelle loss : on a 60G0 : 16Go RAM et 2GPu. et ca passe ! autre param classique
+
+
+
