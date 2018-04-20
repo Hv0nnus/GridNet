@@ -27,8 +27,8 @@ def criterion(y_estimated, y, parameters):
 
     if True:
         # http://pytorch.org/docs/master/nn.html : torch.nn.NLLLoss
-        nllcrit = nn.NLLLoss2d(weight=weight, reduce=True)
-
+        #nllcrit = nn.NLLLoss2d(weight=weight, reduce=True)
+        nllcrit = nn.NLLLoss2d(reduce=True)
         # Apply softmax then the log on the result
         y_estimated = F.log_softmax(input=y_estimated, dim=1)
 
