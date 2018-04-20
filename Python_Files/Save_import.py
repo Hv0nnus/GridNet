@@ -131,7 +131,7 @@ def load_from_checkpoint(path_checkpoint):
                                             nColumns=parameters.nColumns, nFeatMaps=parameters.nFeatMaps,
                                             dropFactor=parameters.dropFactor)
 
-        if torch.cuda.device_count() > 1:
+        if torch.cuda.device_count() <= 1:
             network.load_state_dict(checkpoint['state_dict'])
         else:
             new_state_dict = OrderedDict()
