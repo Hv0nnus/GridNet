@@ -118,7 +118,7 @@ def load_from_checkpoint(path_checkpoint):
         if torch.cuda.is_available():
             checkpoint = torch.load(path_checkpoint)
         else:
-            checkpoint = torch.load('my_file.pt', map_location=lambda storage, loc: storage)
+            checkpoint = torch.load(path_checkpoint)
 
         # Set the parameters
         parameters = checkpoint['parameters']
