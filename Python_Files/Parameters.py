@@ -1,8 +1,11 @@
 from torchvision import transforms
 from PIL import Image
+import torch
+from torch.autograd import Variable
+import torch.cuda
 
 
-class Parameters():
+class Parameters:
     """
     Parameters contains many information usefull for the training
     It is really usefull to just Parameters as argument to the other function
@@ -40,6 +43,10 @@ class Parameters():
                  epoch_total=10,
                  # The actual epoch is not null if we train the network which has already been train
                  actual_epoch=0,
+                 # The loss that will be used to learn
+                 loss="cross_entropy",
+                 # The weight that are associated with the loss, most of the time it change the gradient
+                 weight_grad=[1 for i in range(19)],
 
                  # File where all the parameter model can be store
                  path_save_net="../Model/",
@@ -99,6 +106,11 @@ class Parameters():
         self.batch_size_val = batch_size_val
         self.epoch_total = epoch_total
         self.actual_epoch = actual_epoch
+        if torch.cuda.is_available():
+            self.weight_grad = Variable(weight_grad.cuda(), requires_grad=False)
+        else:
+            self.weight_grad = Variable(weight_grad, requires_grad=False)
+        self.loss = loss
 
         # Transformation that will be apply on the input just after the import
         self.transforms_input = transforms.Compose([
@@ -123,4 +135,6 @@ class Parameters():
             transforms.RandomResizedCrop(size_image_crop, scale=self.scale, ratio=ratio),
             transforms.ToTensor(),
         ])
+
+
 

@@ -278,6 +278,8 @@ def main(path_continue_learning=None, total_epoch=0):
                                            epoch_total=800,
                                            actual_epoch=0,
                                            ratio=(1, 1),
+                                           weight_grad=torch.FloatTensor([1 for i in range(19)]),
+                                           loss='cross_entropy',
 
                                            path_save_net="./Model/",
                                            name_network="big_no_weight",

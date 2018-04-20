@@ -14,25 +14,15 @@ def criterion(y_estimated, y, parameters):
     :return: difference between y_estimated and y, according to some function (most of the time, NLLLoss)
     """
 
-    weight = torch.FloatTensor([1., 6.05912619, 1.61538805, 56.25538031,
-                                42.02768709, 30.04029159, 177.43320666, 66.881359,
-                                2.31467787, 31.84411732, 9.17388852, 30.24691356,
-                                272.86243109, 5.27120742, 137.85345999, 156.76451618,
-                                158.30407732, 373.71255691, 89.07728323])
-
-    if torch.cuda.is_available():
-        weight = Variable(weight.cuda())
-    else:
-        weight = Variable(weight)
-
-    if True:
+    if parameters.loss == "cross_entropy":
         # http://pytorch.org/docs/master/nn.html : torch.nn.NLLLoss
-        #nllcrit = nn.NLLLoss2d(weight=weight, reduce=True)
-        nllcrit = nn.NLLLoss2d(reduce=True)
+        nllcrit = nn.NLLLoss2d(weight=parameters.weight_grad, reduce=True)
+
         # Apply softmax then the log on the result
         y_estimated = F.log_softmax(input=y_estimated, dim=1)
 
-        # (y!= parameters.number_classes) is a matrix with 0 on position were the target is class parameters.number_classes
+        # (y!= parameters.number_classes) is a matrix with 0 on position were the target is class
+        # parameters.number_classes
         # unsqueeze ad a dimension to allowed multiplication and float transform the Variable to a float Variable
         y_estimated = y_estimated * (y != parameters.number_classes).unsqueeze(1).float()
 
@@ -45,7 +35,7 @@ def criterion(y_estimated, y, parameters):
         # Apply the criterion define in the first line
         return nllcrit(y_estimated, y)
 
-    if False:
+    if parameters.loss == "IoU":
         # Apply softmax then the log on the result
         y_estimated = F.softmax(input=y_estimated, dim=1)
 
