@@ -242,7 +242,7 @@ def main(path_continue_learning=None, total_epoch=0):
     :param total_epoch: Number of epoch needed don t use if it is the beginning of the training)
     :return: Nothing but train the network and save CSV files for the error and also save the network regularly
     """
-
+    torch.manual_seed(26542461)
     # If the network was already train we import it
     if path_continue_learning is not None:
         # Load the trained Network
@@ -277,7 +277,6 @@ def main(path_continue_learning=None, total_epoch=0):
                                            batch_size_val=20*2,
                                            epoch_total=200,
                                            actual_epoch=0,
-                                           scale=(0.39, 0.5),
                                            ratio=(1, 1),
 
                                            path_save_net="./Model/",

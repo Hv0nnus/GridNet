@@ -58,9 +58,6 @@ class Parameters():
                  # Number of process that will load the Data
                  num_workers=0,
 
-                 # Transformation apply to PIL image, most of the time reduction of size and rdm flip
-                 # Scale is the size ofthe image after reduction
-                 scale=(0.2, 0.5),
                  # Ratio is the deformation between width and height (increase width and reduce height for example)
                  ratio=(1, 1),
                  ):
@@ -72,6 +69,8 @@ class Parameters():
         self.width_image_initial = width_image_initial
         self.height_image_initial = height_image_initial
         self.size_image_crop = size_image_crop
+        self.scale = (((size_image_crop+1)**2)/(width_image_initial*height_image_initial),
+                      (height_image_initial**2)/(width_image_initial*height_image_initial))
         # Number of feature map at the begining, if RGB image it would be 3
         self.nFeatureMaps_init = nFeatureMaps_init
         self.path_data = path_data
@@ -110,18 +109,18 @@ class Parameters():
             # transforms.RandomResizedCrop(5, scale=(0.2, 0.37), ratio=(0.75, 1.3333333333333333)),
             # TODO choisir laquel des deux solution
             # Autre option, pas de ratio car cela n a pas de sens de deformer l image
-            transforms.RandomResizedCrop(size_image_crop,scale=scale, ratio=ratio),
+            transforms.RandomResizedCrop(size_image_crop, scale=self.scale, ratio=ratio),
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
             ])
         # Transformation that will be apply on the output just after the import
         self.transforms_output = transforms.Compose([
-            transforms.RandomResizedCrop(size_image_crop, scale=scale, ratio=ratio, interpolation=Image.NEAREST),
+            transforms.RandomResizedCrop(size_image_crop, scale=self.scale, ratio=ratio, interpolation=Image.NEAREST),
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
         ])
         self.transforms_test = transforms.Compose([
-            transforms.RandomResizedCrop(size_image_crop, scale=scale, ratio=ratio),
+            transforms.RandomResizedCrop(size_image_crop, scale=self.scale, ratio=ratio),
             transforms.ToTensor(),
         ])
 
