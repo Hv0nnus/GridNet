@@ -1,6 +1,7 @@
 import Save_import
+import sys
 
-parameters, _ = Save_import.load_from_checkpoint("./Model/best1LongTest0checkpoint.pth.tar")
+parameters, _ = Save_import.load_from_checkpoint(sys.argv[1])
 
 print("Parameters :\n")
 print("\nnumber of Columns : ", parameters.nColumns)

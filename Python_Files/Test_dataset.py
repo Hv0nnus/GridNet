@@ -60,6 +60,9 @@ def test_loop(parameters, network, test_loader, dataset):
         with open(parameters.path_print, 'a') as txtfile:
             txtfile.write("Batch time : " + str(time.time() - timer_batch) + "\n")
 
+        if i==20:
+            break
+
     with open(parameters.path_print, 'a') as txtfile:
         txtfile.write("Finish. Total time : " + str((time.time() - timer_init)) + "\n")
 
