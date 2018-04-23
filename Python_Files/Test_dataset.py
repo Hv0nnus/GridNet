@@ -78,6 +78,8 @@ def main_test_dataset(path_learning=None, dataset='val'):
     # How many image per loop of test
     parameters.batch_size = 1
 
+    # Change the size of each image
+
     # transforms_test
     Parameters.transforms_test = transforms.Compose([
         transforms.RandomResizedCrop(1025, scale=(1, 1), ratio=(1, 1)),
