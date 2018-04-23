@@ -232,9 +232,24 @@ class CityScapes_final(data.Dataset):
 
     def __getitem__(self, index):
 
-        img_path, _ = self.imgs[index]
+        img_path, mask_path = self.imgs[index]
+
+        if mask_path is not None:
+            mask = Image.open(mask_path)
+
+            mask = np.array(mask)
+
+            mask_copy = mask.copy()
+
+            for k, v in self.id_to_trainid.items():
+                mask_copy[mask == k] = v
+
+            mask = Image.fromarray(mask_copy.astype(np.uint8))
 
         img = Image.open(img_path).convert('RGB')
+
+        if self.joint_transform is not None:
+            img, mask = self.joint_transform(img, mask)
 
         if self.sliding_crop is not None:
             img_slices, mask_slices, slices_info = self.sliding_crop(img, mask)
@@ -293,24 +308,9 @@ class CityScapes_test(data.Dataset):
 
     def __getitem__(self, index):
 
-        img_path, mask_path = self.imgs[index]
-
-        if mask_path is not None:
-            mask = Image.open(mask_path)
-
-            mask = np.array(mask)
-
-            mask_copy = mask.copy()
-
-            for k, v in self.id_to_trainid.items():
-                mask_copy[mask == k] = v
-
-            mask = Image.fromarray(mask_copy.astype(np.uint8))
+        img_path, _ = self.imgs[index]
 
         img = Image.open(img_path).convert('RGB')
-
-        if self.joint_transform is not None:
-            img, mask = self.joint_transform(img, mask)
 
         if self.sliding_crop is not None:
             img_slices, mask_slices, slices_info = self.sliding_crop(img, mask)
