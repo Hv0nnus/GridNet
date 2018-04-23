@@ -211,7 +211,7 @@ class CityScapes_final(data.Dataset):
                  sliding_crop=None,
                  transform=None,
                  transform_target=None,
-                 only_image=True):
+                 only_image=False):
 
         self.imgs, self.image_names = make_dataset(quality, mode, parameters.path_data, only_image)
         if len(self.imgs) == 0:
@@ -283,14 +283,13 @@ class CityScapes_final(data.Dataset):
         return len(self.imgs)
 
 
-
 class CityScapes_test(data.Dataset):
     def __init__(self,
                  quality,
                  mode,
                  parameters,
                  transform=None,
-                 only_image=False):
+                 only_image=True):
 
         self.imgs, self.image_names = make_dataset(quality, mode, parameters.path_data, only_image)
         if len(self.imgs) == 0:
