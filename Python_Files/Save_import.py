@@ -211,7 +211,7 @@ class CityScapes_final(data.Dataset):
                  sliding_crop=None,
                  transform=None,
                  transform_target=None,
-                 only_image=False):
+                 only_image=True):
 
         self.imgs, self.image_names = make_dataset(quality, mode, parameters.path_data, only_image)
         if len(self.imgs) == 0:
@@ -222,6 +222,67 @@ class CityScapes_final(data.Dataset):
         self.sliding_crop = sliding_crop
         self.transform = transform
         self.transform_target = transform_target
+        ignore_label = parameters.number_classes
+        self.id_to_trainid = {-1: ignore_label, 0: ignore_label, 1: ignore_label, 2: ignore_label,
+                              3: ignore_label, 4: ignore_label, 5: ignore_label, 6: ignore_label,
+                              7: 0, 8: 1, 9: ignore_label, 10: ignore_label, 11: 2, 12: 3, 13: 4,
+                              14: ignore_label, 15: ignore_label, 16: ignore_label, 17: 5,
+                              18: ignore_label, 19: 6, 20: 7, 21: 8, 22: 9, 23: 10, 24: 11, 25: 12, 26: 13, 27: 14,
+                              28: 15, 29: ignore_label, 30: ignore_label, 31: 16, 32: 17, 33: 18}
+
+    def __getitem__(self, index):
+
+        img_path, _ = self.imgs[index]
+
+        img = Image.open(img_path).convert('RGB')
+
+        if self.sliding_crop is not None:
+            img_slices, mask_slices, slices_info = self.sliding_crop(img, mask)
+
+            seed = np.random.randint(2147483647)  # make a seed with numpy generator
+            if self.transform is not None:
+                random.seed(seed)  # apply this seed to img transforms
+                img_slices = [self.transform(e) for e in img_slices]
+            if self.transform_target is not None:
+                random.seed(seed)  # apply this seed to mask transforms
+                mask_slices = [self.transform_target(e) for e in mask_slices]
+            img, mask = torch.stack(img_slices, 0), torch.stack(mask_slices, 0)
+            mask = torch.squeeze(mask)
+            return img, mask.long(), img_path
+        else:
+            seed = np.random.randint(2147483647)  # make a seed with numpy generator
+            if self.transform is not None:
+                random.seed(seed)  # apply this seed to img transforms
+                img = self.transform(img)
+            if self.transform_target is not None:
+                random.seed(seed)  # apply this seed to mask transforms
+                mask = self.transform_target(mask)
+                mask = (mask * 255).round()
+            if mask_path is not None:
+                mask = torch.squeeze(mask)
+                return img, mask.long(), self.image_names
+            else:
+                return img, self.image_names[index]
+
+    def __len__(self):
+        return len(self.imgs)
+
+
+
+class CityScapes_test(data.Dataset):
+    def __init__(self,
+                 quality,
+                 mode,
+                 parameters,
+                 transform=None,
+                 only_image=False):
+
+        self.imgs, self.image_names = make_dataset(quality, mode, parameters.path_data, only_image)
+        if len(self.imgs) == 0:
+            raise RuntimeError('Found 0 images, please check the data set')
+        self.quality = quality
+        self.mode = mode
+        self.transform = transform
         ignore_label = parameters.number_classes
         self.id_to_trainid = {-1: ignore_label, 0: ignore_label, 1: ignore_label, 2: ignore_label,
                               3: ignore_label, 4: ignore_label, 5: ignore_label, 6: ignore_label,
@@ -281,6 +342,8 @@ class CityScapes_final(data.Dataset):
 
     def __len__(self):
         return len(self.imgs)
+
+
 
 
 def checkpoint(validation_error, validation_error_min, index_save_best,
