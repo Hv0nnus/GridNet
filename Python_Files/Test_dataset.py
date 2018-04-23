@@ -74,11 +74,20 @@ def main_test_dataset(path_learning=None, dataset='val'):
 
     # How many image per loop of test
     parameters.batch_size = 1
-    
+
+    # transforms_test
+    Parameters.transforms_test = transforms.Compose([
+        transforms.RandomResizedCrop(1025, scale=(1, 1), ratio=(1, 1)),
+        transforms.ToTensor(),
+    ])
+
     # Import both dataset with the transformation
     test_dataset = Save_import.CityScapes_final('fine', dataset,
                                                 transform=parameters.transforms_test,
-                                                parameters=parameters, only_image=True)
+                                                parameters=parameters,
+                                                only_image=True)
+
+
 
     # Creat the DataSet for pytorch used
     test_loader = torch.utils.data.DataLoader(test_dataset,

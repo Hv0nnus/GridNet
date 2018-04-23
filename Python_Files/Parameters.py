@@ -46,7 +46,7 @@ class Parameters:
                  # The loss that will be used to learn
                  loss="cross_entropy",
                  # The weight that are associated with the loss, most of the time it change the gradient
-                 weight_grad=[1 for i in range(19)],
+                 weight_grad=torch.FloatTensor([1 for i in range(19)]),
 
                  # File where all the parameter model can be store
                  path_save_net="../Model/",
