@@ -257,19 +257,19 @@ def main(path_continue_learning=None, total_epoch=0):
 
     # If the network was not train we start from scratch
     else:
-        #Define the weight
+        # Define the weight
         weight_grad = torch.FloatTensor([2.381681e+09, 3.856594e+08,
-                                           1.461642e+09, 4.291781e+07, 5.597591e+07, 8.135516e+07, 1.328548e+07,
-                                           3.654657e+07, 1.038652e+09, 7.157456e+07, 2.527450e+08, 7.923985e+07,
-                                           9.438758e+06, 4.460595e+08, 1.753254e+07, 1.655341e+07, 1.389560e+07,
-                                           6.178567e+06, 2.936571e+07])
+                                         1.461642e+09, 4.291781e+07, 5.597591e+07, 8.135516e+07, 1.328548e+07,
+                                         3.654657e+07, 1.038652e+09, 7.157456e+07, 2.527450e+08, 7.923985e+07,
+                                         9.438758e+06, 4.460595e+08, 1.753254e+07, 1.655341e+07, 1.389560e+07,
+                                         6.178567e+06, 2.936571e+07])
 
         sum = weight_grad.sum()
         # normalize and then take the invert
         for i in range(weight_grad.size(0)):
             weight_grad[i] = sum / weight_grad[i]
         # Normalize again and mult by the number of classes
-        weight_grad = (weight_grad/weight_grad.sum())*weight_grad.size(0)
+        weight_grad = (weight_grad / weight_grad.sum()) * weight_grad.size(0)
 
         # Define all the parameters
         parameters = Parameters.Parameters(nColumns=2,
@@ -320,14 +320,17 @@ def main(path_continue_learning=None, total_epoch=0):
                              path_print=parameters.path_print)
 
     # Import both DataSets with the transformation
-    train_dataset = Save_import.CityScapes_final('fine', 'train',
-                                                 transform=parameters.transforms_input,
-                                                 transform_target=parameters.transforms_output,
-                                                 parameters=parameters)
-    val_dataset = Save_import.CityScapes_final('fine', 'val',
-                                               transform=parameters.transforms_input,
-                                               transform_target=parameters.transforms_output,
-                                               parameters=parameters)
+    train_dataset = Save_import.cityscapes_create_dataset(quality='fine',
+                                                          mode='train',
+                                                          transform=parameters.transforms_input,
+                                                          transform_target=parameters.transforms_output,
+                                                          parameters=parameters)
+
+    val_dataset = Save_import.cityscapes_create_dataset(quality='fine',
+                                                        mode='val',
+                                                        transform=parameters.transforms_input,
+                                                        transform_target=parameters.transforms_output,
+                                                        parameters=parameters)
 
     # Create the DataSets for Pytorch used
     train_loader = torch.utils.data.DataLoader(train_dataset,

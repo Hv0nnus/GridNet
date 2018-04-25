@@ -3,7 +3,6 @@
 import torch.nn as nn
 import torch.nn.functional as F
 import torch
-from torch.autograd import Variable
 
 
 def criterion(y_estimated, y, parameters):
@@ -23,7 +22,7 @@ def criterion(y_estimated, y, parameters):
 
         # (y!= parameters.number_classes) is a matrix with 0 on position were the target is class
         # parameters.number_classes
-        # unsqueeze ad a dimension to allowed multiplication and float transform the Variable to a float Variable
+        # unsqueeze add a dimension to allowed multiplication and float transform the Variable to a float Variable
         y_estimated = y_estimated * (y != parameters.number_classes).unsqueeze(1).float()
 
         # Set all target value of number_classes to 0 (we could have choose another class.
@@ -36,19 +35,25 @@ def criterion(y_estimated, y, parameters):
         return nllcrit(y_estimated, y)
 
     if parameters.loss == "IoU":
+
         # Apply softmax then the log on the result
         y_estimated = F.softmax(input=y_estimated, dim=1)
 
         IoU = 0
 
+        # Compute the IoU per classes
         for k in range(parameters.number_classes):
+            # Keep only the classes k.
             y_only_k = (y == k).float()
 
+            # Definition of intersection and union
             intersection = torch.sum(y_estimated[:, k, :, :] * y_only_k)
             union = torch.sum(y_only_k + y_estimated[:, k, :, :] - y_estimated[:, k, :, :] * y_only_k)
 
             IoU += intersection / union
 
+        # Divide by the number of class to have IoU between 0 and 1. we add "1 -" to have a loss to minimize and
+        # to stay between 0 and 1.
         return 1 - (IoU / parameters.number_classes)
 
 
