@@ -78,7 +78,7 @@ def add_1_to_array(path_data,
                    mode="test",
                    end_name='leftImg8bit.png'):
     """
-    Change every prediction to the right format the prediction were from 0 to 18 but should have been from 1 to 19
+    Change every prediction to the right format, the prediction were from 0 to 18 but should have been from 1 to 19
     :param path_data: path to the folder that contain all the data
     :param mode: train val or test
     :param end_name: end of the name of image that you want to keep
@@ -143,7 +143,7 @@ def transform_image_to_RGB(path_data,
         RGB = picture.classes_to_color(id_to_label=train_id2label)
 
         # Change the name
-        path_export_color = paths[i].replace(end_name, 'color.png')
+        path_export_color = paths[i].replace(end_name, 'prediction_color.png')
 
         print(path_export_color)
         # transform into PIL image
@@ -158,14 +158,4 @@ def transform_image_to_RGB(path_data,
 
 
 
-#add_1_to_array(path_data='./Result/',
-#               mode="val",
-#               end_name='leftImg8bit.png')
 
-transform_image_to_RGB(path_data='./Result/',
-                       mode="val",
-                       from_picture=0,
-                       to_picture=100,
-                       end_name="leftImg8bit.png")
-
-# end_name="labelTrainIds.png")

@@ -304,7 +304,10 @@ class gridNet(nn.Module):
     def forward(self, x):
 
         # A normalisation before any computation
+
         x = self.batchNormInitial(x)
+
+
         # The first convolution before entering into the grid.
         x = self.firstConv(x)
 
