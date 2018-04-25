@@ -272,14 +272,14 @@ def main(path_continue_learning=None, total_epoch=0):
         weight_grad = (weight_grad/weight_grad.sum())*weight_grad.size(0)
 
         # Define all the parameters
-        parameters = Parameters.Parameters(nColumns=8,
-                                           nFeatMaps=[16, 32, 64, 128, 256],
+        parameters = Parameters.Parameters(nColumns=2,
+                                           nFeatMaps=[8,16],
                                            nFeatureMaps_init=3,
                                            number_classes=20 - 1,
                                            label_DF=Label.create_label(),
 
                                            width_image_initial=2048, height_image_initial=1024,
-                                           size_image_crop=401,
+                                           size_image_crop=17,
 
                                            dropFactor=0.1,
                                            learning_rate=0.01,
@@ -287,20 +287,20 @@ def main(path_continue_learning=None, total_epoch=0):
                                            beta1=0.9,
                                            beta2=0.999,
                                            epsilon=1 * 10 ** (-8),
-                                           batch_size=10,
-                                           batch_size_val=10,
-                                           epoch_total=800,
+                                           batch_size=4,
+                                           batch_size_val=4,
+                                           epoch_total=5,
                                            actual_epoch=0,
                                            ratio=(1, 1),
                                            weight_grad=weight_grad,
                                            loss='cross_entropy',
 
                                            path_save_net="./Model/",
-                                           name_network="big_no_weight",
+                                           name_network="test_cpu",
                                            train_number=0,
                                            path_CSV="./CSV/",
                                            path_data="/home_expes/collections/Cityscapes/",
-                                           path_print="./Python_print_big.txt",
+                                           path_print="./Python_print_dam.txt",
                                            path_result="./Result",
                                            num_workers=2)
         # Define the GridNet
