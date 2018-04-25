@@ -75,7 +75,7 @@ def test_loop(parameters, network, dataset, test_dataset, position_crop):
             # Delete this new dimension after the forward
             y_batch_estimated = y_batch_estimated.squeeze()
             # Convert into numpy array
-            y_batch_estimated = y_batch_estimated.data.numpy()
+            y_batch_estimated = y_batch_estimated.cpu().data.numpy()
 
             # Add every value to the image. i and j or exchange compare to PIL image
             x_batch_np[:, j:j + h, i:i + w] += y_batch_estimated

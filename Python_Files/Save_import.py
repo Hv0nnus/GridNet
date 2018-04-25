@@ -120,6 +120,7 @@ def load_from_checkpoint(path_checkpoint):
         else:
             checkpoint = torch.load(path_checkpoint)
 
+
         # Set the parameters
         parameters = checkpoint['parameters']
 
@@ -130,6 +131,23 @@ def load_from_checkpoint(path_checkpoint):
         network = GridNet_structure.gridNet(nInputs=parameters.nFeatureMaps_init, nOutputs=parameters.number_classes,
                                             nColumns=parameters.nColumns, nFeatMaps=parameters.nFeatMaps,
                                             dropFactor=parameters.dropFactor)
+
+
+
+        if torch.cuda.device_count() > 1:
+            with open('Python_print_test.txt', 'a') as txtfile:
+                txtfile.write("\nLet's use " + str(torch.cuda.device_count()) + " GPUs! \n")
+                # dim = 0 [30, xxx] -> [10, ...], [10, ...], [10, ...] on 3 GPUs
+            network = torch.nn.DataParallel(network)
+        else:
+            with open('Python_print_test.txt', 'a') as txtfile:
+                txtfile.write("\nWe can t use Cuda here \n")
+
+        if torch.cuda.is_available():
+            network.cuda()
+        else:
+            with open('Python_print_test.txt', 'a') as txtfile:
+                txtfile.write("\nAccording to torch Cuda is not available \n")
 
         if torch.cuda.device_count() <= -100:
             network.load_state_dict(checkpoint['state_dict'])

@@ -20,14 +20,18 @@ def main_test(path_learning, dataset="val"):
 
     i = 0
     j = 0
-    w = 249
-    h = 249
+    w = 2017
+    h = 993
     position_crop = []
-    for k in range(10):
-        for l in range(10):
+    for k in range(1):
+        for l in range(1):
             # i est l axe des x
-            i = k * 30
-            j = l * 30
+            i = k * w//2
+            j = l * h//2
+            if i+w > 2048:
+                i = 2048 - w
+            if j+h > 1024:
+                j = 1024 - h
             position_crop.append((i, j, w, h))
 
     end_name = Test_dataset.main_test_dataset(parameters=parameters,
@@ -40,16 +44,13 @@ def main_test(path_learning, dataset="val"):
                                         mode=dataset,
                                         from_picture=0,
                                         to_picture=10,
-                                        end_name=end_name)
+                                        end_name="prediction.png")
 
     # end_name="labelTrainIds.png")
-
-
-main_test(path_learning=sys.argv[1], dataset=sys.argv[2])
 
 if len(sys.argv) == 3:
     main_test(path_learning=sys.argv[1], dataset=sys.argv[2])
 if len(sys.argv) == 2:
     main_test(path_learning=sys.argv[1])
 else:
-    raise ValueError('No path define to load the network')
+    raise ValueError('No path define to lload the network')
