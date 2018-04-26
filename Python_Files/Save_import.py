@@ -278,7 +278,6 @@ class cityscapes_create_dataset(data.Dataset):
             print(type(mask))
             a(img).show()
             a(mask.unsqueeze(0)).show()
-            azedqs
             return img, mask.long(), self.image_names
         else:
             return img, self.image_names[index]
