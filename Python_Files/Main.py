@@ -121,6 +121,7 @@ def batch_loop(optimizer, train_loader, network, epoch, parameters, timer_batch,
                 ".\nTime total batch : " + Save_import.time_to_string(time.time() - timer_epoch) + "\n \n")
 
         timer_batch = time.time()
+        break
     return ()
 
 
@@ -156,7 +157,7 @@ def validation_loop(val_loader, network, epoch, parameters, timer_epoch):
                 "\nEpoch : " + str(epoch) + ". Batch : " + str(i) + ".\nValidation error : " + str(
                     validation_error / (i + 1)) +
                 ".\nTime total batch : " + Save_import.time_to_string(time.time() - timer_epoch) + "\n \n")
-
+        break
     # Divide by the the number of element in the entire batch
     return validation_error / (i + 1)
 
@@ -270,10 +271,11 @@ def main(path_continue_learning=None, total_epoch=0):
             weight_grad[i] = sum / weight_grad[i]
         # Normalize again and mult by the number of classes
         weight_grad = (weight_grad / weight_grad.sum()) * weight_grad.size(0)
+        weight_grad = torch.FloatTensor([1 for i in range(19)])
 
         # Define all the parameters
         parameters = Parameters.Parameters(nColumns=2,
-                                           nFeatMaps=[8,16],
+                                           nFeatMaps=[8, 16],
                                            nFeatureMaps_init=3,
                                            number_classes=20 - 1,
                                            label_DF=Label.create_label(),
@@ -296,11 +298,11 @@ def main(path_continue_learning=None, total_epoch=0):
                                            loss='cross_entropy',
 
                                            path_save_net="./Model/",
-                                           name_network="test_cpu",
+                                           name_network="test_cpu_pc",
                                            train_number=0,
                                            path_CSV="./CSV/",
-                                           path_data="/home_expes/collections/Cityscapes/",
-                                           path_print="./Python_print_dam.txt",
+                                           #path_data="/home_expes/collections/Cityscapes/",
+                                           path_print="./Python_print.txt",
                                            path_result="./Result",
                                            num_workers=2)
         # Define the GridNet

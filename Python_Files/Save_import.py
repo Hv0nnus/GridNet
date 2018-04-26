@@ -108,18 +108,14 @@ def load_from_checkpoint(path_checkpoint):
     """
     :param path_checkpoint: path to load the network and the parameters
     :return: Parameters that contain all the parameters of the previous run and
-     Network with all the weight set to the saved one.
+     the network with all the weight set to the saved one.
     """
 
     # If the file exist we import the Data
     if os.path.isfile(path_checkpoint):
 
         # Load the structure
-        if torch.cuda.is_available():
-            checkpoint = torch.load(path_checkpoint)
-        else:
-            checkpoint = torch.load(path_checkpoint)
-
+        checkpoint = torch.load(path_checkpoint)
 
         # Set the parameters
         parameters = checkpoint['parameters']
@@ -127,21 +123,18 @@ def load_from_checkpoint(path_checkpoint):
         # Change the actual epoch to the last iteration done
         parameters.actual_epoch = checkpoint['epoch']
 
-        # Load the weight
+        # Recreate the same network
         network = GridNet_structure.gridNet(nInputs=parameters.nFeatureMaps_init, nOutputs=parameters.number_classes,
                                             nColumns=parameters.nColumns, nFeatMaps=parameters.nFeatMaps,
                                             dropFactor=parameters.dropFactor)
 
-
-
         if torch.cuda.device_count() > 1:
             with open('Python_print_test.txt', 'a') as txtfile:
                 txtfile.write("\nLet's use " + str(torch.cuda.device_count()) + " GPUs! \n")
-                # dim = 0 [30, xxx] -> [10, ...], [10, ...], [10, ...] on 3 GPUs
             network = torch.nn.DataParallel(network)
         else:
             with open('Python_print_test.txt', 'a') as txtfile:
-                txtfile.write("\nWe can t use Cuda here \n")
+                txtfile.write("\nWe can t use more than 1 GPU \n")
 
         if torch.cuda.is_available():
             network.cuda()
@@ -149,6 +142,7 @@ def load_from_checkpoint(path_checkpoint):
             with open('Python_print_test.txt', 'a') as txtfile:
                 txtfile.write("\nAccording to torch Cuda is not available \n")
 
+        # Load the parameters
         if torch.cuda.device_count() <= -100:
             network.load_state_dict(checkpoint['state_dict'])
         else:
@@ -167,7 +161,7 @@ def load_from_checkpoint(path_checkpoint):
 
     # If there is no file, print an error
     else:
-        raise ValueError('Not file to load here')
+        raise ValueError('No file to load here')
 
 
 def colorize_mask(mask):
@@ -272,13 +266,19 @@ class cityscapes_create_dataset(data.Dataset):
 
             mask = Image.fromarray(mask_copy.astype(np.uint8))
 
-            mask = torch.squeeze(mask)
-
             if self.transform_target is not None:
                 random.seed(seed)  # apply this seed to mask transforms
                 mask = self.transform_target(mask)
-                mask = (mask * 255).round()
+                #mask = (mask * 255).round()
 
+            mask = torch.squeeze(mask)
+            import torchvision
+            a = torchvision.transforms.ToPILImage()
+            print(type(img))
+            print(type(mask))
+            a(img).show()
+            a(mask.unsqueeze(0)).show()
+            azedqs
             return img, mask.long(), self.image_names
         else:
             return img, self.image_names[index]
