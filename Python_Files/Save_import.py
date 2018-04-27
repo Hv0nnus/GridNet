@@ -13,6 +13,7 @@ import os
 from PIL import Image
 import numpy as np
 import random
+import pandas as pd
 
 # Own python program
 import Loss_Error
@@ -266,12 +267,12 @@ class cityscapes_create_dataset(data.Dataset):
 
             mask = Image.fromarray(mask_copy.astype(np.uint8))
 
-            mask = torch.squeeze(mask)
-
             if self.transform_target is not None:
                 random.seed(seed)  # apply this seed to mask transforms
                 mask = self.transform_target(mask)
                 mask = (mask * 255).round()
+            
+            mask = torch.squeeze(mask)
 
             return img, mask.long(), self.image_names
         else:
@@ -330,6 +331,28 @@ def checkpoint(validation_error, validation_error_min, index_save_best,
             index_save_regular = (index_save_regular + 1) % 2
 
     return validation_error_min, index_save_best, index_save_regular
+
+"""organise_CSV import two CSV files and delete all duplicate row. Because the algorithme work with
+    mini_batch there is many value for the loss for one epoch and one data set. We compute here the mean
+    of all this loss that have the same epoch and data set. We did the same with the confusion matrix
+    (0) = name_network : name of the network associated with the CSV file
+    (1) = train_number : number of the network associated with the CSV file
+"""
+def organise_CSV(path_CSV,name_network,train_number):
+    # Import the CSV file into pandas DataFrame
+    loss_DF = pd.read_csv(path_CSV + "CSV_loss_" + name_network + str(train_number) + ".csv")
+    # This Groupby will regroupe all line that have the same "Set" and "Epoch" and compute the mean over the "Values"
+    loss_DF = loss_DF.groupby(['Set','Epoch'])['Value'].mean().reset_index()
+    # Recreate the CSV file
+    loss_DF.to_csv(path_CSV + "CSV_loss_" + name_network + str(train_number) + ".csv",index = False)
+                                            
+    # Import the CSV file into pandas DataFrame
+    conf_DF = pd.read_csv(path_CSV + "CSV_confMat_" + name_network + str(train_number) + ".csv")
+    # This Groupby will regroupe all line that have the same 'Target','Prediction','Epoch','Set'
+    # and compute the mean over the "Values"
+    conf_DF = conf_DF.groupby(['Target','Prediction','Epoch','Set'])['Value'].mean().reset_index()
+    # Recreate the CSV file
+    conf_DF.to_csv(path_CSV + "CSV_confMat_" + name_network + str(train_number) + ".csv",index = False)
 
 
 def time_to_string(time):

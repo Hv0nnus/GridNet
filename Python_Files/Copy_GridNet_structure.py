@@ -216,7 +216,7 @@ class lastConv(nn.Module):
 
         super(lastConv, self).__init__()
 
-        self.conv1 = nn.Conv1d(in_channels=nInputs, out_channels=nOutputs,
+        self.conv1 = nn.Conv2d(in_channels=nInputs, out_channels=nOutputs,
                                kernel_size=(3, 3),
                                stride=(1, 1),
                                padding=(1, 1),

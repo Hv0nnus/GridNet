@@ -122,7 +122,7 @@ def batch_loop(optimizer, train_loader, network, epoch, parameters, timer_batch,
                 ".\nTime total batch : " + Save_import.time_to_string(time.time() - timer_epoch) + "\n \n")
 
         timer_batch = time.time()
-        break
+
     return ()
 
 
@@ -158,7 +158,7 @@ def validation_loop(val_loader, network, epoch, parameters, timer_epoch):
                 "\nEpoch : " + str(epoch) + ". Batch : " + str(i) + ".\nValidation error : " + str(
                     validation_error / (i + 1)) +
                 ".\nTime total batch : " + Save_import.time_to_string(time.time() - timer_epoch) + "\n \n")
-        break
+
     # Divide by the the number of element in the entire batch
     return validation_error / (i + 1)
 
@@ -229,6 +229,10 @@ def train(parameters, network, train_loader, val_loader):
                           ".\nTime Epoch :" + Save_import.time_to_string(time.time() - timer_epoch) +
                           ".\nTime total : " + Save_import.time_to_string(time.time() - timer_init) +
                           ".\n \n")
+        if (epoch%10)==0:
+            Save_import.organise_CSV(path_CSV=parameters.path_CSV,
+                                     name_network=parameters.name_network,
+                                     train_number=parameters.train_number)
 
     # Similar to a "print" but in a text file
     with open(parameters.path_print, 'a') as txtfile:
@@ -276,14 +280,14 @@ def main(path_continue_learning=None, total_epoch=0):
 
         # Define all the parameters
 
-        parameters = Parameters.Parameters(nColumns=8,
-                                           nFeatMaps=[16,32,64,128,256,512],
+        parameters = Parameters.Parameters(nColumns=6,
+                                           nFeatMaps=[16,32,64,128,256],
                                            nFeatureMaps_init=3,
                                            number_classes=20 - 1,
                                            label_DF=Label.create_label(),
 
                                            width_image_initial=2048, height_image_initial=1024,
-                                           size_image_crop=353,
+                                           size_image_crop=401,
 
                                            dropFactor=0.1,
                                            learning_rate=0.01,
@@ -293,14 +297,14 @@ def main(path_continue_learning=None, total_epoch=0):
                                            epsilon=1 * 10 ** (-8),
                                            batch_size=7,
                                            batch_size_val=7,
-                                           epoch_total=5,
+                                           epoch_total=400,
                                            actual_epoch=0,
                                            ratio=(1, 1),
                                            weight_grad=weight_grad,
                                            loss='cross_entropy',
 
                                            path_save_net="./Model/",
-                                           name_network="damien_weight_2",
+                                           name_network="new_archi_dam",
                                            train_number=0,
                                            path_CSV="./CSV/",
                                            path_data="/home_expes/collections/Cityscapes/",
