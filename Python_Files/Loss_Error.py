@@ -71,7 +71,7 @@ def criterion_pd_format(y_estimated, y, epoch, set_type, parameters):
     loss = criterion(y_estimated, y, parameters)
 
     # Return a vector  usefull to copy to CSV 
-    return [loss.data[0], set_type, epoch]
+    return [set_type, epoch, loss.data[0]]
 
 
 def IoU_pd_format(y_estimated, y, set_type, epoch, parameters):
@@ -114,14 +114,16 @@ def IoU_pd_format(y_estimated, y, set_type, epoch, parameters):
             # Intersection is the value predicted of class cls2 and are in reality class cls1
             intersection = (pred_inds * target_inds).long().sum().data[0]
 
-            # Traning or validation set
-            confusion_matrix[i][0] = set_type
-            # The value normalised
-            confusion_matrix[i][1] = intersection / normalisation_value
+
+
             # Associated with this value we keep the two classes
-            confusion_matrix[i][2] = "class" + str(cls1)
-            confusion_matrix[i][3] = "class" + str(cls2)
+            confusion_matrix[i][0] = "class" + str(cls2)
+            confusion_matrix[i][1] = "class" + str(cls1)
             # The epoch associated
-            confusion_matrix[i][4] = epoch
+            confusion_matrix[i][2] = epoch
+            # Traning or validation set
+            confusion_matrix[i][3] = set_type
+            # The value normalised
+            confusion_matrix[i][4] = intersection / normalisation_value
 
     return confusion_matrix

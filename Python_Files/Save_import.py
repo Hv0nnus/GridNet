@@ -36,8 +36,8 @@ def init_csv(path_CSV, name_network, train_number, path_print):
             # TODO ici il faudra faire arreter le programme !
 
     # header of the futur Pandas DataFrames
-    header_confMat = ["Set", "Value", "Target", "Prediction", "Epoch"]
-    header_loss = ["Value", "Set", "Epoch"]
+    header_confMat = ['Target', 'Prediction', 'Epoch', 'Set', 'Value']
+    header_loss = ["Set", "Epoch", "Value"]
 
     # Try to open the file and write the header
     with open(path_CSV + "CSV_confMat_" + name_network + str(train_number) + ".csv", 'w') as csvfile:
