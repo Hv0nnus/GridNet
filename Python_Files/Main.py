@@ -121,7 +121,7 @@ def batch_loop(optimizer, train_loader, network, epoch, parameters, timer_batch,
                 ".\nTime total batch : " + Save_import.time_to_string(time.time() - timer_epoch) + "\n \n")
 
         timer_batch = time.time()
-        break
+
     return ()
 
 
@@ -157,7 +157,7 @@ def validation_loop(val_loader, network, epoch, parameters, timer_epoch):
                 "\nEpoch : " + str(epoch) + ". Batch : " + str(i) + ".\nValidation error : " + str(
                     validation_error / (i + 1)) +
                 ".\nTime total batch : " + Save_import.time_to_string(time.time() - timer_epoch) + "\n \n")
-        break
+
     # Divide by the the number of element in the entire batch
     return validation_error / (i + 1)
 
@@ -292,18 +292,18 @@ def main(path_continue_learning=None, total_epoch=0):
                                            epsilon=1 * 10 ** (-8),
                                            batch_size=7,
                                            batch_size_val=7,
-                                           epoch_total=5,
+                                           epoch_total=400,
                                            actual_epoch=0,
                                            ratio=(1, 1),
                                            weight_grad=weight_grad,
                                            loss='cross_entropy',
 
                                            path_save_net="./Model/",
-                                           name_network="damien_weight_2",
+                                           name_network="without_weight",
                                            train_number=0,
                                            path_CSV="./CSV/",
                                            path_data="/home_expes/collections/Cityscapes/",
-                                           path_print="./Python_print_dam2.txt",
+                                           path_print="./Python_print.txt",
                                            path_result="./Result",
                                            num_workers=2)
         # Define the GridNet

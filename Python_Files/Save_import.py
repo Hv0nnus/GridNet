@@ -266,12 +266,12 @@ class cityscapes_create_dataset(data.Dataset):
 
             mask = Image.fromarray(mask_copy.astype(np.uint8))
 
-            mask = torch.squeeze(mask)
-
             if self.transform_target is not None:
                 random.seed(seed)  # apply this seed to mask transforms
                 mask = self.transform_target(mask)
                 mask = (mask * 255).round()
+            
+            mask = torch.squeeze(mask)
 
             return img, mask.long(), self.image_names
         else:
