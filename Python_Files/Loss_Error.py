@@ -13,6 +13,8 @@ def criterion(y_estimated, y, parameters):
     :return: difference between y_estimated and y, according to some function (most of the time, NLLLoss)
     """
 
+    mask = (y != parameters.number_classes).unsqueeze(1).float()
+
     if parameters.loss == "cross_entropy":
         # http://pytorch.org/docs/master/nn.html : torch.nn.NLLLoss
         nllcrit = nn.NLLLoss2d(weight=parameters.weight_grad, reduce=True)
@@ -23,7 +25,7 @@ def criterion(y_estimated, y, parameters):
         # (y!= parameters.number_classes) is a matrix with 0 on position were the target is class
         # parameters.number_classes
         # unsqueeze add a dimension to allowed multiplication and float transform the Variable to a float Variable
-        y_estimated = y_estimated * (y != parameters.number_classes).unsqueeze(1).float()
+        y_estimated = y_estimated * mask
 
         # Set all target value of number_classes to 0 (we could have choose another class.
         # The nllcrit will do y_estimated[k,0,i,j]*y[k,i,j]
@@ -55,6 +57,27 @@ def criterion(y_estimated, y, parameters):
         # Divide by the number of class to have IoU between 0 and 1. we add "1 -" to have a loss to minimize and
         # to stay between 0 and 1.
         return 1 - (IoU / parameters.number_classes)
+
+    if parameters.loss == "hinge":
+        hinge_loss = torch.nn.MultiLabelMarginLoss(size_average=True)
+
+        # Apply the mask to avoid any back propagation on the value of the class number_classes
+        y_estimated = y_estimated * mask
+
+        # Their is no back prop, but the value of the error is still influenced
+        # we force the network to predict the class 0 for the point that are class number_classes.
+        y_estimated[:, 0, :, :] = y_estimated[:, 0, :, :] + (y == parameters.number_classes).float()
+        # Set all target value of number_classes to 0, the hinge loss will be max(0, 1 - (1 - 0))
+        # Because the network predict the class 0 to 1 and the other to 0
+        y = y * (y != parameters.number_classes).long()
+
+        y_estimated = y_estimated.transpose(0, 2, 3, 1)
+        y_estimated_reshape = y_estimated.view(-1, parameters.number_classes)
+        y = y.transpose(0, 2, 3)
+        y_reshape = y.view(-1)
+
+        return hinge_loss(input=y_estimated_reshape,
+                          target=y_reshape)
 
 
 def criterion_pd_format(y_estimated, y, epoch, set_type, parameters):

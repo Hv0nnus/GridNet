@@ -281,7 +281,7 @@ def main(path_continue_learning=None, total_epoch=0):
         # Define all the parameters
 
         parameters = Parameters.Parameters(nColumns=6,
-                                           nFeatMaps=[16,32,64,128,256],
+                                           nFeatMaps=[16, 32, 64, 128, 256],
                                            nFeatureMaps_init=3,
                                            number_classes=20 - 1,
                                            label_DF=Label.create_label(),
@@ -301,10 +301,10 @@ def main(path_continue_learning=None, total_epoch=0):
                                            actual_epoch=0,
                                            ratio=(1, 1),
                                            weight_grad=weight_grad,
-                                           loss='cross_entropy',
+                                           loss='hinge',
 
                                            path_save_net="./Model/",
-                                           name_network="new_archi_dam",
+                                           name_network="hinge",
                                            train_number=0,
                                            path_CSV="./CSV/",
                                            path_data="/home_expes/collections/Cityscapes/",
@@ -312,7 +312,7 @@ def main(path_continue_learning=None, total_epoch=0):
                                            path_result="./Result",
                                            num_workers=2)
         # Define the GridNet
-        network = Copy_GridNet_structure.gridNet(nInputs=parameters.nFeatureMaps_init,
+        network = GridNet_structure.gridNet(nInputs=parameters.nFeatureMaps_init,
                                             nOutputs=parameters.number_classes,
                                             nColumns=parameters.nColumns,
                                             nFeatMaps=parameters.nFeatMaps,
