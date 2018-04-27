@@ -23,6 +23,7 @@ import Save_import
 import Loss_Error
 import Parameters
 import Label
+import Copy_GridNet_structure
 
 
 # # Commentaire pour la suite (TODO)
@@ -307,7 +308,7 @@ def main(path_continue_learning=None, total_epoch=0):
                                            path_result="./Result",
                                            num_workers=2)
         # Define the GridNet
-        network = GridNet_structure.gridNet(nInputs=parameters.nFeatureMaps_init,
+        network = Copy_GridNet_structure.gridNet(nInputs=parameters.nFeatureMaps_init,
                                             nOutputs=parameters.number_classes,
                                             nColumns=parameters.nColumns,
                                             nFeatMaps=parameters.nFeatMaps,
