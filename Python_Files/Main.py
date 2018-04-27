@@ -276,7 +276,7 @@ def main(path_continue_learning=None, total_epoch=0):
             weight_grad[i] = sum / weight_grad[i]
         # Normalize again and mult by the number of classes
         weight_grad = (weight_grad / weight_grad.sum()) * weight_grad.size(0)
-        weight_grad = torch.FloatTensor([1 for i in range(19)])
+        #weight_grad = torch.FloatTensor([1 for i in range(19)])
 
         # Define all the parameters
 

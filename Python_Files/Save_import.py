@@ -94,7 +94,7 @@ def save_error(x, y, network, epoch, set_type, parameters):
         writer = csv.writer(csvfile, quoting=csv.QUOTE_NONNUMERIC)
         writer.writerows([loss])
 
-    return loss[0]
+    return loss[2]
 
 
 def save_checkpoint(state, filename='checkpoint.pth.tar'):
