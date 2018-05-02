@@ -83,6 +83,9 @@ def batch_loop(optimizer, train_loader, network, epoch, parameters, timer_batch,
         # zero the gradient buffers
         optimizer.zero_grad()
 
+        # Update the optimizer
+        optimizer.param_groups[0]['lr'] /= (1 - parameters.learning_rate_decay)
+
         # Transform into Variable
         if torch.cuda.is_available():
             x_batch, y_batch = Variable(x_batch.cuda()), Variable(y_batch.cuda())
@@ -116,9 +119,9 @@ def batch_loop(optimizer, train_loader, network, epoch, parameters, timer_batch,
         # Similar to a "print" but in a textfile
         with open(parameters.path_print, 'a') as txtfile:
             txtfile.write(
-                "\nEpoch : " + str(epoch) + ". Batch : " + str(i) + ".\nTrain_Error : " + str(
-                    train_error / (i + 1)) + "\n" +
-                "Time batch : " + Save_import.time_to_string(time.time() - timer_batch) +
+                "\nEpoch : " + str(epoch) + ". Batch : " + str(i) +
+                ".\nTrain_Error : " + str(train_error / (i + 1)) +
+                "\n" + "Time batch : " + Save_import.time_to_string(time.time() - timer_batch) +
                 ".\nTime total batch : " + Save_import.time_to_string(time.time() - timer_epoch) + "\n \n")
 
         timer_batch = time.time()
@@ -291,7 +294,8 @@ def main(path_continue_learning=None, total_epoch=0):
 
                                            dropFactor=0.1,
                                            learning_rate=0.01,
-                                           weight_decay=5 * 10 ** (-6),
+                                           learning_rate_decay=5*(10**(-6)),
+                                           weight_decay=0,
                                            beta1=0.9,
                                            beta2=0.999,
                                            epsilon=1 * 10 ** (-8),
