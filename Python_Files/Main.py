@@ -276,11 +276,11 @@ def main(path_continue_learning=None, total_epoch=0):
             weight_grad[i] = sum / weight_grad[i]
         # Normalize again and mult by the number of classes
         weight_grad = (weight_grad / weight_grad.sum()) * weight_grad.size(0)
-        #weight_grad = torch.FloatTensor([1 for i in range(19)])
+        weight_grad = torch.FloatTensor([1 for i in range(19)])
 
         # Define all the parameters
 
-        parameters = Parameters.Parameters(nColumns=6,
+        parameters = Parameters.Parameters(nColumns=8,
                                            nFeatMaps=[16, 32, 64, 128, 256],
                                            nFeatureMaps_init=3,
                                            number_classes=20 - 1,
@@ -295,20 +295,20 @@ def main(path_continue_learning=None, total_epoch=0):
                                            beta1=0.9,
                                            beta2=0.999,
                                            epsilon=1 * 10 ** (-8),
-                                           batch_size=7,
-                                           batch_size_val=7,
+                                           batch_size=6,
+                                           batch_size_val=6,
                                            epoch_total=400,
                                            actual_epoch=0,
                                            ratio=(1, 1),
                                            weight_grad=weight_grad,
-                                           loss='hinge',
+                                           loss='cross_entropy',
 
                                            path_save_net="./Model/",
-                                           name_network="hinge",
+                                           name_network="new_decay",
                                            train_number=0,
                                            path_CSV="./CSV/",
                                            path_data="/home_expes/collections/Cityscapes/",
-                                           path_print="./Python_print_dam2.txt",
+                                           path_print="./Python_print.txt",
                                            path_result="./Result",
                                            num_workers=2)
         # Define the GridNet
