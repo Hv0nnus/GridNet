@@ -30,7 +30,8 @@ class Parameters:
                  # Probability of a Blockwise dropout
                  dropFactor=0.1,
                  learning_rate=0.01,
-                 weight_decay=5 * 10 ** (-6),
+                 learning_rate_decay=5 * (10 ** (-6)),
+                 weight_decay=0,
                  # Parameter of the Adam Optimizer (beta1 beta2 and epsilon)
                  beta1=0.9,
                  beta2=0.999,
@@ -60,7 +61,7 @@ class Parameters:
                  # Path were the output (print) is store at each iteration
                  # The information about the actual state of the execution is store in Python_print.txt
                  path_print="Python_print.txt",
-                 #Path were the pictures are stored
+                 # Path were the pictures are stored
                  path_result="./Result",
                  # Number of process that will load the Data
                  num_workers=0,
@@ -98,6 +99,7 @@ class Parameters:
         # Learning
         self.dropFactor = dropFactor
         self.learning_rate = learning_rate
+        self.learning_rate_decay = learning_rate_decay
         self.weight_decay = weight_decay
         self.beta1 = beta1
         self.beta2 = beta2

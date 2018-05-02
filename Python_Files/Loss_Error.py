@@ -106,10 +106,10 @@ def IoU_pd_format(y_estimated, y, set_type, epoch, parameters):
     :param parameters: List of parameters of the network
     :return: Return a matrix of confusion in a good format to creat a pandas DataFrame
     """
-    # We keep only the higest value, which is the prediction
+    # We keep only the highst value, which is the prediction
     pred = torch.max(y_estimated, dim=1)[1]
 
-    # Creat the confusion matrix, only the second column will have the value
+    # Create the confusion matrix, only the second column will have the value
     confusion_matrix = [[0] * 5 for i in range(parameters.number_classes ** 2)]
 
     pred = pred.view(-1)
