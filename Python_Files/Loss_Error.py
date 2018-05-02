@@ -71,10 +71,16 @@ def criterion(y_estimated, y, parameters):
         # Because the network predict the class 0 to 1 and the other to 0
         y = y * (y != parameters.number_classes).long()
 
-        y_estimated = y_estimated.transpose(0, 2, 3, 1)
+        y_estimated = y_estimated.permute(0, 2, 3, 1).contiguous()
         y_estimated_reshape = y_estimated.view(-1, parameters.number_classes)
-        y = y.transpose(0, 2, 3)
-        y_reshape = y.view(-1)
+        y_reshape = y.contiguous().view(-1, 1)
+
+        # Compute the IoU per classes
+        for k in range(parameters.number_classes):
+            # Keep only the classes k.
+            y_only_k = (y_reshape == k).float()
+
+            y_reshape_2D = torch.cat((y_reshape_2D, (y_reshape==k).float()),dim=1)
 
         return hinge_loss(input=y_estimated_reshape,
                           target=y_reshape)
