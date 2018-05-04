@@ -232,7 +232,7 @@ def train(parameters, network, train_loader, val_loader):
                           ".\nTime Epoch :" + Save_import.time_to_string(time.time() - timer_epoch) +
                           ".\nTime total : " + Save_import.time_to_string(time.time() - timer_init) +
                           ".\n \n")
-        if (epoch%10)==0:
+        if (epoch % 10) == 0:
             Save_import.organise_CSV(path_CSV=parameters.path_CSV,
                                      name_network=parameters.name_network,
                                      train_number=parameters.train_number)
