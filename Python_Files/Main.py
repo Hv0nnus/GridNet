@@ -308,7 +308,7 @@ def main(path_continue_learning=None, total_epoch=0):
                                            loss='cross_entropy',
 
                                            path_save_net="./Model/",
-                                           name_network="new_decay",
+                                           name_network="New_decay",
                                            train_number=0,
                                            path_CSV="./CSV/",
                                            path_data="/home_expes/collections/Cityscapes/",
