@@ -101,7 +101,7 @@ def batch_loop(optimizer, train_loader, network, epoch, parameters, timer_batch,
         loss = Loss_Error.criterion(y_batch_estimated, y_batch, parameters)
 
         # Compute the backward function
-        loss.backward()
+        loss.sum().backward()
 
         # Does the update according to the optimizer define above
         optimizer.step()
@@ -198,7 +198,7 @@ def train(parameters, network, train_loader, val_loader):
         timer_batch = time.time()
 
         # Update the optimizer
-        optimizer.param_groups[0]['lr'] /= 1 + epoch * parameters.learning_rate_decay
+        #optimizer.param_groups[0]['lr'] /= 1 + epoch * parameters.learning_rate_decay
 
         batch_loop(optimizer=optimizer,
                    train_loader=train_loader,
@@ -299,8 +299,8 @@ def main(path_continue_learning=None, total_epoch=0):
                                            beta1=0.9,
                                            beta2=0.999,
                                            epsilon=1 * 10 ** (-8),
-                                           batch_size=6,
-                                           batch_size_val=6,
+                                           batch_size=12,
+                                           batch_size_val=12,
                                            epoch_total=400,
                                            actual_epoch=0,
                                            ratio=(1, 1),
@@ -308,11 +308,11 @@ def main(path_continue_learning=None, total_epoch=0):
                                            loss='cross_entropy',
 
                                            path_save_net="./Model/",
-                                           name_network="New_decay",
+                                           name_network="Decay_final",
                                            train_number=0,
                                            path_CSV="./CSV/",
                                            path_data="/home_expes/collections/Cityscapes/",
-                                           path_print="./Python_print.txt",
+                                           path_print="./Python_print_decay_final.txt",
                                            path_result="./Result",
                                            num_workers=2)
         # Define the GridNet
