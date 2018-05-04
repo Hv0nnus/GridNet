@@ -18,7 +18,7 @@ def criterion(y_estimated, y, parameters):
 
     if parameters.loss == "cross_entropy":
         # http://pytorch.org/docs/master/nn.html : torch.nn.NLLLoss
-        nllcrit = nn.NLLLoss2d(weight=parameters.weight_grad, reduce=False)
+        nllcrit = nn.NLLLoss2d(weight=parameters.weight_grad, size_average=False)
 
         # Apply softmax then the log on the result
         y_estimated = F.log_softmax(input=y_estimated, dim=1)
