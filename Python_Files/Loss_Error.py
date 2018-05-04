@@ -14,7 +14,7 @@ def criterion(y_estimated, y, parameters):
     """
 
     mask = (y != parameters.number_classes).unsqueeze(1).float()
-    number_of_used_pixel = sum(sum(mask))
+    number_of_used_pixel = torch.sum(mask)
 
     if parameters.loss == "cross_entropy":
         # http://pytorch.org/docs/master/nn.html : torch.nn.NLLLoss
@@ -35,6 +35,8 @@ def criterion(y_estimated, y, parameters):
         y = y * (y != parameters.number_classes).long()
 
         # Apply the criterion define in the first line
+        print("here is nnllcrit in the criterion ")
+        print(nllcrit(y_estimated, y))
         return nllcrit(y_estimated, y) / number_of_used_pixel
 
     if parameters.loss == "IoU":
@@ -64,6 +66,10 @@ def criterion(y_estimated, y, parameters):
                                               margin=0.5,
                                               weight=parameters.weight_grad,
                                               size_average=False)
+
+        # Apply softmax then the log on the result
+        y_estimated = F.softmax(input=y_estimated, dim=1)
+        
         # Apply the mask to avoid any back propagation on the value of the class number_classes
         y_estimated = y_estimated * mask
 

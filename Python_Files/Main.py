@@ -101,6 +101,8 @@ def batch_loop(optimizer, train_loader, network, epoch, parameters, timer_batch,
         loss = Loss_Error.criterion(y_batch_estimated, y_batch, parameters)
 
         # Compute the backward function
+        print("here it is the loss in the main prgram")
+        print(loss)
         loss.backward()
 
         # Does the update according to the optimizer define above
@@ -308,14 +310,14 @@ def main(path_continue_learning=None, total_epoch=0):
                                            actual_epoch=0,
                                            ratio=(1, 1),
                                            weight_grad=weight_grad,
-                                           loss='cross_entropy',
+                                           loss='hinge',
 
                                            path_save_net="./Model/",
-                                           name_network="decay6_each_batch",
+                                           name_network="hinge",
                                            train_number=0,
                                            path_CSV="./CSV/",
                                            path_data="/home_expes/collections/Cityscapes/",
-                                           path_print="./Python_print_hinge.txt",
+                                           path_print="./Python_print_decay6_each_batch.txt",
                                            path_result="./Result",
                                            num_workers=2)
         # Define the GridNet
