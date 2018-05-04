@@ -114,13 +114,13 @@ def load_from_checkpoint(path_checkpoint):
 
     # If the file exist we import the Data
     if os.path.isfile(path_checkpoint):
-
-        try:
+        is_GPU = False
+        if is_GPU:
             # Load the structure in GPU
             checkpoint = torch.load(path_checkpoint)
-        except (RuntimeError, TypeError, NameError):
+        else:
             # If it failed try in CPU
-            torch.load('my_file.pt', map_location=lambda storage, loc: storage)
+            checkpoint = torch.load(path_checkpoint, map_location=lambda storage, loc: storage)
 
         # Set the parameters
         parameters = checkpoint['parameters']

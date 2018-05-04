@@ -22,9 +22,11 @@ def main_test(path_learning, dataset="val"):
     j = 0
     w = 2017
     h = 993
+    w = 801
+    h = 801
     position_crop = []
-    for k in range(1):
-        for l in range(1):
+    for k in range(4):
+        for l in range(2):
             # i est l axe des x
             i = k * w//2
             j = l * h//2

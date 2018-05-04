@@ -34,6 +34,10 @@ def test_loop(parameters, network, dataset, test_dataset, position_crop):
     timer_init = time.time()
 
     for k in range(len(test_dataset.imgs)):
+        with open("/home_expes/kt82128h/GridNet/Python_Files/Python_print_test.txt", 'a') as txtfile:
+            txtfile.write("\n " "First loop" + str(k) + "\n")
+
+        print(k)
 
         # Store the time at the begining of each image
         timer_image = time.time()
@@ -50,7 +54,8 @@ def test_loop(parameters, network, dataset, test_dataset, position_crop):
                                x_batch_PIL.size[0]))
 
         for i, j, w, h in position_crop:
-
+            with open("/home_expes/kt82128h/GridNet/Python_Files/Python_print_test.txt", 'a') as txtfile:
+                txtfile.write("\n " "Before i j w h " + str(i) + str(j) + str(w) + str(h) + "\n")
             assert (i+w) <= parameters.width_image_initial
             assert (j+h) <= parameters.height_image_initial
 
@@ -68,7 +73,8 @@ def test_loop(parameters, network, dataset, test_dataset, position_crop):
 
             # Add a dimension because we only have a batch size of 1
             x_batch = x_batch.unsqueeze(dim=0)
-
+            with open("/home_expes/kt82128h/GridNet/Python_Files/Python_print_test.txt", 'a') as txtfile:
+                txtfile.write("\n " "Before test the network" + "\n")
             # Compute the forward function
             y_batch_estimated = network(x_batch)
 
@@ -79,6 +85,9 @@ def test_loop(parameters, network, dataset, test_dataset, position_crop):
 
             # Add every value to the image. i and j or exchange compare to PIL image
             x_batch_np[:, j:j + h, i:i + w] += y_batch_estimated
+
+        with open("/home_expes/kt82128h/GridNet/Python_Files/Python_print_test.txt", 'a') as txtfile:
+            txtfile.write("\n " "After the loop" + str(k) + "\n")
 
         # Keep only the highest probability, that will be the predicted class
         x_batch_np = x_batch_np.argmax(axis=0)
@@ -101,7 +110,7 @@ def test_loop(parameters, network, dataset, test_dataset, position_crop):
         with open(parameters.path_print, 'a') as txtfile:
             txtfile.write("Time for one image : " + str(time.time() - timer_image) + "\n")
 
-        if k == 9:
+        if k == 1:
             break
 
     with open(parameters.path_print, 'a') as txtfile:
