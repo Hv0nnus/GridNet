@@ -14,10 +14,11 @@ def criterion(y_estimated, y, parameters):
     """
 
     mask = (y != parameters.number_classes).unsqueeze(1).float()
+    number_of_used_pixel = sum(sum(mask))
 
     if parameters.loss == "cross_entropy":
         # http://pytorch.org/docs/master/nn.html : torch.nn.NLLLoss
-        nllcrit = nn.NLLLoss2d(weight=parameters.weight_grad, reduce=True)
+        nllcrit = nn.NLLLoss2d(weight=parameters.weight_grad, reduce=False)
 
         # Apply softmax then the log on the result
         y_estimated = F.log_softmax(input=y_estimated, dim=1)
@@ -34,7 +35,7 @@ def criterion(y_estimated, y, parameters):
         y = y * (y != parameters.number_classes).long()
 
         # Apply the criterion define in the first line
-        return nllcrit(y_estimated, y)
+        return nllcrit(y_estimated, y)/number_of_used_pixel
 
     if parameters.loss == "IoU":
 
@@ -59,12 +60,15 @@ def criterion(y_estimated, y, parameters):
         return 1 - (IoU / parameters.number_classes)
 
     if parameters.loss == "hinge":
-        hinge_loss = torch.nn.MultiLabelMarginLoss(size_average=True)
+        hinge_loss = torch.nn.MultiMarginLoss(p=1,
+                                              margin=0.5,
+                                              weight=parameters.weight_grad,
+                                              size_average=False)
 
         # Apply the mask to avoid any back propagation on the value of the class number_classes
         y_estimated = y_estimated * mask
 
-        # Their is no back prop, but the value of the error is still influenced
+        # There is no back prop, but the value of the error is still influenced
         # we force the network to predict the class 0 for the point that are class number_classes.
         y_estimated[:, 0, :, :] = y_estimated[:, 0, :, :] + (y == parameters.number_classes).float()
         # Set all target value of number_classes to 0, the hinge loss will be max(0, 1 - (1 - 0))
@@ -73,17 +77,10 @@ def criterion(y_estimated, y, parameters):
 
         y_estimated = y_estimated.permute(0, 2, 3, 1).contiguous()
         y_estimated_reshape = y_estimated.view(-1, parameters.number_classes)
-        y_reshape = y.contiguous().view(-1, 1)
-
-        # Compute the IoU per classes
-        for k in range(parameters.number_classes):
-            # Keep only the classes k.
-            y_only_k = (y_reshape == k).float()
-
-            y_reshape_2D = torch.cat((y_reshape_2D, (y_reshape==k).float()),dim=1)
+        y_reshape = y.contiguous().view(-1)
 
         return hinge_loss(input=y_estimated_reshape,
-                          target=y_reshape)
+                          target=y_reshape)/number_of_used_pixel
 
 
 def criterion_pd_format(y_estimated, y, epoch, set_type, parameters):
