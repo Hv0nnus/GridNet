@@ -53,4 +53,4 @@ if len(sys.argv) == 3:
 if len(sys.argv) == 2:
     main_test(path_learning=sys.argv[1])
 else:
-    raise ValueError('No path define to lload the network')
+    raise ValueError('No path define to load the network or too many argument')
