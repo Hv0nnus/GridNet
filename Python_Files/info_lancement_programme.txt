@@ -18,7 +18,7 @@ number of Columns :  6
 
 number of number_classes :  19
 
-number of actual_epoch :  173 BUG APRES 173 iteration ???
+number of actual_epoch :  173
 
 number of batch_size :  20
 
@@ -45,6 +45,84 @@ number of num_workers :  2
 number of weight_decay :  4.9999999999999996e-06
 
 number of size_image_crop :  353
+
+
+
+number of Columns :  8
+
+number of number_classes :  19
+
+number of actual_epoch :  398
+
+number of batch_size :  7
+
+number of batch_size_val :  7
+
+number of beta1 :  0.9
+
+number of beta2 :  0.999
+
+number of dropFactor :  0.1
+
+number of epsilon :  1e-08
+
+number of epoch_total :  400
+
+number of learning_rate :  0.01
+
+number of name_network :  without_weight
+
+number of nFeatMaps :  [16, 32, 64, 128, 256, 512]
+
+number of num_workers :  2
+
+number of weight_decay :  4.9999999999999996e-06
+
+number of size_image_crop :  353
+
+number of transforms_output :  <torchvision.transforms.transforms.Compose object at 0x7f7b93b5d0f0>
+
+number of transforms_input :  <torchvision.transforms.transforms.Compose object at 0x7f7b93b48f28>
+
+
+number of Columns :  8
+
+number of number_classes :  19
+
+number of actual_epoch :  768
+
+number of batch_size :  4
+
+number of batch_size_val :  4
+
+number of beta1 :  0.9
+
+number of beta2 :  0.999
+
+number of dropFactor :  0.1
+
+number of epsilon :  1e-08
+
+number of epoch_total :  800
+
+number of learning_rate :  0.01
+
+number of name_network :  damien_weight
+
+number of nFeatMaps :  [16, 32, 64, 128, 256]
+
+number of num_workers :  2
+
+number of weight_decay :  4.9999999999999996e-06
+
+number of size_image_crop :  401
+
+number of transforms_output :  <torchvision.transforms.transforms.Compose object at 0x7f5aaf6ec198>
+
+number of transforms_input :  <torchvision.transforms.transforms.Compose object at 0x7f5aaf6ec048>
+
+number of train_number :  0
+
 
 
 

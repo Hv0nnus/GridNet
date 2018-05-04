@@ -83,9 +83,6 @@ def batch_loop(optimizer, train_loader, network, epoch, parameters, timer_batch,
         # zero the gradient buffers
         optimizer.zero_grad()
 
-        # Update the optimizer
-        optimizer.param_groups[0]['lr'] /= (1 - parameters.learning_rate_decay)
-
         # Transform into Variable
         if torch.cuda.is_available():
             x_batch, y_batch = Variable(x_batch.cuda()), Variable(y_batch.cuda())
@@ -199,6 +196,9 @@ def train(parameters, network, train_loader, val_loader):
         # Store the time at the begining of each epoch
         timer_epoch = time.time()
         timer_batch = time.time()
+
+        # Update the optimizer
+        optimizer.param_groups[0]['lr'] /= 1 + epoch * parameters.learning_rate_decay
 
         batch_loop(optimizer=optimizer,
                    train_loader=train_loader,
