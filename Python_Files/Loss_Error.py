@@ -35,8 +35,6 @@ def criterion(y_estimated, y, parameters):
         y = y * (y != parameters.number_classes).long()
 
         # Apply the criterion define in the first line
-        print("here is nnllcrit in the criterion ")
-        print(nllcrit(y_estimated, y))
         return nllcrit(y_estimated, y) / number_of_used_pixel
 
     if parameters.loss == "IoU":
