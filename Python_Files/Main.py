@@ -101,8 +101,6 @@ def batch_loop(optimizer, train_loader, network, epoch, parameters, timer_batch,
         loss = Loss_Error.criterion(y_batch_estimated, y_batch, parameters)
 
         # Compute the backward function
-        print("here it is the loss in the main prgram")
-        print(loss)
         loss.backward()
 
         # Does the update according to the optimizer define above
@@ -230,6 +228,9 @@ def train(parameters, network, train_loader, val_loader):
 
         validation_error_min, index_save_best, index_save_regular = index
 
+        # Update the optimizer
+        optimizer.param_groups[0]['lr'] = parameters.learning_rate/(1 + epoch * parameters.learning_rate_decay)
+
         # Similar to a "print" but in a text file
         with open(parameters.path_print, 'a') as txtfile:
             txtfile.write("\n              End of Epoch :" + str(epoch) + "/" + str(parameters.epoch_total - 1) +
@@ -272,16 +273,16 @@ def main(path_continue_learning=None, total_epoch=0):
     # If the network was not train we start from scratch
     else:
         # Define the weight
-        weight_grad = torch.FloatTensor([2.381681e+09, 3.856594e+08,
-                                         1.461642e+09, 4.291781e+07, 5.597591e+07, 8.135516e+07, 1.328548e+07,
-                                         3.654657e+07, 1.038652e+09, 7.157456e+07, 2.527450e+08, 7.923985e+07,
-                                         9.438758e+06, 4.460595e+08, 1.753254e+07, 1.655341e+07, 1.389560e+07,
-                                         6.178567e+06, 2.936571e+07])
+        weight_grad = torch.FloatTensor([2.381681e+09, 3.856594e+08,1.461642e+09, 4.291781e+07,
+                                         5.597591e+07, 8.135516e+07, 1.328548e+07, 3.654657e+07,
+                                         1.038652e+09, 7.157456e+07, 2.527450e+08, 7.923985e+07,
+                                         9.438758e+06, 4.460595e+08, 1.753254e+07, 1.655341e+07,
+                                         1.389560e+07, 6.178567e+06, 2.936571e+07])
 
-        sum = weight_grad.sum()
+        sum_grad = weight_grad.sum()
         # normalize and then take the invert
         for i in range(weight_grad.size(0)):
-            weight_grad[i] = sum / weight_grad[i]
+            weight_grad[i] = sum_grad / weight_grad[i]
         # Normalize again and mult by the number of classes
         weight_grad = (weight_grad / weight_grad.sum()) * weight_grad.size(0)
         weight_grad = torch.FloatTensor([1 for i in range(19)])
@@ -299,7 +300,7 @@ def main(path_continue_learning=None, total_epoch=0):
 
                                            dropFactor=0.1,
                                            learning_rate=0.01,
-                                           learning_rate_decay=5*(10**(-6)),
+                                           learning_rate_decay=1*(10**(-2)),
                                            weight_decay=0,
                                            beta1=0.9,
                                            beta2=0.999,
@@ -310,14 +311,14 @@ def main(path_continue_learning=None, total_epoch=0):
                                            actual_epoch=0,
                                            ratio=(1, 1),
                                            weight_grad=weight_grad,
-                                           loss='hinge',
+                                           loss='cross_entropy',
 
                                            path_save_net="./Model/",
-                                           name_network="hinge",
+                                           name_network="decay_each_epoch",
                                            train_number=0,
                                            path_CSV="./CSV/",
                                            path_data="/home_expes/collections/Cityscapes/",
-                                           path_print="./Python_print_decay6_each_batch.txt",
+                                           path_print="./Python_print_decay_each_epoch.txt",
                                            path_result="./Result",
                                            num_workers=2)
         # Define the GridNet
