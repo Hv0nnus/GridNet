@@ -107,7 +107,7 @@ def batch_loop(optimizer, train_loader, network, epoch, parameters, timer_batch,
         optimizer.step()
 
         # Update the optimizer
-        optimizer.param_groups[0]['lr'] = parameters.learning_rate/(1 + epoch * parameters.learning_rate_decay)
+        optimizer.param_groups[0]['lr'] = parameters.learning_rate/(1 + (epoch-390) * parameters.learning_rate_decay)
 
         # Save error of the training DataSet
         train_error += Save_import.save_error(x=x_batch, y=y_batch,
@@ -229,7 +229,10 @@ def train(parameters, network, train_loader, val_loader):
         validation_error_min, index_save_best, index_save_regular = index
 
         # Update the optimizer
-        optimizer.param_groups[0]['lr'] = parameters.learning_rate/(1 + epoch * parameters.learning_rate_decay)
+        if epoch < 800:
+            optimizer.param_groups[0]['lr'] = parameters.learning_rate/(1 + (epoch-390) * parameters.learning_rate_decay)
+        else:
+            optimizer.param_groups[0]['lr'] = parameters.learning_rate/(1 + (epoch-800) * parameters.learning_rate_decay)
 
         # Similar to a "print" but in a text file
         with open(parameters.path_print, 'a') as txtfile:
@@ -250,7 +253,7 @@ def train(parameters, network, train_loader, val_loader):
     return ()
 
 
-def main(path_continue_learning=None, total_epoch=0):
+def main(path_continue_learning=None, total_epoch=0, new_name=None):
     """
     :param path_continue_learning: Path were the network is already saved
                                    (don t use if it is the beginning of the training)
@@ -265,6 +268,13 @@ def main(path_continue_learning=None, total_epoch=0):
 
         # Here we can change some parameters
         parameters.epoch_total = total_epoch
+        parameters.learning_rate_decay = 1*(10**(-2))
+        if new_name is not None:
+            parameters.name_network = new_name
+            # Init the csv file that will store the error
+            Save_import.
+
+
 
         with open(parameters.path_print, 'w') as txtfile:
             txtfile.write('\n               The program will continue \n')
@@ -384,7 +394,9 @@ def main(path_continue_learning=None, total_epoch=0):
 
 
 # Check if there is argument and run the main program with good argument, load previous Data or not.
-if len(sys.argv) == 3:
+if len(sys.argv) == 4:
+    main(path_continue_learning=sys.argv[1], total_epoch=int(sys.argv[2]),new_name=sys.argv[3])
+elif len(sys.argv) == 3:
     main(path_continue_learning=sys.argv[1], total_epoch=int(sys.argv[2]))
-elif len(sys.argv) == 1:
+elif len(sys.argv) ==1:
     main()
