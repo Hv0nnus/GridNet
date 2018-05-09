@@ -256,3 +256,42 @@ number of weight_grad :  Variable containing:
  1
 ...
 
+
+number of Columns :  8
+
+number of number_classes :  19
+
+number of actual_epoch :  389
+
+number of batch_size :  6
+
+number of batch_size_val :  6
+
+number of beta1 :  0.9
+
+number of beta2 :  0.999
+
+number of dropFactor :  0.1
+
+number of epsilon :  1e-08
+
+number of epoch_total :  400
+
+number of learning_rate :  0.01
+
+number of name_network :  IoU_decay_each_batch
+
+number of nFeatMaps :  [16, 32, 64, 128, 256]
+
+number of num_workers :  2
+
+number of weight_decay :  0
+
+number of size_image_crop :  401
+
+learning_rate_decay : 4.9999999999999996e-06
+
+number of weight_grad :  Variable containing:
+ 1
+
+

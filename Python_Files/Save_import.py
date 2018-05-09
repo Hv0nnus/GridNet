@@ -55,6 +55,30 @@ def init_csv(path_CSV, name_network, train_number, path_print):
         cwriter.writerow(header_loss)
 
 
+def duplicated_csv(path_CSV, old_name_network, new_name_network, train_number):
+    """
+    :param path_CSV: path to store the CSV files
+    :param old_name_network: name of the network associated with the CSV files
+    :param new_name_network: name of the new network
+    :param train_number: number of train associated with the CSV files
+    :return: Nothing but copy the actual CSV with the the name of the network
+    """
+    # Import the CSV file into pandas DataFrame
+    loss_DF = pd.read_csv(path_CSV + "CSV_loss_" + old_name_network + str(train_number) + ".csv")
+    # This Groupby will regroupe all line that have the same "Set" and "Epoch" and compute the mean over the "Values"
+    loss_DF = loss_DF.groupby(['Set', 'Epoch'])['Value'].mean().reset_index()
+    # Recreate the CSV file
+    loss_DF.to_csv(path_CSV + "CSV_loss_" + new_name_network + str(train_number) + ".csv", index=False)
+
+    # Import the CSV file into pandas DataFrame
+    conf_DF = pd.read_csv(path_CSV + "CSV_confMat_" + old_name_network + str(train_number) + ".csv")
+    # This Groupby will regroupe all line that have the same 'Target','Prediction','Epoch','Set'
+    # and compute the mean over the "Values"
+    conf_DF = conf_DF.groupby(['Target', 'Prediction', 'Epoch', 'Set'])['Value'].mean().reset_index()
+    # Recreate the CSV file
+    conf_DF.to_csv(path_CSV + "CSV_confMat_" + new_name_network + str(train_number) + ".csv", index=False)
+
+
 def save_error(x, y, network, epoch, set_type, parameters):
     """
     :param x: Input data of validation or training set

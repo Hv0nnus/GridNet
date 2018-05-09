@@ -269,7 +269,6 @@ def main(path_continue_learning=None, total_epoch=0):
         with open(parameters.path_print, 'w') as txtfile:
             txtfile.write('\n               The program will continue \n')
 
-
     # If the network was not train we start from scratch
     else:
         # Define the weight
