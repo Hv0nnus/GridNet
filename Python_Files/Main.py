@@ -200,9 +200,6 @@ def train(parameters, network, train_loader, val_loader):
         timer_epoch = time.time()
         timer_batch = time.time()
 
-        # Update the optimizer
-        #optimizer.param_groups[0]['lr'] /i= 1 + epoch * parameters.learning_rate_decay
-
         batch_loop(optimizer=optimizer,
                    train_loader=train_loader,
                    network=network,
@@ -230,9 +227,9 @@ def train(parameters, network, train_loader, val_loader):
 
         # Update the optimizer
         if epoch < 800:
-            optimizer.param_groups[0]['lr'] = parameters.learning_rate/(1 + (epoch-390) * parameters.learning_rate_decay)
+            optimizer.param_groups[0]['lr'] = parameters.learning_rate/(1 + (epoch-390)*parameters.learning_rate_decay)
         else:
-            optimizer.param_groups[0]['lr'] = parameters.learning_rate/(1 + (epoch-800) * parameters.learning_rate_decay)
+            optimizer.param_groups[0]['lr'] = parameters.learning_rate/(1 + (epoch-800)*parameters.learning_rate_decay)
 
         # Similar to a "print" but in a text file
         with open(parameters.path_print, 'a') as txtfile:
@@ -269,12 +266,15 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
         # Here we can change some parameters
         parameters.epoch_total = total_epoch
         parameters.learning_rate_decay = 1*(10**(-2))
+
+        # If a new name is define, we create new CSV files associated and change the name of the network
         if new_name is not None:
+            # Init the csv file that will store the error, this time we make a copy of the existing error
+            Loss_Error.duplicated_csv(path_CSV=parameters.path_CSV,
+                                      old_name_network=parameters.name_network,
+                                      new_name_network=new_name,
+                                      train_number=parameters.train_number)
             parameters.name_network = new_name
-            # Init the csv file that will store the error
-            Save_import.
-
-
 
         with open(parameters.path_print, 'w') as txtfile:
             txtfile.write('\n               The program will continue \n')
