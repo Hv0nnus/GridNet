@@ -101,8 +101,6 @@ def batch_loop(optimizer, train_loader, network, epoch, parameters, timer_batch,
         loss = Loss_Error.criterion(y_batch_estimated, y_batch, parameters)
 
         # Compute the backward function
-        print("here it is the loss in the main prgram")
-        print(loss)
         loss.backward()
 
         # Does the update according to the optimizer define above
