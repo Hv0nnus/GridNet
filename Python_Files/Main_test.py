@@ -14,7 +14,7 @@ import Test_dataset
 import Manage_image
 
 
-def main_test(path_learning, dataset="val"):
+def main_test(path_learning, dataset="train"):
     # Load the trained Network
     parameters, network = Save_import.load_from_checkpoint(path_checkpoint=path_learning)
 
@@ -25,7 +25,7 @@ def main_test(path_learning, dataset="val"):
     w = 801
     h = 801
     position_crop = []
-    for k in range(4):
+    for k in range(5):
         for l in range(2):
             # i est l axe des x
             i = k * w//2
@@ -45,7 +45,7 @@ def main_test(path_learning, dataset="val"):
     Manage_image.transform_image_to_RGB(path_data="./Result/",
                                         mode=dataset,
                                         from_picture=0,
-                                        to_picture=10,
+                                        to_picture=11,
                                         end_name="prediction.png")
 
     # end_name="labelTrainIds.png")

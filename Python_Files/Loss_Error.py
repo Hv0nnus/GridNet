@@ -62,7 +62,6 @@ def criterion(y_estimated, y, parameters):
     if parameters.loss == "hinge":
         hinge_loss = torch.nn.MultiMarginLoss(p=1,
                                               margin=0.5,
-                                              weight=parameters.weight_grad,
                                               size_average=False)
 
         # Apply softmax then the log on the result
