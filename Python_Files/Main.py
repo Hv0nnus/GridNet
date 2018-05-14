@@ -107,7 +107,7 @@ def batch_loop(optimizer, train_loader, network, epoch, parameters, timer_batch,
         optimizer.step()
 
         # Update the optimizer
-        optimizer.param_groups[0]['lr'] = parameters.learning_rate/(1 + (epoch-390) * parameters.learning_rate_decay)
+        #optimizer.param_groups[0]['lr'] = parameters.learning_rate/(1 + (epoch-390) * parameters.learning_rate_decay)
 
         # Save error of the training DataSet
         train_error += Save_import.save_error(x=x_batch, y=y_batch,
@@ -226,10 +226,19 @@ def train(parameters, network, train_loader, val_loader):
         validation_error_min, index_save_best, index_save_regular = index
 
         # Update the optimizer
+
         #if epoch < 800:
         #    optimizer.param_groups[0]['lr'] = parameters.learning_rate/(1 + (epoch-390)*parameters.learning_rate_decay)
         #else:
         #    optimizer.param_groups[0]['lr'] = parameters.learning_rate/(1 + (epoch-800)*parameters.learning_rate_decay)
+
+        #if epoch < 600:
+        #    optimizer.param_groups[0]['lr'] = parameters.learning_rate/(1 - (epoch-600)*parameters.learning_rate_decay)
+        #elif epoch  < 800:
+        #    optimizer.param_groups[0]['lr'] = parameters.learning_rate
+        #else:
+        #    parameters.learning_rate_decay = 5*(10**(-3))
+        #    optimizer.param_groups[0]['lr'] = parameters.learning_rate/((1 + (epoch-800)*parameters.learning_rate_decay))
 
         # Similar to a "print" but in a text file
         with open(parameters.path_print, 'a') as txtfile:
@@ -266,11 +275,12 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
         # Here we can change some parameters
         parameters.epoch_total = total_epoch
         parameters.learning_rate_decay = 1*(10**(-2))
+        parameters.loss = "hinge"
 
         # If a new name is define, we create new CSV files associated and change the name of the network
         if new_name is not None:
             # Init the csv file that will store the error, this time we make a copy of the existing error
-            Loss_Error.duplicated_csv(path_CSV=parameters.path_CSV,
+            Save_import.duplicated_csv(path_CSV=parameters.path_CSV,
                                       old_name_network=parameters.name_network,
                                       new_name_network=new_name,
                                       train_number=parameters.train_number)
@@ -395,6 +405,7 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
 
 # Check if there is argument and run the main program with good argument, load previous Data or not.
 if len(sys.argv) == 4:
+    print("4 arguments")
     main(path_continue_learning=sys.argv[1], total_epoch=int(sys.argv[2]),new_name=sys.argv[3])
 elif len(sys.argv) == 3:
     main(path_continue_learning=sys.argv[1], total_epoch=int(sys.argv[2]))

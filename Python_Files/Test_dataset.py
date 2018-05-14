@@ -110,7 +110,7 @@ def test_loop(parameters, network, dataset, test_dataset, position_crop):
         with open(parameters.path_print, 'a') as txtfile:
             txtfile.write("Time for one image : " + str(time.time() - timer_image) + "\n")
 
-        if k == 1:
+        if k == 10:
             break
 
     with open(parameters.path_print, 'a') as txtfile:
