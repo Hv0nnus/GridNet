@@ -307,6 +307,9 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
         weight_grad = (weight_grad / weight_grad.sum()) * weight_grad.size(0)
         weight_grad = torch.FloatTensor([1 for i in range(19)])
 
+        if torch.cuda.is_available():
+            weight_grad = weight_grad.cuda()
+
         # Define all the parameters
         parameters = Parameters.Parameters(nColumns=8,
                                            nFeatMaps=[16, 32, 64, 128, 256],
