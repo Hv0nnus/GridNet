@@ -5,7 +5,6 @@ from torch.utils import data
 import torch
 from collections import OrderedDict
 
-
 # Other package
 from os.path import exists
 import csv
@@ -102,7 +101,7 @@ def save_error(x, y, network, epoch, set_type, parameters):
 
     # Store the IoU confusion matrix into a CSV file
     with open(parameters.path_CSV + "CSV_confMat_" + parameters.name_network +
-                      str(parameters.train_number) + ".csv", 'a') as csvfile:
+              str(parameters.train_number) + ".csv", 'a') as csvfile:
         writer = csv.writer(csvfile, quoting=csv.QUOTE_NONNUMERIC)
         writer.writerows(conf_mat)
 
@@ -114,7 +113,7 @@ def save_error(x, y, network, epoch, set_type, parameters):
                                           parameters=parameters)
 
     with open(parameters.path_CSV + "CSV_loss_" + parameters.name_network +
-                      str(parameters.train_number) + ".csv", 'a') as csvfile:
+              str(parameters.train_number) + ".csv", 'a') as csvfile:
         writer = csv.writer(csvfile, quoting=csv.QUOTE_NONNUMERIC)
         writer.writerows([loss])
 
@@ -122,9 +121,10 @@ def save_error(x, y, network, epoch, set_type, parameters):
 
 
 def save_checkpoint(state, filename='checkpoint.pth.tar'):
-    """ Save_checkpoint save the network with weight and parameters.
-        (0) = state : state contains the network, the epoch and the parameter
-        (1) = filename : filname is the name of the file where the checkpoint should be saved
+    """
+    :param state: state contains the network, the epoch and the parameter
+    :param filename: filname is the name of the file where the checkpoint should be saved
+    :return: Save_checkpoint save the network with weight and parameters.
     """
     torch.save(state, filename)
 
@@ -177,8 +177,8 @@ def load_from_checkpoint(path_checkpoint):
         else:
             new_state_dict = OrderedDict()
             for k, v in checkpoint['state_dict'].items():
-                    name = k[7:] # remove `module.`
-                    new_state_dict[name] = v
+                name = k[7:]  # remove `module.`
+                new_state_dict[name] = v
 
             network.load_state_dict(new_state_dict)
 
@@ -299,7 +299,7 @@ class cityscapes_create_dataset(data.Dataset):
                 random.seed(seed)  # apply this seed to mask transforms
                 mask = self.transform_target(mask)
                 mask = (mask * 255).round()
-            
+
             mask = torch.squeeze(mask)
 
             return img, mask.long(), self.image_names
@@ -360,27 +360,30 @@ def checkpoint(validation_error, validation_error_min, index_save_best,
 
     return validation_error_min, index_save_best, index_save_regular
 
+
 """organise_CSV import two CSV files and delete all duplicate row. Because the algorithme work with
     mini_batch there is many value for the loss for one epoch and one data set. We compute here the mean
     of all this loss that have the same epoch and data set. We did the same with the confusion matrix
     (0) = name_network : name of the network associated with the CSV file
     (1) = train_number : number of the network associated with the CSV file
 """
-def organise_CSV(path_CSV,name_network,train_number):
+
+
+def organise_CSV(path_CSV, name_network, train_number):
     # Import the CSV file into pandas DataFrame
     loss_DF = pd.read_csv(path_CSV + "CSV_loss_" + name_network + str(train_number) + ".csv")
     # This Groupby will regroupe all line that have the same "Set" and "Epoch" and compute the mean over the "Values"
-    loss_DF = loss_DF.groupby(['Set','Epoch'])['Value'].mean().reset_index()
+    loss_DF = loss_DF.groupby(['Set', 'Epoch'])['Value'].mean().reset_index()
     # Recreate the CSV file
-    loss_DF.to_csv(path_CSV + "CSV_loss_" + name_network + str(train_number) + ".csv",index = False)
-                                            
+    loss_DF.to_csv(path_CSV + "CSV_loss_" + name_network + str(train_number) + ".csv", index=False)
+
     # Import the CSV file into pandas DataFrame
     conf_DF = pd.read_csv(path_CSV + "CSV_confMat_" + name_network + str(train_number) + ".csv")
     # This Groupby will regroupe all line that have the same 'Target','Prediction','Epoch','Set'
     # and compute the mean over the "Values"
-    conf_DF = conf_DF.groupby(['Target','Prediction','Epoch','Set'])['Value'].mean().reset_index()
+    conf_DF = conf_DF.groupby(['Target', 'Prediction', 'Epoch', 'Set'])['Value'].mean().reset_index()
     # Recreate the CSV file
-    conf_DF.to_csv(path_CSV + "CSV_confMat_" + name_network + str(train_number) + ".csv",index = False)
+    conf_DF.to_csv(path_CSV + "CSV_confMat_" + name_network + str(train_number) + ".csv", index=False)
 
 
 def time_to_string(time):

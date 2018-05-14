@@ -107,7 +107,7 @@ def batch_loop(optimizer, train_loader, network, epoch, parameters, timer_batch,
         optimizer.step()
 
         # Update the optimizer
-        #optimizer.param_groups[0]['lr'] = parameters.learning_rate/(1 + (epoch-390) * parameters.learning_rate_decay)
+        # optimizer.param_groups[0]['lr'] = parameters.learning_rate/(1 + (epoch-390) * parameters.learning_rate_decay)
 
         # Save error of the training DataSet
         train_error += Save_import.save_error(x=x_batch, y=y_batch,
@@ -227,16 +227,16 @@ def train(parameters, network, train_loader, val_loader):
 
         # Update the optimizer
 
-        #if epoch < 800:
-        #    optimizer.param_groups[0]['lr'] = parameters.learning_rate/(1 + (epoch-390)*parameters.learning_rate_decay)
-        #else:
+        if epoch > 800:
+            optimizer.param_groups[0]['lr'] = parameters.learning_rate/(1 + (epoch-800)*parameters.learning_rate_decay)
+        # else:
         #    optimizer.param_groups[0]['lr'] = parameters.learning_rate/(1 + (epoch-800)*parameters.learning_rate_decay)
 
-        #if epoch < 600:
+        # if epoch < 600:
         #    optimizer.param_groups[0]['lr'] = parameters.learning_rate/(1 - (epoch-600)*parameters.learning_rate_decay)
-        #elif epoch  < 800:
+        # elif epoch  < 800:
         #    optimizer.param_groups[0]['lr'] = parameters.learning_rate
-        #else:
+        # else:
         #    parameters.learning_rate_decay = 5*(10**(-3))
         #    optimizer.param_groups[0]['lr'] = parameters.learning_rate/((1 + (epoch-800)*parameters.learning_rate_decay))
 
@@ -264,6 +264,7 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
     :param path_continue_learning: Path were the network is already saved
                                    (don t use if it is the beginning of the training)
     :param total_epoch: Number of epoch needed don t use if it is the beginning of the training)
+    :param new_name: New name of the network, if we want to use again a network already train.
     :return: Nothing but train the network and save CSV files for the error and also save the network regularly
     """
     torch.manual_seed(26542461)
@@ -274,16 +275,16 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
 
         # Here we can change some parameters
         parameters.epoch_total = total_epoch
-        parameters.learning_rate_decay = 1*(10**(-2))
+        parameters.learning_rate_decay = 1 * (10 ** (-2))
         parameters.loss = "hinge"
 
         # If a new name is define, we create new CSV files associated and change the name of the network
         if new_name is not None:
             # Init the csv file that will store the error, this time we make a copy of the existing error
             Save_import.duplicated_csv(path_CSV=parameters.path_CSV,
-                                      old_name_network=parameters.name_network,
-                                      new_name_network=new_name,
-                                      train_number=parameters.train_number)
+                                       old_name_network=parameters.name_network,
+                                       new_name_network=new_name,
+                                       train_number=parameters.train_number)
             parameters.name_network = new_name
 
         with open(parameters.path_print, 'w') as txtfile:
@@ -292,7 +293,7 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
     # If the network was not train we start from scratch
     else:
         # Define the weight
-        weight_grad = torch.FloatTensor([2.381681e+09, 3.856594e+08,1.461642e+09, 4.291781e+07,
+        weight_grad = torch.FloatTensor([2.381681e+09, 3.856594e+08, 1.461642e+09, 4.291781e+07,
                                          5.597591e+07, 8.135516e+07, 1.328548e+07, 3.654657e+07,
                                          1.038652e+09, 7.157456e+07, 2.527450e+08, 7.923985e+07,
                                          9.438758e+06, 4.460595e+08, 1.753254e+07, 1.655341e+07,
@@ -307,7 +308,6 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
         weight_grad = torch.FloatTensor([1 for i in range(19)])
 
         # Define all the parameters
-
         parameters = Parameters.Parameters(nColumns=8,
                                            nFeatMaps=[16, 32, 64, 128, 256],
                                            nFeatureMaps_init=3,
@@ -319,25 +319,25 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
 
                                            dropFactor=0.1,
                                            learning_rate=0.01,
-                                           learning_rate_decay=1*(10**(-2)),
+                                           learning_rate_decay=1 * (10 ** (-2)),
                                            weight_decay=0,
                                            beta1=0.9,
                                            beta2=0.999,
                                            epsilon=1 * 10 ** (-8),
                                            batch_size=6,
                                            batch_size_val=6,
-                                           epoch_total=400,
+                                           epoch_total=1600,
                                            actual_epoch=0,
                                            ratio=(1, 1),
                                            weight_grad=weight_grad,
-                                           loss='cross_entropy',
+                                           loss="cross_entropy_to_IoU",
 
                                            path_save_net="./Model/",
-                                           name_network="decay_each_epoch",
+                                           name_network="cross_to_IoU_scratch",
                                            train_number=0,
                                            path_CSV="./CSV/",
                                            path_data="/home_expes/collections/Cityscapes/",
-                                           path_print="./Python_print_decay_each_epoch.txt",
+                                           path_print="./Python_print_cross_to_IoU_scratch.txt",
                                            path_result="./Result",
                                            num_workers=2)
         # Define the GridNet
@@ -406,8 +406,8 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
 # Check if there is argument and run the main program with good argument, load previous Data or not.
 if len(sys.argv) == 4:
     print("4 arguments")
-    main(path_continue_learning=sys.argv[1], total_epoch=int(sys.argv[2]),new_name=sys.argv[3])
+    main(path_continue_learning=sys.argv[1], total_epoch=int(sys.argv[2]), new_name=sys.argv[3])
 elif len(sys.argv) == 3:
     main(path_continue_learning=sys.argv[1], total_epoch=int(sys.argv[2]))
-elif len(sys.argv) ==1:
+elif len(sys.argv) == 1:
     main()

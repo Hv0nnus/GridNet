@@ -3,6 +3,105 @@
 import torch.nn as nn
 import torch.nn.functional as F
 import torch
+import math
+
+
+def IoU_loss(y_estimated, y, parameters, mask=None):
+    """
+    :param y_estimated: result of train(x) which is the forward action
+    :param y: Label associated with x
+    :param parameters: List of parameters of the network
+    :param mask: Image with 1 were there is a classe to predict, and 0 if not.
+    :return: difference between y_estimated and y, according to the continuous IoU loss
+    """
+    # Apply softmax then the log on the result
+    y_estimated = F.softmax(input=y_estimated, dim=1)
+
+    # Apply the mask
+    y_estimated = y_estimated * mask
+
+    IoU = 0
+
+    # Compute the IoU per classes
+    for k in range(parameters.number_classes):
+        # Keep only the classes k.
+        y_only_k = (y == k).float()
+
+        # Definition of intersection and union
+        intersection = torch.sum(y_estimated[:, k, :, :] * y_only_k)
+        union = torch.sum(y_only_k + y_estimated[:, k, :, :] - y_estimated[:, k, :, :] * y_only_k)
+
+        IoU += parameters.weight_grad[k] * intersection / union
+
+    # Divide by the number of class to have IoU between 0 and 1. we add "1 -" to have a loss to minimize and
+    # to stay between 0 and 1.
+    return 1 - (IoU / parameters.number_classes)
+
+
+def cross_entropy_loss(y_estimated, y, parameters, mask=None, number_of_used_pixel=None):
+    """
+    :param y_estimated: result of train(x) which is the forward action
+    :param y: Label associated with x
+    :param parameters: List of parameters of the network
+    :param mask: Image with 1 were there is a classe to predict, and 0 if not.
+    :param number_of_used_pixel: Nombre of pixel with 1 in the mask. Usefull to normalize the loss
+    :return: difference between y_estimated and y, according to the cross entropy
+    """
+    # http://pytorch.org/docs/master/nn.html : torch.nn.NLLLoss
+    nllcrit = nn.NLLLoss2d(weight=parameters.weight_grad, size_average=False)
+
+    # Apply softmax then the log on the result
+    y_estimated = F.log_softmax(input=y_estimated, dim=1)
+
+    # Apply the mask
+    y_estimated = y_estimated * mask
+
+    # Set all target value of number_classes to 0 (we could have choose another class.
+    # The nllcrit will do y_estimated[k,0,i,j]*y[k,i,j]
+    # It will be 0 if the class is parameters.number_classes : which is exactly what is expect for this class
+    # The other classes remain unchanged
+    y = y * (y != parameters.number_classes).long()
+
+    # Apply the criterion define in the first line
+    return nllcrit(y_estimated, y) / number_of_used_pixel
+
+
+def hinge_multidimensional_loss(y_estimated, y, parameters, mask=None, number_of_used_pixel=None):
+    """
+    :param y_estimated: result of train(x) which is the forward action
+    :param y: Label associated with x
+    :param parameters: List of parameters of the network
+    :param mask: Image with 1 were there is a classe to predict, and 0 if not.
+    :param number_of_used_pixel: Number of pixel with 1 in the mask. Useful to normalize the loss
+    :return: difference between y_estimated and y, according to the hinge loss
+    """
+    hinge_loss = torch.nn.MultiMarginLoss(p=1,
+                                          margin=0.5,
+                                          size_average=False)
+
+    # Apply softmax then the log on the result
+    y_estimated = F.softmax(input=y_estimated, dim=1)
+
+    # Apply the mask to avoid any back propagation on the value of the class number_classes
+    y_estimated = y_estimated * mask
+
+    # There is no back prop, but the value of the error is still influenced
+    # we force the network to predict the class 0 for the point that are class number_classes.
+    y_estimated[:, 0, :, :] = y_estimated[:, 0, :, :] + (y == parameters.number_classes).float()
+    # Set all target value of number_classes to 0, the hinge loss will be max(0, 1 - (1 - 0))
+    # Because the network predict the class 0 to 1 and the other to 0
+    y = y * (y != parameters.number_classes).long()
+
+    y_estimated = y_estimated.permute(0, 2, 3, 1).contiguous()
+    y_estimated_reshape = y_estimated.view(-1, parameters.number_classes)
+    y_reshape = y.contiguous().view(-1)
+
+    return hinge_loss(input=y_estimated_reshape,
+                      target=y_reshape) / number_of_used_pixel
+
+
+def sigmoid(x):
+    return 1 / (1 + math.exp(-x))
 
 
 def criterion(y_estimated, y, parameters):
@@ -10,79 +109,57 @@ def criterion(y_estimated, y, parameters):
     :param y_estimated: result of train(x) which is the forward action
     :param y: Label associated with x
     :param parameters: List of parameters of the network
-    :return: difference between y_estimated and y, according to some function (most of the time, NLLLoss)
+    :return: difference between y_estimated and y, according to some function
     """
-
+    # (y!= parameters.number_classes) is a matrix with 0 on position were the target is class
+    # parameters.number_classes
+    # unsqueeze add a dimension to allowed multiplication and float transform the Variable to a float Variable
     mask = (y != parameters.number_classes).unsqueeze(1).float()
     number_of_used_pixel = torch.sum(mask)
 
     if parameters.loss == "cross_entropy":
-        # http://pytorch.org/docs/master/nn.html : torch.nn.NLLLoss
-        nllcrit = nn.NLLLoss2d(weight=parameters.weight_grad, size_average=False)
-
-        # Apply softmax then the log on the result
-        y_estimated = F.log_softmax(input=y_estimated, dim=1)
-
-        # (y!= parameters.number_classes) is a matrix with 0 on position were the target is class
-        # parameters.number_classes
-        # unsqueeze add a dimension to allowed multiplication and float transform the Variable to a float Variable
-        y_estimated = y_estimated * mask
-
-        # Set all target value of number_classes to 0 (we could have choose another class.
-        # The nllcrit will do y_estimated[k,0,i,j]*y[k,i,j]
-        # It will be 0 if the class is parameters.number_classes : which is exactly what is expect for this class
-        # The other classes remain unchanged
-        y = y * (y != parameters.number_classes).long()
-
-        # Apply the criterion define in the first line
-        return nllcrit(y_estimated, y) / number_of_used_pixel
+        cross_entropy_loss(y_estimated=y_estimated,
+                           y=y,
+                           parameters=parameters,
+                           mask=mask,
+                           number_of_used_pixel=number_of_used_pixel)
 
     if parameters.loss == "IoU":
-
-        # Apply softmax then the log on the result
-        y_estimated = F.softmax(input=y_estimated, dim=1)
-
-        IoU = 0
-
-        # Compute the IoU per classes
-        for k in range(parameters.number_classes):
-            # Keep only the classes k.
-            y_only_k = (y == k).float()
-
-            # Definition of intersection and union
-            intersection = torch.sum(y_estimated[:, k, :, :] * y_only_k)
-            union = torch.sum(y_only_k + y_estimated[:, k, :, :] - y_estimated[:, k, :, :] * y_only_k)
-
-            IoU += intersection / union
-
-        # Divide by the number of class to have IoU between 0 and 1. we add "1 -" to have a loss to minimize and
-        # to stay between 0 and 1.
-        return 1 - (IoU / parameters.number_classes)
+        return IoU_loss(y_estimated=y_estimated,
+                        y=y,
+                        parameters=parameters,
+                        mask=mask)
 
     if parameters.loss == "hinge":
-        hinge_loss = torch.nn.MultiMarginLoss(p=1,
-                                              margin=0.5,
-                                              size_average=False)
+        return hinge_multidimensional_loss(y_estimated=y_estimated,
+                                           y=y,
+                                           parameters=parameters,
+                                           mask=mask)
 
-        # Apply softmax then the log on the result
-        y_estimated = F.softmax(input=y_estimated, dim=1)
-        
-        # Apply the mask to avoid any back propagation on the value of the class number_classes
-        y_estimated = y_estimated * mask
-
-        # There is no back prop, but the value of the error is still influenced
-        # we force the network to predict the class 0 for the point that are class number_classes.
-        y_estimated[:, 0, :, :] = y_estimated[:, 0, :, :] + (y == parameters.number_classes).float()
-        # Set all target value of number_classes to 0, the hinge loss will be max(0, 1 - (1 - 0))
-        # Because the network predict the class 0 to 1 and the other to 0
-        y = y * (y != parameters.number_classes).long()
-
-        y_estimated = y_estimated.permute(0, 2, 3, 1).contiguous()
-        y_estimated_reshape = y_estimated.view(-1, parameters.number_classes)
-        y_reshape = y.contiguous().view(-1)
-
-        return hinge_loss(input=y_estimated_reshape,
-                          target=y_reshape)/number_of_used_pixel
+    if parameters.loss == "cross_entropy_to_IoU":
+        if parameters.actual_epoch < parameters.epoch_total / 4:
+            return cross_entropy_loss(y_estimated=y_estimated,
+                                      y=y,
+                                      parameters=parameters,
+                                      mask=mask,
+                                      number_of_used_pixel=number_of_used_pixel)
+        elif parameters.actual_epoch > parameters.epoch_total * 3 / 4:
+            return IoU_loss(y_estimated=y_estimated,
+                            y=y,
+                            parameters=parameters,
+                            mask=mask)
+        else:
+            balance_between_loss = sigmoid(
+                (parameters.epoch_total - (parameters.epoch_total / 4) * 2) * (30 / parameters.epoch_total))
+            return balance_between_loss * IoU_loss(y_estimated=y_estimated,
+                                                   y=y,
+                                                   parameters=parameters,
+                                                   mask=mask) + \
+                   (1 - balance_between_loss) * cross_entropy_loss(y_estimated=y_estimated,
+                                                                   y=y,
+                                                                   parameters=parameters,
+                                                                   mask=mask,
+                                                                   number_of_used_pixel=number_of_used_pixel)
 
 
 def criterion_pd_format(y_estimated, y, epoch, set_type, parameters):
