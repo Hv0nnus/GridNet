@@ -226,10 +226,10 @@ def train(parameters, network, train_loader, val_loader):
         validation_error_min, index_save_best, index_save_regular = index
 
         # Update the optimizer
-        if epoch < 800:
-            optimizer.param_groups[0]['lr'] = parameters.learning_rate/(1 + (epoch-390)*parameters.learning_rate_decay)
-        else:
-            optimizer.param_groups[0]['lr'] = parameters.learning_rate/(1 + (epoch-800)*parameters.learning_rate_decay)
+        #if epoch < 800:
+        #    optimizer.param_groups[0]['lr'] = parameters.learning_rate/(1 + (epoch-390)*parameters.learning_rate_decay)
+        #else:
+        #    optimizer.param_groups[0]['lr'] = parameters.learning_rate/(1 + (epoch-800)*parameters.learning_rate_decay)
 
         # Similar to a "print" but in a text file
         with open(parameters.path_print, 'a') as txtfile:
