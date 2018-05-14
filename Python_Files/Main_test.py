@@ -7,6 +7,7 @@ from __future__ import print_function
 
 # Other package
 import sys
+import random
 
 # Other python files
 import Save_import
@@ -30,11 +31,16 @@ def main_test(path_learning, dataset="train"):
             # i est l axe des x
             i = k * w//2
             j = l * h//2
-            if i+w > 2048:
-                i = 2048 - w
-            if j+h > 1024:
-                j = 1024 - h
+            if i+w > parameters.width_image_initial:
+                i = parameters.width_image_initial - w
+            if j+h > parameters.height_image_initial:
+                j = parameters.height_image_initial - h
             position_crop.append((i, j, w, h))
+
+    for r in range(10):
+        i = random.randint(0, parameters.width_image_initial - w)
+        j = random.randint(0, parameters.height_image_initial - h)
+        position_crop.append((i, j, w, h))
 
     end_name = Test_dataset.main_test_dataset(parameters=parameters,
                                               network=network,
