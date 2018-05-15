@@ -277,9 +277,12 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
         parameters.epoch_total = total_epoch
         parameters.learning_rate_decay = 0.5 * (10 ** (-2))
         parameters.learning_rate = 0.002
+        if torch.cuda.is_available():
+            parameters.weight_grad = parameters.weight_grad.cuda()
 
         # If a new name is define, we create new CSV files associated and change the name of the network
         if new_name is not None:
+                
             # Init the csv file that will store the error, this time we make a copy of the existing error
             Save_import.duplicated_csv(path_CSV=parameters.path_CSV,
                                        old_name_network=parameters.name_network,
@@ -327,8 +330,8 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
                                            beta1=0.9,
                                            beta2=0.999,
                                            epsilon=1 * 10 ** (-8),
-                                           batch_size=1,
-                                           batch_size_val=1,
+                                           batch_size=6,
+                                           batch_size_val=6,
                                            epoch_total=1600,
                                            actual_epoch=0,
                                            ratio=(1, 1),

@@ -137,7 +137,7 @@ def criterion(y_estimated, y, parameters):
                                            mask=mask)
 
     if parameters.loss == "cross_entropy_to_IoU":
-        if parameters.actual_epoch < parameters.epoch_total / 4:
+        if parameters.actual_epoch < (parameters.epoch_total / 4):
             return cross_entropy_loss(y_estimated=y_estimated,
                                       y=y,
                                       parameters=parameters,

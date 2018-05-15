@@ -113,7 +113,7 @@ def test_loop(parameters, network, dataset, test_dataset, position_crop):
                                                                             y_batch_estimated=y_batch_estimated)
 
             # Add every value to the image. i and j or exchange compare to PIL image
-            x_batch_np[:, j:j + h, i:i + w] = x_batch_np[:,j:j + h, i:i + w] +  y_batch_estimated
+            x_batch_np[:, j_used:j_used + h_used, i_used:i_used + w_used] = x_batch_np[:,j_used:j_used + h_used, i_used:i_used + w_used] +  y_batch_estimated
 
         with open("/home_expes/kt82128h/GridNet/Python_Files/Python_print_test.txt", 'a') as txtfile:
             txtfile.write("\n " "After the loop" + str(k) + "\n")
