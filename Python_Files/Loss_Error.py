@@ -137,13 +137,13 @@ def criterion(y_estimated, y, parameters):
                                            mask=mask)
 
     if parameters.loss == "cross_entropy_to_IoU":
-        if parameters.actual_epoch < parameters.epoch_total / 4:
+        if parameters.actual_epoch < (parameters.epoch_total / 4):
             return cross_entropy_loss(y_estimated=y_estimated,
                                       y=y,
                                       parameters=parameters,
                                       mask=mask,
                                       number_of_used_pixel=number_of_used_pixel)
-        elif parameters.actual_epoch > parameters.epoch_total * 3 / 4:
+        elif parameters.actual_epoch > (parameters.epoch_total * 3 / 4):
             return IoU_loss(y_estimated=y_estimated,
                             y=y,
                             parameters=parameters,
@@ -154,8 +154,7 @@ def criterion(y_estimated, y, parameters):
             return balance_between_loss * IoU_loss(y_estimated=y_estimated,
                                                    y=y,
                                                    parameters=parameters,
-                                                   mask=mask) + \
-                   (1 - balance_between_loss) * cross_entropy_loss(y_estimated=y_estimated,
+                                                   mask=mask) + (1 - balance_between_loss) * cross_entropy_loss(y_estimated=y_estimated,
                                                                    y=y,
                                                                    parameters=parameters,
                                                                    mask=mask,
