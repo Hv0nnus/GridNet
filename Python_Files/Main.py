@@ -227,8 +227,8 @@ def train(parameters, network, train_loader, val_loader):
 
         # Update the optimizer
 
-        if epoch > 800:
-            optimizer.param_groups[0]['lr'] = parameters.learning_rate/(1 + (epoch-800)*parameters.learning_rate_decay)
+        if epoch > 300:
+            optimizer.param_groups[0]['lr'] = parameters.learning_rate/(1 + (epoch-300)*parameters.learning_rate_decay)
         # else:
         #    optimizer.param_groups[0]['lr'] = parameters.learning_rate/(1 + (epoch-800)*parameters.learning_rate_decay)
 
@@ -275,8 +275,8 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
 
         # Here we can change some parameters
         parameters.epoch_total = total_epoch
-        parameters.learning_rate_decay = 1 * (10 ** (-2))
-        parameters.loss = "hinge"
+        parameters.learning_rate_decay = 0.5 * (10 ** (-2))
+        parameters.learning_rate = 0.002
 
         # If a new name is define, we create new CSV files associated and change the name of the network
         if new_name is not None:
@@ -327,8 +327,8 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
                                            beta1=0.9,
                                            beta2=0.999,
                                            epsilon=1 * 10 ** (-8),
-                                           batch_size=6,
-                                           batch_size_val=6,
+                                           batch_size=1,
+                                           batch_size_val=1,
                                            epoch_total=1600,
                                            actual_epoch=0,
                                            ratio=(1, 1),
