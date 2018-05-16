@@ -24,7 +24,12 @@ def IoU_loss(y_estimated, y, parameters, mask=None):
 
     IoU = 0
     if parameters.momentum_IoU != 0:
-        inter_union2 = Variable(torch.zeros(2, parameters.number_classes), requires_grad=False)
+        # Ugly hack that wheck if we are at the first epoch and first iteration of batch
+        if torch.sum(parameters.inter_union.cpu().data != torch.zeros((2,parameters.number_classes))) == 0:
+            print("we change the momentum for the first iteration")
+            momentum = 0
+        else:
+            momentum = parameters.momentum_IoU
 
         # Compute the IoU per classes
         for k in range(parameters.number_classes):
@@ -32,16 +37,17 @@ def IoU_loss(y_estimated, y, parameters, mask=None):
             y_only_k = (y == k).float()
 
             # Definition of intersection and union
-            inter_union2[0, k] = parameters.momentum_IoU * parameters.inter_union[0, k] + \
-                                 (1 - parameters.momentum_IoU) * torch.sum(y_estimated[:, k, :, :] * y_only_k)
+            inter = momentum * parameters.inter_union[0, k] + \
+                                 (1 - momentum) * torch.sum(y_estimated[:, k, :, :] * y_only_k)
 
-            inter_union2[1, k] = parameters.momentum_IoU * parameters.inter_union[1, k] + \
-                                 (1 - parameters.momentum_IoU) * torch.sum(
+            union = momentum * parameters.inter_union[1, k] + \
+                                 (1 - momentum) * torch.sum(
                                      y_only_k + y_estimated[:, k, :, :] - y_estimated[:, k, :, :] * y_only_k)
 
-            IoU += parameters.weight_grad[k] * inter_union2[0, k] / inter_union2[1, k]
+            IoU += parameters.weight_grad[k] * inter / union
 
-        parameters.inter_union.data = inter_union2.data
+            parameters.inter_union[0, k].data = inter.data
+            parameters.inter_union[1, k].data = union.data
 
     else:
         # Compute the IoU per classes

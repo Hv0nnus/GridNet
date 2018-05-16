@@ -80,7 +80,6 @@ def batch_loop(optimizer, train_loader, network, epoch, parameters, timer_batch,
         # Get the error
         loss = Loss_Error.criterion(y_estimated=y_batch_estimated,
                                     y=y_batch,
-                                    inter_union=inter_union,
                                     parameters=parameters)
 
         # Compute the backward function
