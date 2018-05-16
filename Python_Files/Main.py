@@ -161,9 +161,6 @@ def train(parameters, network, train_loader, val_loader):
     # Store the time at the beginning of the training
     timer_init = time.time()
 
-    # List of the sum of Intersection and Union for each classes
-    inter_union = Variable(torch.zeros(2, parameters.number_classes), requires_grad=False)
-
     # create your optimizer
     optimizer = optim.Adam(params=network.parameters(),
                            lr=parameters.learning_rate,
@@ -192,8 +189,7 @@ def train(parameters, network, train_loader, val_loader):
                    epoch=epoch,
                    parameters=parameters,
                    timer_batch=timer_batch,
-                   timer_epoch=timer_epoch,
-                   inter_union=inter_union)
+                   timer_epoch=timer_epoch)
 
         validation_error = validation_loop(val_loader=val_loader,
                                            network=network,

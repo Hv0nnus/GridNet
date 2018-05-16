@@ -115,6 +115,13 @@ class Parameters:
         else:
             self.weight_grad = Variable(weight_grad, requires_grad=False)
         self.momentum_IoU = momentum_IoU
+        if torch.cuda.is_available():
+            # List of the sum of Intersection and Union for each classes
+            self.inter_union = Variable(torch.zeros(2, number_classes).cuda(), requires_grad=False)
+        else:
+            # List of the sum of Intersection and Union for each classes
+            self.inter_union = Variable(torch.zeros(2, number_classes), requires_grad=False)
+
         self.loss = loss
 
         # Transformation that will be apply on the input just after the import

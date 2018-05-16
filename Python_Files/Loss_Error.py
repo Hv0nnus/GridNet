@@ -7,7 +7,7 @@ from torch.autograd import Variable
 import math
 
 
-def IoU_loss(y_estimated, y, parameters, inter_union=None, mask=None):
+def IoU_loss(y_estimated, y, parameters, mask=None):
     """
     :param y_estimated: result of train(x) which is the forward action
     :param y: Label associated with x
@@ -23,7 +23,7 @@ def IoU_loss(y_estimated, y, parameters, inter_union=None, mask=None):
     y_estimated = y_estimated * mask
 
     IoU = 0
-    if inter_union is not None:
+    if parameters.momentum_IoU != 0:
         inter_union2 = Variable(torch.zeros(2, parameters.number_classes), requires_grad=False)
 
         # Compute the IoU per classes
@@ -32,16 +32,16 @@ def IoU_loss(y_estimated, y, parameters, inter_union=None, mask=None):
             y_only_k = (y == k).float()
 
             # Definition of intersection and union
-            inter_union2[0, k] = parameters.momentum_IoU * inter_union[0, k] + \
-                                (1 - parameters.momentum_IoU) * torch.sum(y_estimated[:, k, :, :] * y_only_k)
+            inter_union2[0, k] = parameters.momentum_IoU * parameters.inter_union[0, k] + \
+                                 (1 - parameters.momentum_IoU) * torch.sum(y_estimated[:, k, :, :] * y_only_k)
 
-            inter_union2[1, k] = parameters.momentum_IoU * inter_union[1, k] + \
-                                (1 - parameters.momentum_IoU) * torch.sum(
-                                    y_only_k + y_estimated[:, k, :, :] - y_estimated[:, k, :, :] * y_only_k)
+            inter_union2[1, k] = parameters.momentum_IoU * parameters.inter_union[1, k] + \
+                                 (1 - parameters.momentum_IoU) * torch.sum(
+                                     y_only_k + y_estimated[:, k, :, :] - y_estimated[:, k, :, :] * y_only_k)
 
             IoU += parameters.weight_grad[k] * inter_union2[0, k] / inter_union2[1, k]
 
-        inter_union.data = inter_union2.data
+        parameters.inter_union.data = inter_union2.data
 
     else:
         # Compute the IoU per classes
@@ -58,7 +58,7 @@ def IoU_loss(y_estimated, y, parameters, inter_union=None, mask=None):
 
     # Divide by the number of class to have IoU between 0 and 1. we add "1 -" to have a loss to minimize and
     # to stay between 0 and 1.
-    return 1 - (IoU / parameters.number_classes), inter_union
+    return 1 - (IoU / parameters.number_classes)
 
 
 def cross_entropy_loss(y_estimated, y, parameters, mask=None, number_of_used_pixel=None):
@@ -127,7 +127,7 @@ def sigmoid(x):
     return 1 / (1 + math.exp(-x))
 
 
-def criterion(y_estimated, y, inter_union, parameters):
+def criterion(y_estimated, y, parameters):
     """
     :param y_estimated: result of train(x) which is the forward action
     :param y: Label associated with x
@@ -151,7 +151,6 @@ def criterion(y_estimated, y, inter_union, parameters):
     if parameters.loss == "IoU":
         return IoU_loss(y_estimated=y_estimated,
                         y=y,
-                        inter_union=inter_union,
                         parameters=parameters,
                         mask=mask)
 
@@ -171,25 +170,21 @@ def criterion(y_estimated, y, inter_union, parameters):
         elif parameters.actual_epoch > (parameters.epoch_total * 3 / 4):
             return IoU_loss(y_estimated=y_estimated,
                             y=y,
-                            inter_union=inter_union,
                             parameters=parameters,
                             mask=mask)
         else:
             balance_between_loss = sigmoid(
                 (parameters.epoch_total - (parameters.epoch_total / 4) * 2) * (30 / parameters.epoch_total))
 
-            iou_loss, inter_union = IoU_loss(y_estimated=y_estimated,
-                                             y=y,
-                                             inter_union=inter_union,
-                                             parameters=parameters,
-                                             mask=mask)
-
             return (1 - balance_between_loss) * cross_entropy_loss(y_estimated=y_estimated,
                                                                    y=y,
                                                                    parameters=parameters,
                                                                    mask=mask,
                                                                    number_of_used_pixel=number_of_used_pixel) + \
-                   balance_between_loss * iou_loss, inter_union
+                   balance_between_loss * IoU_loss(y_estimated=y_estimated,
+                                                   y=y,
+                                                   parameters=parameters,
+                                                   mask=mask)
 
 
 def criterion_pd_format(y_estimated, y, epoch, set_type, parameters):
