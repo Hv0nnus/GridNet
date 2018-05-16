@@ -11,7 +11,7 @@ from torchvision import transforms
 
 # cuda related package
 import torch.cuda
-import torch.backends.cudnn as cudnn
+#import torch.backends.cudnn as cudnn
 
 # Other package
 import time
@@ -23,47 +23,27 @@ import Save_import
 import Loss_Error
 import Parameters
 import Label
-import Copy_GridNet_structure
+#import Copy_GridNet_structure
 
 
 # # Commentaire pour la suite (TODO)
 
-#
-# Change la fonction de cout, lien entre fonction de cout et de perte ?
-#
-# Verifier ce qu est la mesure de test IoU
-# 
-# Mettre des commentaire
-# 
-# Ne pas sauvgarder n importe quand le réseau. Peut ere garder un truc qui a en memoire le meilleur IuO sur 
-# la validation
-# 
-# TODO Quel modification sont a faire sur les donnees  genre pour les augmenter
-# 
-# Parallelisation, comment ca marche 
-# 
-# COMMENT VERIFIER QUE TOUT FONCTIONNE Regarder le graph peut être.
-# Regarder le temps de calcul quand 
+
 # 
 # Idee: reregarder comment on fait de la segmentation avec les champs de Markov, ca peut donner des idees
-# 
-# Afficher le nom de la courbe avec la courbe et pas juste a coter
-# 
-# 
+#
 # Indice qui indique si une fonction est derivable informatiquement, et prendre uen fonction qui se rapproche de l IoU
 # 
 # Corrélation entre IoU et le logsoftmax
 # 
 # distance entre deux fonctions 
-# 
-# Faire les tests sur la base de tests
-# 
+#
 # Taille en octet de ce que j'importe et du réseau
 #
 # Dans les fully connected, pourquoi prendre des images de tailles 400
 # *400 plutot que 200*200. Difference...
 
-def batch_loop(optimizer, train_loader, network, epoch, parameters, timer_batch, timer_epoch):
+def batch_loop(optimizer, train_loader, network, epoch, parameters, timer_batch, timer_epoch, inter_union=None):
     """
     :param optimizer: The optimiser that containt parameter of Adam optimizer
     :param train_loader: Dataloader which contains input and target of the train dataset
@@ -98,7 +78,10 @@ def batch_loop(optimizer, train_loader, network, epoch, parameters, timer_batch,
                               "output_size" + str(y_batch_estimated.size()) + "\n")
 
         # Get the error
-        loss = Loss_Error.criterion(y_batch_estimated, y_batch, parameters)
+        loss = Loss_Error.criterion(y_estimated=y_batch_estimated,
+                                    y=y_batch,
+                                    inter_union=inter_union,
+                                    parameters=parameters)
 
         # Compute the backward function
         loss.backward()
@@ -178,6 +161,9 @@ def train(parameters, network, train_loader, val_loader):
     # Store the time at the beginning of the training
     timer_init = time.time()
 
+    # List of the sum of Intersection and Union for each classes
+    inter_union = Variable(torch.zeros(2, parameters.number_classes), requires_grad=False)
+
     # create your optimizer
     optimizer = optim.Adam(params=network.parameters(),
                            lr=parameters.learning_rate,
@@ -206,7 +192,8 @@ def train(parameters, network, train_loader, val_loader):
                    epoch=epoch,
                    parameters=parameters,
                    timer_batch=timer_batch,
-                   timer_epoch=timer_epoch)
+                   timer_epoch=timer_epoch,
+                   inter_union=inter_union)
 
         validation_error = validation_loop(val_loader=val_loader,
                                            network=network,

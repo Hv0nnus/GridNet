@@ -3,15 +3,17 @@
 import torch.nn as nn
 import torch.nn.functional as F
 import torch
+from torch.autograd import Variable
 import math
 
 
-def IoU_loss(y_estimated, y, parameters, mask=None):
+def IoU_loss(y_estimated, y, parameters, inter_union=None, mask=None):
     """
     :param y_estimated: result of train(x) which is the forward action
     :param y: Label associated with x
     :param parameters: List of parameters of the network
-    :param mask: Image with 1 were there is a classe to predict, and 0 if not.
+    :param inter_union: List of the sum of Intersection and Union for each classes
+    :param mask: Image with 1 were there is a class to predict, and 0 if not.
     :return: difference between y_estimated and y, according to the continuous IoU loss
     """
     # Apply softmax then the log on the result
@@ -21,21 +23,43 @@ def IoU_loss(y_estimated, y, parameters, mask=None):
     y_estimated = y_estimated * mask
 
     IoU = 0
+    if inter_union is not None:
+        momentum = 0.9
+        inter_union2 = Variable(torch.zeros(2, parameters.number_classes), requires_grad=False)
 
-    # Compute the IoU per classes
-    for k in range(parameters.number_classes):
-        # Keep only the classes k.
-        y_only_k = (y == k).float()
+        # Compute the IoU per classes
+        for k in range(parameters.number_classes):
+            # Keep only the classes k.
+            y_only_k = (y == k).float()
 
-        # Definition of intersection and union
-        intersection = torch.sum(y_estimated[:, k, :, :] * y_only_k)
-        union = torch.sum(y_only_k + y_estimated[:, k, :, :] - y_estimated[:, k, :, :] * y_only_k)
+            # Definition of intersection and union
+            inter_union2[0, k] = momentum * inter_union[0, k] + \
+                                (1 - momentum) * torch.sum(y_estimated[:, k, :, :] * y_only_k)
 
-        IoU += parameters.weight_grad[k] * intersection / union
+            inter_union2[1, k] = momentum * inter_union[1, k] + \
+                                (1 - momentum) * torch.sum(
+                                    y_only_k + y_estimated[:, k, :, :] - y_estimated[:, k, :, :] * y_only_k)
+
+            IoU += parameters.weight_grad[k] * inter_union2[0, k] / inter_union2[1, k]
+
+        inter_union.data = inter_union2.data
+
+    else:
+        # Compute the IoU per classes
+        for k in range(parameters.number_classes):
+            # Keep only the classes k.
+            y_only_k = (y == k).float()
+
+            # Definition of intersection and union
+            inter = torch.sum(y_estimated[:, k, :, :] * y_only_k)
+
+            union = torch.sum(y_only_k + y_estimated[:, k, :, :] - y_estimated[:, k, :, :] * y_only_k)
+
+            IoU += parameters.weight_grad[k] * inter / union
 
     # Divide by the number of class to have IoU between 0 and 1. we add "1 -" to have a loss to minimize and
     # to stay between 0 and 1.
-    return 1 - (IoU / parameters.number_classes)
+    return 1 - (IoU / parameters.number_classes), inter_union
 
 
 def cross_entropy_loss(y_estimated, y, parameters, mask=None, number_of_used_pixel=None):
@@ -71,7 +95,7 @@ def hinge_multidimensional_loss(y_estimated, y, parameters, mask=None, number_of
     :param y_estimated: result of train(x) which is the forward action
     :param y: Label associated with x
     :param parameters: List of parameters of the network
-    :param mask: Image with 1 were there is a classe to predict, and 0 if not.
+    :param mask: Image with 1 were there is a class to predict, and 0 if not.
     :param number_of_used_pixel: Number of pixel with 1 in the mask. Useful to normalize the loss
     :return: difference between y_estimated and y, according to the hinge loss
     """
@@ -104,10 +128,11 @@ def sigmoid(x):
     return 1 / (1 + math.exp(-x))
 
 
-def criterion(y_estimated, y, parameters):
+def criterion(y_estimated, y, inter_union, parameters):
     """
     :param y_estimated: result of train(x) which is the forward action
     :param y: Label associated with x
+    :param inter_union: List of the sum of Intersection and Union for each classes
     :param parameters: List of parameters of the network
     :return: difference between y_estimated and y, according to some function
     """
@@ -127,6 +152,7 @@ def criterion(y_estimated, y, parameters):
     if parameters.loss == "IoU":
         return IoU_loss(y_estimated=y_estimated,
                         y=y,
+                        inter_union=inter_union,
                         parameters=parameters,
                         mask=mask)
 
@@ -146,19 +172,25 @@ def criterion(y_estimated, y, parameters):
         elif parameters.actual_epoch > (parameters.epoch_total * 3 / 4):
             return IoU_loss(y_estimated=y_estimated,
                             y=y,
+                            inter_union=inter_union,
                             parameters=parameters,
                             mask=mask)
         else:
             balance_between_loss = sigmoid(
                 (parameters.epoch_total - (parameters.epoch_total / 4) * 2) * (30 / parameters.epoch_total))
-            return balance_between_loss * IoU_loss(y_estimated=y_estimated,
-                                                   y=y,
-                                                   parameters=parameters,
-                                                   mask=mask) + (1 - balance_between_loss) * cross_entropy_loss(y_estimated=y_estimated,
+
+            iou_loss, inter_union = IoU_loss(y_estimated=y_estimated,
+                                             y=y,
+                                             inter_union=inter_union,
+                                             parameters=parameters,
+                                             mask=mask)
+
+            return (1 - balance_between_loss) * cross_entropy_loss(y_estimated=y_estimated,
                                                                    y=y,
                                                                    parameters=parameters,
                                                                    mask=mask,
-                                                                   number_of_used_pixel=number_of_used_pixel)
+                                                                   number_of_used_pixel=number_of_used_pixel) + \
+                   balance_between_loss * iou_loss, inter_union
 
 
 def criterion_pd_format(y_estimated, y, epoch, set_type, parameters):
@@ -172,7 +204,9 @@ def criterion_pd_format(y_estimated, y, epoch, set_type, parameters):
     and if the criterion is used on training or validation set.
     """
 
-    loss = criterion(y_estimated, y, parameters)
+    loss = criterion(y_estimated=y_estimated,
+                     y=y,
+                     parameters=parameters)
 
     # Return a vector  usefull to copy to CSV 
     return [set_type, epoch, loss.data[0]]
