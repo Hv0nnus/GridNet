@@ -7,7 +7,7 @@ from torch.autograd import Variable
 import math
 
 
-def IoU_loss(y_estimated, y, parameters, mask=None):
+def IoU_loss(y_estimated, y, parameters, mask=None, global_IoU_modif=False):
     """
     :param y_estimated: result of train(x) which is the forward action
     :param y: Label associated with x
@@ -23,10 +23,10 @@ def IoU_loss(y_estimated, y, parameters, mask=None):
     y_estimated = y_estimated * mask
 
     IoU = 0
-    if parameters.momentum_IoU != 0:
+    if parameters.momentum_IoU != 0 and global_IoU_modif:
         # Ugly hack that wheck if we are at the first epoch and first iteration of batch
+
         if torch.sum(parameters.inter_union.cpu().data != torch.zeros((2,parameters.number_classes))) == 0:
-            print("we change the momentum for the first iteration")
             momentum = 0
         else:
             momentum = parameters.momentum_IoU
@@ -46,9 +46,8 @@ def IoU_loss(y_estimated, y, parameters, mask=None):
 
             IoU += parameters.weight_grad[k] * inter / union
 
-            parameters.inter_union[0, k].data = inter.data
-            parameters.inter_union[1, k].data = union.data
-
+            parameters.inter_union[0, k] = inter.data
+            parameters.inter_union[1, k] = union.data
     else:
         # Compute the IoU per classes
         for k in range(parameters.number_classes):
@@ -90,7 +89,7 @@ def cross_entropy_loss(y_estimated, y, parameters, mask=None, number_of_used_pix
     # It will be 0 if the class is parameters.number_classes : which is exactly what is expect for this class
     # The other classes remain unchanged
     y = y * (y != parameters.number_classes).long()
-
+    
     # Apply the criterion define in the first line
     return nllcrit(y_estimated, y) / number_of_used_pixel
 
@@ -133,7 +132,7 @@ def sigmoid(x):
     return 1 / (1 + math.exp(-x))
 
 
-def criterion(y_estimated, y, parameters):
+def criterion(y_estimated, y, parameters, global_IoU_modif=False):
     """
     :param y_estimated: result of train(x) which is the forward action
     :param y: Label associated with x
@@ -148,7 +147,7 @@ def criterion(y_estimated, y, parameters):
     number_of_used_pixel = torch.sum(mask)
 
     if parameters.loss == "cross_entropy":
-        cross_entropy_loss(y_estimated=y_estimated,
+        return cross_entropy_loss(y_estimated=y_estimated,
                            y=y,
                            parameters=parameters,
                            mask=mask,
@@ -158,7 +157,8 @@ def criterion(y_estimated, y, parameters):
         return IoU_loss(y_estimated=y_estimated,
                         y=y,
                         parameters=parameters,
-                        mask=mask)
+                        mask=mask,
+                        global_IoU_modif=global_IoU_modif)
 
     if parameters.loss == "hinge":
         return hinge_multidimensional_loss(y_estimated=y_estimated,
