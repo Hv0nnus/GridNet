@@ -24,7 +24,6 @@ def IoU_loss(y_estimated, y, parameters, inter_union=None, mask=None):
 
     IoU = 0
     if inter_union is not None:
-        momentum = 0.9
         inter_union2 = Variable(torch.zeros(2, parameters.number_classes), requires_grad=False)
 
         # Compute the IoU per classes
@@ -33,11 +32,11 @@ def IoU_loss(y_estimated, y, parameters, inter_union=None, mask=None):
             y_only_k = (y == k).float()
 
             # Definition of intersection and union
-            inter_union2[0, k] = momentum * inter_union[0, k] + \
-                                (1 - momentum) * torch.sum(y_estimated[:, k, :, :] * y_only_k)
+            inter_union2[0, k] = parameters.momentum_IoU * inter_union[0, k] + \
+                                (1 - parameters.momentum_IoU) * torch.sum(y_estimated[:, k, :, :] * y_only_k)
 
-            inter_union2[1, k] = momentum * inter_union[1, k] + \
-                                (1 - momentum) * torch.sum(
+            inter_union2[1, k] = parameters.momentum_IoU * inter_union[1, k] + \
+                                (1 - parameters.momentum_IoU) * torch.sum(
                                     y_only_k + y_estimated[:, k, :, :] - y_estimated[:, k, :, :] * y_only_k)
 
             IoU += parameters.weight_grad[k] * inter_union2[0, k] / inter_union2[1, k]

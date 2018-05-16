@@ -214,8 +214,8 @@ def train(parameters, network, train_loader, val_loader):
 
         # Update the optimizer
 
-        #if epoch > 300:
-        #    optimizer.param_groups[0]['lr'] = parameters.learning_rate/(1 + (epoch-300)*parameters.learning_rate_decay)
+        if epoch > 300:
+            optimizer.param_groups[0]['lr'] = parameters.learning_rate/(1 + (epoch-300)*parameters.learning_rate_decay)
         # else:
         #    optimizer.param_groups[0]['lr'] = parameters.learning_rate/(1 + (epoch-800)*parameters.learning_rate_decay)
 
@@ -264,6 +264,8 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
         parameters.epoch_total = total_epoch
         parameters.learning_rate_decay = 0.5 * (10 ** (-2))
         parameters.learning_rate = 0.002
+
+        # Put weight to GPU
         if torch.cuda.is_available():
             parameters.weight_grad = parameters.weight_grad.cuda()
 
@@ -297,9 +299,6 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
         weight_grad = (weight_grad / weight_grad.sum()) * weight_grad.size(0)
         weight_grad = torch.FloatTensor([1 for i in range(19)])
 
-        if torch.cuda.is_available():
-            weight_grad = weight_grad.cuda()
-
         # Define all the parameters
         parameters = Parameters.Parameters(nColumns=8,
                                            nFeatMaps=[16, 32, 64, 128, 256],
@@ -319,18 +318,19 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
                                            epsilon=1 * 10 ** (-8),
                                            batch_size=6,
                                            batch_size_val=6,
-                                           epoch_total=1600,
+                                           epoch_total=400,
                                            actual_epoch=0,
                                            ratio=(1, 1),
                                            weight_grad=weight_grad,
-                                           loss="cross_entropy_to_IoU",
+                                           loss="IoU",
+                                           momentum_IoU=0.9,
 
                                            path_save_net="./Model/",
-                                           name_network="cross_to_IoU_scratch",
+                                           name_network="better_IoU_approximation",
                                            train_number=0,
                                            path_CSV="./CSV/",
                                            path_data="/home_expes/collections/Cityscapes/",
-                                           path_print="./Python_print_cross_to_IoU_scratch.txt",
+                                           path_print="./Python_print_better_IoU_approximation.txt",
                                            path_result="./Result",
                                            num_workers=2)
         # Define the GridNet

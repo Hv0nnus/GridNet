@@ -48,6 +48,8 @@ class Parameters:
                  loss="cross_entropy",
                  # The weight that are associated with the loss, most of the time it change the gradient
                  weight_grad=torch.FloatTensor([1 for i in range(19)]),
+                 # Momentum of the IoU smooth. To better approximated the IoU
+                 momentum_IoU = 0.9,
 
                  # File where all the parameter model can be store
                  path_save_net="../Model/",
@@ -112,6 +114,7 @@ class Parameters:
             self.weight_grad = Variable(weight_grad.cuda(), requires_grad=False)
         else:
             self.weight_grad = Variable(weight_grad, requires_grad=False)
+        self.momentum_IoU = momentum_IoU
         self.loss = loss
 
         # Transformation that will be apply on the input just after the import
