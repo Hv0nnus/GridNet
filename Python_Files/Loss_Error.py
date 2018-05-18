@@ -7,7 +7,7 @@ from torch.autograd import Variable
 import math
 
 
-def IoU_loss(y_estimated, y, parameters, mask=None):
+def IoU_loss(y_estimated, y, parameters, mask=None, global_IoU_modif=False):
     """
     :param y_estimated: result of train(x) which is the forward action
     :param y: Label associated with x
@@ -22,13 +22,11 @@ def IoU_loss(y_estimated, y, parameters, mask=None):
     y_estimated = y_estimated * mask
 
     IoU = 0
-    # If there is no momentum we apply the same algorithm with momentum = 0
-    # There is a if to increase the speed of the algorithm in the case of momentum=0
-    if parameters.momentum_IoU != 0:
 
-        # Ugly hack that check if we are at the first epoch and first iteration of batch
+    if parameters.momentum_IoU != 0 and global_IoU_modif:
+        # Ugly hack that wheck if we are at the first epoch and first iteration of batch
+
         if torch.sum(parameters.inter_union.cpu().data != torch.zeros((2, parameters.number_classes))) == 0:
-            print("we change the momentum for the first iteration")
             momentum = 0
         else:
             momentum = parameters.momentum_IoU
@@ -40,17 +38,16 @@ def IoU_loss(y_estimated, y, parameters, mask=None):
 
             # Definition of intersection and union
             inter = momentum * parameters.inter_union[0, k] + \
-                                 (1 - momentum) * torch.sum(y_estimated[:, k, :, :] * y_only_k)
+                    (1 - momentum) * torch.sum(y_estimated[:, k, :, :] * y_only_k)
 
             union = momentum * parameters.inter_union[1, k] + \
-                                 (1 - momentum) * torch.sum(
-                                     y_only_k + y_estimated[:, k, :, :] - y_estimated[:, k, :, :] * y_only_k)
+                    (1 - momentum) * torch.sum(
+                        y_only_k + y_estimated[:, k, :, :] - y_estimated[:, k, :, :] * y_only_k)
 
             IoU += parameters.weight_grad[k] * inter / union
 
-            parameters.inter_union[0, k].data = inter.data
-            parameters.inter_union[1, k].data = union.data
-
+            parameters.inter_union[0, k] = inter.data
+            parameters.inter_union[1, k] = union.data
     else:
         # Compute the IoU per classes
         for k in range(parameters.number_classes):
@@ -135,7 +132,7 @@ def sigmoid(x):
     return 1 / (1 + math.exp(-x))
 
 
-def criterion(y_estimated, y, parameters):
+def criterion(y_estimated, y, parameters, global_IoU_modif=False):
     """
     :param y_estimated: result of train(x) which is the forward action
     :param y: Label associated with x
@@ -150,17 +147,18 @@ def criterion(y_estimated, y, parameters):
     number_of_used_pixel = torch.sum(mask)
 
     if parameters.loss == "cross_entropy":
-        cross_entropy_loss(y_estimated=y_estimated,
-                           y=y,
-                           parameters=parameters,
-                           mask=mask,
-                           number_of_used_pixel=number_of_used_pixel)
+        return cross_entropy_loss(y_estimated=y_estimated,
+                                  y=y,
+                                  parameters=parameters,
+                                  mask=mask,
+                                  number_of_used_pixel=number_of_used_pixel)
 
     if parameters.loss == "IoU":
         return IoU_loss(y_estimated=y_estimated,
                         y=y,
                         parameters=parameters,
-                        mask=mask)
+                        mask=mask,
+                        global_IoU_modif=global_IoU_modif)
 
     if parameters.loss == "hinge":
         return hinge_multidimensional_loss(y_estimated=y_estimated,
@@ -169,20 +167,20 @@ def criterion(y_estimated, y, parameters):
                                            mask=mask)
 
     if parameters.loss == "cross_entropy_to_IoU":
-        if parameters.actual_epoch < (parameters.epoch_total / 4):
+        if parameters.actual_epoch < 350:
             return cross_entropy_loss(y_estimated=y_estimated,
                                       y=y,
                                       parameters=parameters,
                                       mask=mask,
                                       number_of_used_pixel=number_of_used_pixel)
-        elif parameters.actual_epoch > (parameters.epoch_total * 3 / 4):
+        elif parameters.actual_epoch > 550:
             return IoU_loss(y_estimated=y_estimated,
                             y=y,
                             parameters=parameters,
                             mask=mask)
         else:
             balance_between_loss = sigmoid(
-                (parameters.epoch_total - (parameters.epoch_total / 4) * 2) * (30 / parameters.epoch_total))
+                (parameters.actual_epoch - 450) * (15 / 200))
 
             return (1 - balance_between_loss) * cross_entropy_loss(y_estimated=y_estimated,
                                                                    y=y,
