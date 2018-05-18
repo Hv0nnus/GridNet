@@ -259,7 +259,7 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
         # Here we can change some parameters
         parameters.epoch_total = total_epoch
         parameters.learning_rate_decay = 0.5 * (10 ** (-2))
-        parameters.learning_rate = 0.002
+        #parameters.learning_rate = 0.01
 
         # Put weight to GPU
         if torch.cuda.is_available():

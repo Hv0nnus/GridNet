@@ -167,20 +167,20 @@ def criterion(y_estimated, y, parameters, global_IoU_modif=False):
                                            mask=mask)
 
     if parameters.loss == "cross_entropy_to_IoU":
-        if parameters.actual_epoch < (parameters.epoch_total / 4):
+        if parameters.actual_epoch < 350:
             return cross_entropy_loss(y_estimated=y_estimated,
                                       y=y,
                                       parameters=parameters,
                                       mask=mask,
                                       number_of_used_pixel=number_of_used_pixel)
-        elif parameters.actual_epoch > (parameters.epoch_total * 3 / 4):
+        elif parameters.actual_epoch > 550:
             return IoU_loss(y_estimated=y_estimated,
                             y=y,
                             parameters=parameters,
                             mask=mask)
         else:
             balance_between_loss = sigmoid(
-                (parameters.epoch_total - (parameters.epoch_total / 4) * 2) * (30 / parameters.epoch_total))
+                (parameters.actual_epoch - 450) * ( 15 / 200))
 
             return (1 - balance_between_loss) * cross_entropy_loss(y_estimated=y_estimated,
                                                                    y=y,
