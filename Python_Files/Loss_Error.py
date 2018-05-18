@@ -12,7 +12,6 @@ def IoU_loss(y_estimated, y, parameters, mask=None):
     :param y_estimated: result of train(x) which is the forward action
     :param y: Label associated with x
     :param parameters: List of parameters of the network
-    :param inter_union: List of the sum of Intersection and Union for each classes
     :param mask: Image with 1 were there is a class to predict, and 0 if not.
     :return: difference between y_estimated and y, according to the continuous IoU loss
     """
@@ -23,9 +22,12 @@ def IoU_loss(y_estimated, y, parameters, mask=None):
     y_estimated = y_estimated * mask
 
     IoU = 0
+    # If there is no momentum we apply the same algorithm with momentum = 0
+    # There is a if to increase the speed of the algorithm in the case of momentum=0
     if parameters.momentum_IoU != 0:
-        # Ugly hack that wheck if we are at the first epoch and first iteration of batch
-        if torch.sum(parameters.inter_union.cpu().data != torch.zeros((2,parameters.number_classes))) == 0:
+
+        # Ugly hack that check if we are at the first epoch and first iteration of batch
+        if torch.sum(parameters.inter_union.cpu().data != torch.zeros((2, parameters.number_classes))) == 0:
             print("we change the momentum for the first iteration")
             momentum = 0
         else:
@@ -72,8 +74,8 @@ def cross_entropy_loss(y_estimated, y, parameters, mask=None, number_of_used_pix
     :param y_estimated: result of train(x) which is the forward action
     :param y: Label associated with x
     :param parameters: List of parameters of the network
-    :param mask: Image with 1 were there is a classe to predict, and 0 if not.
-    :param number_of_used_pixel: Nombre of pixel with 1 in the mask. Usefull to normalize the loss
+    :param mask: Image with 1 were there is a class to predict, and 0 if not.
+    :param number_of_used_pixel: Number of pixel with 1 in the mask. Useful to normalize the loss
     :return: difference between y_estimated and y, according to the cross entropy
     """
     # http://pytorch.org/docs/master/nn.html : torch.nn.NLLLoss
