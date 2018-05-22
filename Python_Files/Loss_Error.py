@@ -167,15 +167,15 @@ def criterion(y_estimated, y, parameters, global_IoU_modif=False):
                                            mask=mask)
 
     if parameters.loss == "cross_entropy_to_IoU":
-        if parameters.actual_epoch < 0:
+        if parameters.actual_epoch < 545:
             with open(parameters.path_print, 'a') as txtfile:
-                txtfile.write("\nOnly cross entropy \n",parameters.actual_epoch)
+                txtfile.write("\nOnly cross entropy \n" + str(parameters.actual_epoch))
             return cross_entropy_loss(y_estimated=y_estimated,
                                       y=y,
                                       parameters=parameters,
                                       mask=mask,
                                       number_of_used_pixel=number_of_used_pixel)
-        elif parameters.actual_epoch > 464:
+        elif parameters.actual_epoch > 745:
             with open(parameters.path_print, 'a') as txtfile:
                 txtfile.write("\n Only IOU ")
             return IoU_loss(y_estimated=y_estimated,
@@ -184,10 +184,11 @@ def criterion(y_estimated, y, parameters, global_IoU_modif=False):
                             mask=mask)
         else:
             balance_between_loss = sigmoid(
-                (parameters.actual_epoch - 500) * (15 / 100))
+                (parameters.actual_epoch - 645) * (15 / 200))
             with open(parameters.path_print, 'a') as txtfile:
-                txtfile.write("\nMix IoU and cross\n balance_between_loss : " + balance_between_loss + "\n actual epoch" + parameters.actual_epoch + "\nvalue into sigmoid : " + str((parameters.actual_epoch - 500)*(15/100)))
-
+                txtfile.write("\nMix IoU and cross\n balance_between_loss : " + str(balance_between_loss)
+                              + "\n actual epoch" + parameters.actual_epoch + "\nvalue into sigmoid : "
+                              + str((parameters.actual_epoch - 500)*(15/200)))
 
             return (1 - balance_between_loss) * cross_entropy_loss(y_estimated=y_estimated,
                                                                    y=y,

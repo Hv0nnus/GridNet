@@ -178,7 +178,8 @@ def train(parameters, network, train_loader, val_loader):
     index_save_best = 0
 
     # Loop from the actual epoch (not 0 if we already train) to the last epoch
-    for epoch in range(parameters.actual_epoch, parameters.epoch_total):
+    initial_epoch = parameters.actual_epoch
+    for epoch in range(initial_epoch, parameters.epoch_total):
         # Store the time at the begining of each epoch
         timer_epoch = time.time()
         timer_batch = time.time()
@@ -234,6 +235,7 @@ def train(parameters, network, train_loader, val_loader):
             Save_import.organise_CSV(path_CSV=parameters.path_CSV,
                                      name_network=parameters.name_network,
                                      train_number=parameters.train_number)
+        parameters.actual_epoch = parameters.actual_epoch + 1
 
     # Similar to a "print" but in a text file
     with open(parameters.path_print, 'a') as txtfile:
