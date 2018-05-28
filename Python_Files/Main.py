@@ -235,6 +235,7 @@ def train(parameters, network, train_loader, val_loader):
             Save_import.organise_CSV(path_CSV=parameters.path_CSV,
                                      name_network=parameters.name_network,
                                      train_number=parameters.train_number)
+
         parameters.actual_epoch = parameters.actual_epoch + 1
 
     # Similar to a "print" but in a text file
@@ -264,6 +265,7 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
         parameters.batch_size = 5
         parameters.batch_size_val = 5
         #parameters.learning_rate = 0.01
+        parameters.momentum_IoU = 0.9
 
         # Put weight to GPU
         if torch.cuda.is_available():
@@ -282,7 +284,7 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
         with open(parameters.path_print, 'w') as txtfile:
             txtfile.write('\n               The program will continue \n')
 
-    # If the network was not train we start from scratch
+    # If the network was not train, we start from scratch
     else:
         # Define the weight
         weight_grad = torch.FloatTensor([2.381681e+09, 3.856594e+08, 1.461642e+09, 4.291781e+07,
