@@ -81,7 +81,7 @@ def batch_loop(optimizer, train_loader, network, epoch, parameters, timer_batch,
         loss = Loss_Error.criterion(y_estimated=y_batch_estimated,
                                     y=y_batch,
                                     parameters=parameters,
-                                    global_IoU_modif=True)
+                                    global_IoU_modif=False)
         
         # Compute the backward function
         loss.backward()
@@ -236,7 +236,8 @@ def train(parameters, network, train_loader, val_loader):
                                      name_network=parameters.name_network,
                                      train_number=parameters.train_number)
 
-        parameters.actual_epoch = parameters.actual_epoch + 1
+        # Increase the actual epoch
+        parameters.actual_epoch += 1
 
     # Similar to a "print" but in a text file
     with open(parameters.path_print, 'a') as txtfile:
@@ -253,19 +254,21 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
     :param new_name: New name of the network, if we want to use again a network already train.
     :return: Nothing but train the network and save CSV files for the error and also save the network regularly
     """
+    # Manual seed of the network to have reproducible experiment
     torch.manual_seed(26542461)
+
     # If the network was already train we import it
     if path_continue_learning is not None:
         # Load the trained Network
         parameters, network = Save_import.load_from_checkpoint(path_checkpoint=path_continue_learning)
 
-        # Here we can change some parameters
+        # Here we can change some parameters, the only one necessary is the total_epoch
         parameters.epoch_total = total_epoch
-        parameters.learning_rate_decay = 0.5 * (10 ** (-2))
-        parameters.batch_size = 5
-        parameters.batch_size_val = 5
+        #parameters.learning_rate_decay = 0.5 * (10 ** (-2))
+        #parameters.batch_size = 5
+        #parameters.batch_size_val = 5
         #parameters.learning_rate = 0.01
-        parameters.momentum_IoU = 0.9
+        #parameters.momentum_IoU = 0.9
 
         # Put weight to GPU
         if torch.cuda.is_available():
@@ -299,6 +302,8 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
             weight_grad[i] = sum_grad / weight_grad[i]
         # Normalize again and mult by the number of classes
         weight_grad = (weight_grad / weight_grad.sum()) * weight_grad.size(0)
+
+        # if you want to keep the wiehgt, comment the next line
         weight_grad = torch.FloatTensor([1 for i in range(19)])
 
         # Define all the parameters
@@ -309,7 +314,7 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
                                            label_DF=Label.create_label(),
 
                                            width_image_initial=2048, height_image_initial=1024,
-                                           size_image_crop=801,
+                                           size_image_crop=401,
 
                                            dropFactor=0.1,
                                            learning_rate=0.01,
@@ -318,14 +323,14 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
                                            beta1=0.9,
                                            beta2=0.999,
                                            epsilon=1 * 10 ** (-8),
-                                           batch_size=1,
-                                           batch_size_val=1,
+                                           batch_size=5,
+                                           batch_size_val=5,
                                            epoch_total=400,
                                            actual_epoch=0,
                                            ratio=(1, 1),
                                            weight_grad=weight_grad,
                                            loss="cross_entropy",
-                                           momentum_IoU=0.9,
+                                           momentum_IoU=0,
 
                                            path_save_net="./Model/",
                                            name_network="one_image",
@@ -376,20 +381,23 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
                                              num_workers=parameters.num_workers,
                                              drop_last=False)
 
+    # If there is more than one GPU we can sue them
     if torch.cuda.device_count() > 1:
         with open(parameters.path_print, 'a') as txtfile:
             txtfile.write("\nLet's use " + str(torch.cuda.device_count()) + " GPUs! \n")
-        # dim = 0 [30, xxx] -> [10, ...], [10, ...], [10, ...] on 3 GPUs
         network = torch.nn.DataParallel(network)
     else:
         with open(parameters.path_print, 'a') as txtfile:
-            txtfile.write("\nWe can t use Cuda here \n")
+            txtfile.write("\nWe don t have more than one GPU \n")
+        # ... But we still use it in this case ? ... TODO try without to check if it is working
         network = torch.nn.DataParallel(network)
+
+    # Put the network on GPU if possible
     if torch.cuda.is_available():
         network.cuda()
     else:
         with open(parameters.path_print, 'a') as txtfile:
-            txtfile.write("\nAccording to torch Cuda is not available \n")
+            txtfile.write("\nAccording to torch Cuda is not even available \n")
 
     # Train the network
     train(network=network,

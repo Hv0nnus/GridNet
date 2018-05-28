@@ -15,7 +15,7 @@ def IoU_loss(y_estimated, y, parameters, mask=None, global_IoU_modif=False):
     :param mask: Image with 1 were there is a class to predict, and 0 if not.
     :return: difference between y_estimated and y, according to the continuous IoU loss
     """
-    # Apply softmax then the log on the result
+    # Apply softmax the log on the result
     y_estimated = F.softmax(input=y_estimated, dim=1)
 
     # Apply the mask
@@ -24,8 +24,8 @@ def IoU_loss(y_estimated, y, parameters, mask=None, global_IoU_modif=False):
     IoU = 0
 
     if parameters.momentum_IoU != 0 and global_IoU_modif:
-        # Ugly hack that wheck if we are at the first epoch and first iteration of batch
 
+        # Ugly hack that check if we are at the first epoch and first iteration of batch
         if torch.sum(parameters.inter_union.cpu().data != torch.zeros((2, parameters.number_classes))) == 0:
             momentum = 0
         else:
@@ -64,6 +64,71 @@ def IoU_loss(y_estimated, y, parameters, mask=None, global_IoU_modif=False):
     # Divide by the number of class to have IoU between 0 and 1. we add "1 -" to have a loss to minimize and
     # to stay between 0 and 1.
     return 1 - (IoU / parameters.number_classes)
+
+
+def IoU_Lovasz(y_estimated, y, parameters, mask=None, global_IoU_modif=False):
+    """
+    :param y_estimated: result of train(x) which is the forward action
+    :param y: Label associated with x
+    :param parameters: List of parameters of the network
+    :param mask: Image with 1 were there is a class to predict, and 0 if not.
+    :return: difference between y_estimated and y, according to the approximation of IoU : Lovasz function
+    """
+    # Apply softmax the log on the result
+    y_estimated = F.softmax(input=y_estimated, dim=1)
+
+    # Apply the mask
+    y_estimated = y_estimated * mask
+
+    IoU_loss = 0
+
+    if parameters.momentum_IoU != 0 and global_IoU_modif:
+
+        # Ugly hack that check if we are at the first epoch and first iteration of batch
+        if torch.sum(parameters.inter_union.cpu().data != torch.zeros((2, parameters.number_classes))) == 0:
+            momentum = 0
+        else:
+            momentum = parameters.momentum_IoU
+
+    else:
+        # Permute the prediction and the ground truth so that there is only 1 dimension for the groudn truth
+        # and parameters.number_classe for the estimated
+        y_estimated = y_estimated.permute(0, 2, 3, 1).contiguous()
+        y_estimated = y_estimated.view(-1, parameters.number_classes)
+        y = y.contiguous().view(-1)
+
+        # We will divide by the the number of classes present in the dataset.
+        number_class_used = 0
+        # Compute the IoU for each class
+        for k in range(parameters.number_classes):
+
+            # Keep only the classes k.
+            y_only_k = (y == k).float()
+
+            # If this class is not present we don t use it (it avoid division by 0 and speed up the computation)
+            if not torch.sum(y_only_k) == 0:
+                number_class_used += 1
+
+                # Sort y_estimated so that the highest probability is first
+                y_order, y_estimated[:, k] = torch.sort(y_estimated[:, k],
+                                                        dim=0,
+                                                        descending=True)[1]
+                y_only_k = y_only_k[y_order]
+
+                # Compute the intersection and union according to the algorithm :
+                # The Lovasz-Softmax loss: A tractable surrogate for the optimization of the
+                # intersection-over-union measure in neural networks
+                inter = torch.sum(y_only_k) - torch.cumsum(y_only_k, dim=0)
+                union = torch.sum(y_only_k) + torch.cumsum(1 - y_only_k, dim=0)
+
+                # We fixe the IoU of the empty set = 0
+                IoU_loss += y_estimated[0, k] * ((1 - inter[0] / union[0]) - (1 - 0))
+                # Again follow the algorithm given in the paper to understand this line.
+                for p in range(1, len(inter)):
+                    IoU_loss += y_estimated[p, k] * ((1 - inter[p] / union[p]) - (1 - inter[p - 1] / union[p - 1]))
+
+    # Divide by the number of class used to have IoU_loss between 0 and 1.
+    return IoU_loss / number_class_used
 
 
 def cross_entropy_loss(y_estimated, y, parameters, mask=None, number_of_used_pixel=None):
@@ -166,18 +231,20 @@ def criterion(y_estimated, y, parameters, global_IoU_modif=False):
                                            parameters=parameters,
                                            mask=mask)
 
+    if parameters.loss == "IoU_Lovasz":
+        return IoU_Lovasz(y_estimated=y_estimated,
+                          y=y,
+                          parameters=parameters,
+                          mask=mask)
+
     if parameters.loss == "cross_entropy_to_IoU":
         if parameters.actual_epoch < 470:
-            with open(parameters.path_print, 'a') as txtfile:
-                txtfile.write("\nOnly cross entropy \n" + str(parameters.actual_epoch))
             return cross_entropy_loss(y_estimated=y_estimated,
                                       y=y,
                                       parameters=parameters,
                                       mask=mask,
                                       number_of_used_pixel=number_of_used_pixel)
         elif parameters.actual_epoch > 670:
-            with open(parameters.path_print, 'a') as txtfile:
-                txtfile.write("\n Only IOU ")
             return IoU_loss(y_estimated=y_estimated,
                             y=y,
                             parameters=parameters,
@@ -185,10 +252,6 @@ def criterion(y_estimated, y, parameters, global_IoU_modif=False):
         else:
             balance_between_loss = sigmoid(
                 (parameters.actual_epoch - 570) * (15 / 200))
-            with open(parameters.path_print, 'a') as txtfile:
-                txtfile.write("\nMix IoU and cross\n balance_between_loss : " + str(balance_between_loss)
-                              + "\n actual epoch" + str(parameters.actual_epoch) + "\nvalue into sigmoid : "
-                              + str((parameters.actual_epoch - 570)*(15/200)))
 
             return (1 - balance_between_loss) * cross_entropy_loss(y_estimated=y_estimated,
                                                                    y=y,
