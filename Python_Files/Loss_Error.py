@@ -96,7 +96,7 @@ def IoU_Lovasz(y_estimated, y, parameters, mask=None, global_IoU_modif=False):
         with open(parameters.path_print, 'a') as txtfile:
             txtfile.write("\n Start of IoU_Lovasz \n")
         # Permute the prediction and the ground truth so that there is only 1 dimension for the groudn truth
-        # and parameters.number_classe for the estimated
+        # and parameters.number_class for the estimated
         y_estimated = y_estimated.permute(0, 2, 3, 1).contiguous()
         y_estimated = y_estimated.view(-1, parameters.number_classes)
         y = y.contiguous().view(-1)
@@ -110,33 +110,36 @@ def IoU_Lovasz(y_estimated, y, parameters, mask=None, global_IoU_modif=False):
             y_only_k = (y == k).float()
 
             # If this class is not present we don t use it (it avoid division by 0 and speed up the computation)
-            if not ((torch.sum(y_only_k).data).numpy == 0):
+            if not (torch.sum(y_only_k).data.numpy == 0):
                 number_class_used += 1
 
                 # Sort y_estimated so that the highest probability is first
                 y_estimated_k, y_order = torch.sort(y_estimated[:, k],
-                                                        dim=0,
-                                                        descending=True)
-                
-                y_only_k = y_only_k[y_order,]
+                                                    dim=0,
+                                                    descending=True)
+
+                y_only_k = y_only_k[y_order, ]
 
                 # Compute the intersection and union according to the algorithm :
                 # The Lovasz-Softmax loss: A tractable surrogate for the optimization of the
                 # intersection-over-union measure in neural networks
                 inter = torch.cumsum(y_only_k, dim=0)
                 union = torch.sum(y_only_k) + torch.cumsum(1 - y_only_k, dim=0)
-
+                with open(parameters.path_print, 'a') as txtfile:
+                    txtfile.write("\n Before the loop \n" + str(time.time() - timer))
                 # We fixe the IoU of the empty set = 0
                 IoU_loss += y_estimated_k[0] * ((1 - (inter[0] / union[0])) - (1 - 0))
                 # Again follow the algorithm given in the paper to understand this line.
                 for p in range(1, len(inter)):
                     IoU_loss += y_estimated_k[p] * ((1 - (inter[p] / union[p])) - (1 - (inter[p - 1] / union[p - 1])))
+                with open(parameters.path_print, 'a') as txtfile:
+                    txtfile.write("\n After the loop \n" + str(time.time() - timer))
             else:
                 print("There is no such class : ", k, " in this image")
 
     # Divide by the number of class used to have IoU_loss between 0 and 1.
     with open(parameters.path_print, 'a') as txtfile:
-        txtfile.write("\n End of IoU Lovasz\n"+ str(time.time() - timer))
+        txtfile.write("\n End of IoU Lovasz\n" + str(time.time() - timer))
     return IoU_loss / number_class_used
 
 

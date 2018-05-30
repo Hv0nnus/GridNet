@@ -78,7 +78,7 @@ def duplicated_csv(path_CSV, old_name_network, new_name_network, train_number):
     conf_DF.to_csv(path_CSV + "CSV_confMat_" + new_name_network + str(train_number) + ".csv", index=False)
 
 
-def save_error(x, y, network, epoch, set_type, parameters):
+def save_error(x, y, network, epoch, set_type, parameters, loss=None):
     """
     :param x: Input data of validation or training set
     :param y: Output data expected of validation or training set
@@ -86,6 +86,7 @@ def save_error(x, y, network, epoch, set_type, parameters):
     :param epoch: Actual epoch of the training
     :param set_type: Validation or train DataSet
     :param parameters: List of all the parameters
+    :param loss: Value of loss if we are on the train set
     :return: the loss and save the error in CSV : Confusion matrix and loss for the set_type
     """
 
@@ -105,13 +106,20 @@ def save_error(x, y, network, epoch, set_type, parameters):
         writer = csv.writer(csvfile, quoting=csv.QUOTE_NONNUMERIC)
         writer.writerows(conf_mat)
 
-    # Same with the loss
-    loss = Loss_Error.criterion_pd_format(y_estimated=y_estimated,
-                                          y=y,
-                                          epoch=epoch,
-                                          set_type=set_type,
-                                          parameters=parameters)
+    # If we don't compute the loss before (we are on validation set). We compute it.
+    if loss is None:
+        # Same with the loss
+        loss = Loss_Error.criterion_pd_format(y_estimated=y_estimated,
+                                              y=y,
+                                              epoch=epoch,
+                                              set_type=set_type,
+                                              parameters=parameters)
 
+    # If the loss was already compute, we transform it to a better format
+    else:
+        loss = [set_type, epoch, loss.data[0]]
+
+    # Save the loss
     with open(parameters.path_CSV + "CSV_loss_" + parameters.name_network +
               str(parameters.train_number) + ".csv", 'a') as csvfile:
         writer = csv.writer(csvfile, quoting=csv.QUOTE_NONNUMERIC)

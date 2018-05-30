@@ -97,7 +97,8 @@ def batch_loop(optimizer, train_loader, network, epoch, parameters, timer_batch,
                                               network=network,
                                               epoch=epoch,
                                               set_type="train",
-                                              parameters=parameters)
+                                              parameters=parameters,
+                                              loss=loss)
 
         # Similar to a "print" but in a textfile
         with open(parameters.path_print, 'a') as txtfile:
