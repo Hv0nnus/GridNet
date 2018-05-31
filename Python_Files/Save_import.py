@@ -78,7 +78,7 @@ def duplicated_csv(path_CSV, old_name_network, new_name_network, train_number):
     conf_DF.to_csv(path_CSV + "CSV_confMat_" + new_name_network + str(train_number) + ".csv", index=False)
 
 
-def save_error(x, y, network, epoch, set_type, parameters, loss=None):
+def save_error(x, y, network, epoch, set_type, parameters, loss=None, y_estimated=None):
     """
     :param x: Input data of validation or training set
     :param y: Output data expected of validation or training set
@@ -89,9 +89,9 @@ def save_error(x, y, network, epoch, set_type, parameters, loss=None):
     :param loss: Value of loss if we are on the train set
     :return: the loss and save the error in CSV : Confusion matrix and loss for the set_type
     """
-
-    # Result of the network
-    y_estimated = network(x)
+    if y_estimated is None:
+        # Result of the network
+        y_estimated = network(x)
 
     # Compare the real result and the one of the network
     conf_mat = Loss_Error.IoU_pd_format(y_estimated=y_estimated,
@@ -332,7 +332,7 @@ def checkpoint(validation_error, validation_error_min, index_save_best,
     It also save the network if there is a better validation error
     """
 
-    if validation_error < validation_error_min:
+    if validation_error < validation_error_min +1000 :# Finaly it is
 
         # Save the entire model with parameter, network and optimizer
         save_checkpoint({'epoch': epoch + 1,  # +1 because we start to count at 0
@@ -352,19 +352,18 @@ def checkpoint(validation_error, validation_error_min, index_save_best,
 
     else:
         # Maybe useless to save the network in this way
-        if (False):
-            # Save the entire model with parameter, network and optimizer
-            save_checkpoint({'epoch': epoch + 1,  # +1 because we start to count at 0
-                             'parameters': parameters,
-                             'state_dict': network.state_dict(),
-                             },
-                            filename=parameters.path_save_net + "save" + str(index_save_regular) +
-                                     parameters.name_network + str(parameters.train_number) + "checkpoint.pth.tar")
-            validation_error_min = validation_error
+        # Save the entire model with parameter, network and optimizer
+        save_checkpoint({'epoch': epoch + 1,  # +1 because we start to count at 0
+                         'parameters': parameters,
+                         'state_dict': network.state_dict(),
+                         },
+                        filename=parameters.path_save_net + "save" + str(index_save_regular) +
+                                 parameters.name_network + str(parameters.train_number) + "checkpoint.pth.tar")
+        validation_error_min = validation_error
 
-            print("The network as been saved at the epoch " + str(epoch) + "(regular save)" + str(index_save_regular))
+        print("The network as been saved at the epoch " + str(epoch) + "(regular save)" + str(index_save_regular))
 
-            index_save_regular = (index_save_regular + 1) % 2
+        index_save_regular = (index_save_regular + 1) % 2
 
     return validation_error_min, index_save_best, index_save_regular
 

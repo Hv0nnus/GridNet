@@ -201,6 +201,27 @@ def sigmoid(x):
     return 1 / (1 + math.exp(-x))
 
 
+def criterion_pretrain(y_estimated, y, parameters):
+    """
+    :param y_estimated: result of train(x) which is the forward action
+    :param y: Label associated with x
+    :param parameters: List of parameters of the network
+    :return: difference between y_estimated and y, according to some function
+    """
+
+    y_estimated = F.log_softmax(input=y_estimated, dim=1)
+
+
+    # Set all target value of number_classes to 0 (we could have choose another class.
+    # The nllcrit will do y_estimated[k,0,i,j]*y[k,i,j]
+    # It will be 0 if the class is parameters.number_classes : which is exactly what is expect for this class
+    # The other classes remain unchanged
+    y = y * (y != parameters.number_classes).long()
+
+    # Apply the criterion define in the first line
+    return nllcrit(y_estimated, y) / number_of_used_pixel
+
+
 def criterion(y_estimated, y, parameters, global_IoU_modif=False):
     """
     :param y_estimated: result of train(x) which is the forward action
