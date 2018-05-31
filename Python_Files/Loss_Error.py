@@ -125,11 +125,11 @@ def IoU_Lovasz(y_estimated, y, parameters, mask=None, global_IoU_modif=False):
                 # intersection-over-union measure in neural networks
                 inter = torch.cumsum(y_only_k, dim=0)
                 union = torch.sum(y_only_k) + torch.cumsum(1 - y_only_k, dim=0)
-                grad = 1 - (inter / union)
+                grad = - (inter / union)
                 with open(parameters.path_print, 'a') as txtfile:
                     txtfile.write("\n Before the loop \n" + str(time.time() - timer))
                 # We fixe the IoU of the empty set = 0
-                IoU_loss += y_estimated_k[0] * (grad[0] - (1 - 0))
+                IoU_loss += y_estimated_k[0] * (grad[0] + 0)
                 # Again follow the algorithm given in the paper to understand this line.
                 IoU_loss += torch.sum(y_estimated_k[1:] * (grad[1:] - grad[:-1]))
                 with open(parameters.path_print, 'a') as txtfile:
