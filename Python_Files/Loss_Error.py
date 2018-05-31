@@ -92,9 +92,6 @@ def IoU_Lovasz(y_estimated, y, parameters, mask=None, global_IoU_modif=False):
             momentum = parameters.momentum_IoU
 
     else:
-        timer = time.time()
-        with open(parameters.path_print, 'a') as txtfile:
-            txtfile.write("\n Start of IoU_Lovasz \n")
         # Permute the prediction and the ground truth so that there is only 1 dimension for the groudn truth
         # and parameters.number_class for the estimated
         y_estimated = y_estimated.permute(0, 2, 3, 1).contiguous()
@@ -126,20 +123,15 @@ def IoU_Lovasz(y_estimated, y, parameters, mask=None, global_IoU_modif=False):
                 inter = torch.cumsum(y_only_k, dim=0)
                 union = torch.sum(y_only_k) + torch.cumsum(1 - y_only_k, dim=0)
                 grad = - (inter / union)
-                with open(parameters.path_print, 'a') as txtfile:
-                    txtfile.write("\n Before the loop \n" + str(time.time() - timer))
+
                 # We fixe the IoU of the empty set = 0
                 IoU_loss += y_estimated_k[0] * (grad[0] + 0)
                 # Again follow the algorithm given in the paper to understand this line.
                 IoU_loss += torch.sum(y_estimated_k[1:] * (grad[1:] - grad[:-1]))
-                with open(parameters.path_print, 'a') as txtfile:
-                    txtfile.write("\n After the loop \n" + str(time.time() - timer))
             else:
                 print("There is no such class : ", k, " in this image")
 
-    # Divide by the number of class used to have IoU_loss between 0 and 1.
-    with open(parameters.path_print, 'a') as txtfile:
-        txtfile.write("\n End of IoU Lovasz\n" + str(time.time() - timer))
+    # Divide by the number of class used to normalize
     return IoU_loss / number_class_used
 
 
