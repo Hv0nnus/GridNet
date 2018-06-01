@@ -374,7 +374,7 @@ class cityscapes_create_dataset_pretrain(data.Dataset):
 
 
 def checkpoint(validation_error, validation_error_min, index_save_best,
-               index_save_regular, epoch, network, parameters):
+               index_save_regular, epoch, network, parameters, network_final = None):
     """
     :param validation_error: The error on the validation DataSet
     :param validation_error_min: The last best validation error
@@ -396,6 +396,12 @@ def checkpoint(validation_error, validation_error_min, index_save_best,
                          },
                         filename=parameters.path_save_net + "best" + str(index_save_best) + parameters.name_network +
                                  str(parameters.train_number) + "checkpoint.pth.tar")
+        if network_final is not None:
+            save_checkpoint({'state_dict': network_final.state_dict(),
+                             },
+                            filename=parameters.path_save_net + "best" + str(
+                                index_save_best) + parameters.name_network +
+                                     str(parameters.train_number) + "final_part.pth.tar")
 
         validation_error_min = validation_error
 
@@ -414,24 +420,38 @@ def checkpoint(validation_error, validation_error_min, index_save_best,
                          },
                         filename=parameters.path_save_net + "save" + str(index_save_regular) +
                                  parameters.name_network + str(parameters.train_number) + "checkpoint.pth.tar")
+
+        if network_final is not None:
+            save_checkpoint({'state_dict': network_final.state_dict(),
+                             },
+                            filename=parameters.path_save_net + "save" + str(
+                                index_save_regular) + parameters.name_network +
+                                     str(parameters.train_number) + "final_part.pth.tar")
+
         validation_error_min = validation_error
 
         print("The network as been saved at the epoch " + str(epoch) + "(regular save)" + str(index_save_regular))
+        with open(parameters.path_print, 'a') as txtfile:
+            txtfile.write("The network as been saved at the epoch " + str(epoch) + "(regular save)" +
+                          str(index_save_regular) +  '\n')
 
         index_save_regular = (index_save_regular + 1) % 2
 
     return validation_error_min, index_save_best, index_save_regular
 
 
-"""organise_CSV import two CSV files and delete all duplicate row. Because the algorithme work with
-    mini_batch there is many value for the loss for one epoch and one data set. We compute here the mean
-    of all this loss that have the same epoch and data set. We did the same with the confusion matrix
-    (0) = name_network : name of the network associated with the CSV file
-    (1) = train_number : number of the network associated with the CSV file
-"""
-
 
 def organise_CSV(path_CSV, name_network, train_number):
+    """
+
+    :param path_CSV: Path to the CSV files that will be used
+    :param name_network: name of the network associated with the CSV file
+    :param train_number: number of the network associated with the CSV file
+    :return: organise_CSV import two CSV files and delete all duplicate row. Because the algorithme work with
+        mini_batch there is many value for the loss for one epoch and one data set. We compute here the mean
+        of all this loss that have the same epoch and data set. We did the same with the confusion matrix.
+    """
+
     # Import the CSV file into pandas DataFrame
     loss_DF = pd.read_csv(path_CSV + "CSV_loss_" + name_network + str(train_number) + ".csv")
     # This Groupby will regroupe all line that have the same "Set" and "Epoch" and compute the mean over the "Values"

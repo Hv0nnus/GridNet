@@ -13,6 +13,13 @@ def create_label():
         'Class_name': ["class" + str(i) for i in range(19)] + ["class19"]}
     return pd.DataFrame(data=label_name)
 
+def create_imagenet_class():
+    fichier_classes_imagesnet = open("./image_net_only_classes_small.txt").read()
+    list_classes_imagesnet = []
+    for i, ligne in enumerate(fichier_classes_imagesnet.split('\n')):
+        list_classes_imagesnet.append(ligne)
+    list_classes_imagesnet = list_classes_imagesnet[:-1]
+    return list_classes_imagesnet
 
 # --------------------------------------------------------------------------------
 # Definitions
