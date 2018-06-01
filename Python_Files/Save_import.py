@@ -87,6 +87,7 @@ def save_error(x, y, network, epoch, set_type, parameters, loss=None, y_estimate
     :param set_type: Validation or train DataSet
     :param parameters: List of all the parameters
     :param loss: Value of loss if we are on the train set
+    :param y_estimated: Value of y_predicted by the network
     :return: the loss and save the error in CSV : Confusion matrix and loss for the set_type
     """
     if y_estimated is None:
@@ -313,6 +314,60 @@ class cityscapes_create_dataset(data.Dataset):
             return img, mask.long(), self.image_names
         else:
             return img, self.image_names[index]
+
+    def __len__(self):
+        return len(self.imgs)
+
+
+def make_dataset_pretrain(mode, path_data):
+    assert (mode in ['train', 'val'])
+
+    assert len(set(os.listdir(path_data))) == 0
+
+    items = []
+    image_names = []
+
+    fichier_classes_imagesnet = open("./image_net_only_classes_small.txt").read()
+    list_classes_imagesnet = []
+    for i, ligne in enumerate(fichier_classes_imagesnet.split('\n')):
+        list_classes_imagesnet.append(ligne)
+    list_classes_imagesnet = list_classes_imagesnet[:-1]
+
+    for i, c in enumerate(list_classes_imagesnet):
+        c_items = os.listdir(os.path.join(path_data, c))
+        if mode == 'train':
+            for it in range(0, int(0.7 * len(c_items))):
+                items.append((os.path.join(path_data, c, c_items[it]), i))
+        if mode == 'val':
+            for it in range(int(0.7 * len(c_items), len(c_items))):
+                items.append((os.path.join(path_data, c, c_items[it]), i))
+    return items
+
+
+class cityscapes_create_dataset_pretrain(data.Dataset):
+    def __init__(self,
+                 mode,
+                 parameters,
+                 sliding_crop=None,
+                 transform=None):
+
+        self.imgs = make_dataset_pretrain(mode, parameters.path_data)
+        if len(self.imgs) == 0:
+            raise RuntimeError('Found 0 images, please check the data set')
+        self.mode = mode
+        self.sliding_crop = sliding_crop
+        self.transform = transform
+
+    def __getitem__(self, index):
+
+        img_path, img_class = self.imgs[index]
+
+        img = Image.open(img_path).convert('RGB')
+
+        if self.transform is not None:
+            img = self.transform(img)
+
+        return img, img_class
 
     def __len__(self):
         return len(self.imgs)

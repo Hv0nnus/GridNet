@@ -211,7 +211,6 @@ def criterion_pretrain(y_estimated, y, parameters):
 
     y_estimated = F.log_softmax(input=y_estimated, dim=1)
 
-
     # Set all target value of number_classes to 0 (we could have choose another class.
     # The nllcrit will do y_estimated[k,0,i,j]*y[k,i,j]
     # It will be 0 if the class is parameters.number_classes : which is exactly what is expect for this class

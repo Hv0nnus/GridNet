@@ -359,3 +359,39 @@ class gridNet(nn.Module):
                 txtfile.write("\n  In Model: input size" + str(x.size()) + "output size" + str(x_final.size()) + "\n")
 
         return x_final
+
+
+class pretrain_end_network(nn.Module):
+
+    def __init__(self, nInputs=19, nOutputs=1000):
+        """
+        :param nInputs: number of features map for the input
+        :param nOutputs: number of classses
+        This class represent the last operation of the network before the prediction for the ImageNet Dataset
+        """
+
+        super(pretrain_end_network, self).__init__()
+
+        self.MaxPool1 = torch.nn.MaxPool2d(29, # padding de 2 : (257 + 4) / 29 = 9
+                                           stride=None,
+                                           padding=2,
+                                           dilation=1,
+                                           return_indices=False,
+                                           ceil_mode=False)
+
+        self.Linear1 = nn.Linear(in_features=19*9*9,
+                                 out_features=1000,
+                                 bias=True)
+
+        self.Sigmoid1 = nn.Sigmoid()
+
+        self.Linear2 = nn.Linear(in_features=1000,
+                                 out_features=1000,
+                                 bias=True)
+
+    def forward(self, x):
+        x = self.MaxPool1(x)
+        x = self.Linear1(x)
+        x = self.Sigmoid1(x)
+        x = self.Linear2(x)
+        return x

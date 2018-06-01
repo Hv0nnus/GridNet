@@ -74,8 +74,8 @@ def f():
 
     for i, (x_batch, y_batch, _) in enumerate(train_loader):
         count += count_classes(y_batch, parameters)
-            with open("/home_expes/kt82128h/GridNet/Python_Files/Python_print.txt", 'a') as txtfile:
-                txtfile.write("\n " "Loop : " + str(i) + "count : " +str(count) + "\n")
+        with open("/home_expes/kt82128h/GridNet/Python_Files/Python_print.txt", 'a') as txtfile:
+            txtfile.write("\n " "Loop : " + str(i) + "count : " +str(count) + "\n")
 
     count = count / sum(count)
     print(count)
