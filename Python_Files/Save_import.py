@@ -387,7 +387,7 @@ def checkpoint(validation_error, validation_error_min, index_save_best,
     It also save the network if there is a better validation error
     """
 
-    if validation_error < validation_error_min +1000 :# Finaly it is
+    if validation_error < validation_error_min:
 
         # Save the entire model with parameter, network and optimizer
         save_checkpoint({'epoch': epoch + 1,  # +1 because we start to count at 0

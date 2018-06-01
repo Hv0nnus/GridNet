@@ -5,6 +5,7 @@ parameters, _ = Save_import.load_from_checkpoint(sys.argv[1])
 parameters.momentum_IoU = 10
 print("Parameters :\n")
 print("\nnumber of Columns : ", parameters.nColumns)
+print("\nsize image crop\n",parameters.size_image_crop)
 print("\nnumber of number_classes : ", parameters.number_classes)
 print("\nnumber of actual_epoch : ", parameters.actual_epoch)
 print("\nnumber of batch_size : ", parameters.batch_size)
