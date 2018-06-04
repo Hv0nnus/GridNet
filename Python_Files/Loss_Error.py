@@ -208,6 +208,9 @@ def criterion_pretrain(y_estimated, y, parameters):
     :param parameters: List of parameters of the network
     :return: difference between y_estimated and y, according to some function
     """
+    with open(parameters.path_print, 'a') as txtfile:
+        txtfile.write(str(y_estimated.data) + "\n" +  str(y.data))
+
     cross_entropy = torch.nn.CrossEntropyLoss(weight=None, size_average=True, ignore_index=-100, reduce=True)
 
     # Apply the criterion define in the first line

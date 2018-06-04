@@ -386,11 +386,15 @@ class pretrain_end_network(nn.Module):
         self.Sigmoid1 = nn.Sigmoid()
 
         self.Linear2 = nn.Linear(in_features=1000,
-                                 out_features=1000,
+                                 out_features=10,
                                  bias=True)
 
     def forward(self, x):
+        print(x.size())
         x = self.MaxPool1(x)
+        print(x.size())
+        x=x.view(-1, 19*9*9)
+        print(x.size())
         x = self.Linear1(x)
         x = self.Sigmoid1(x)
         x = self.Linear2(x)

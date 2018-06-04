@@ -322,7 +322,7 @@ class cityscapes_create_dataset(data.Dataset):
 def make_dataset_pretrain(mode, path_data):
     assert (mode in ['train', 'val'])
 
-    assert len(set(os.listdir(path_data))) == 0
+    assert len(set(os.listdir(path_data))) != 0
 
     items = []
     image_names = []
@@ -339,7 +339,7 @@ def make_dataset_pretrain(mode, path_data):
             for it in range(0, int(0.7 * len(c_items))):
                 items.append((os.path.join(path_data, c, c_items[it]), i))
         if mode == 'val':
-            for it in range(int(0.7 * len(c_items), len(c_items))):
+            for it in range(int(0.7 * len(c_items)), len(c_items)):
                 items.append((os.path.join(path_data, c, c_items[it]), i))
     return items
 

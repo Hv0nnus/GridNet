@@ -41,7 +41,7 @@ def batch_loop(optimizer, train_loader, network, network_final, epoch, parameter
     """
 
     # Loop over the mini-batch, the size of the mini match is define in the train_loader
-    for i, (x_batch, y_batch, _) in enumerate(train_loader):
+    for i, (x_batch, y_batch) in enumerate(train_loader):
 
         # zero the gradient buffers
         for opt in optimizer:
@@ -59,8 +59,7 @@ def batch_loop(optimizer, train_loader, network, network_final, epoch, parameter
         # Get the error
         loss = Loss_Error.criterion_pretrain(y_estimated=y_batch_estimated,
                                              y=y_batch,
-                                             parameters=parameters,
-                                             global_IoU_modif=False)
+                                             parameters=parameters)
 
         # Compute the backward function
         loss.backward()
@@ -106,7 +105,7 @@ def validation_loop(val_loader, network, network_final, epoch, parameters, timer
     """
 
     # Save the error of the validation DataSet
-    for i, (x_val_batch, y_val_batch, _) in enumerate(val_loader):
+    for i, (x_val_batch, y_val_batch) in enumerate(val_loader):
 
         if torch.cuda.is_available():
             x_val_batch, y_val_batch = Variable(x_val_batch.cuda()), Variable(y_val_batch.cuda())
@@ -115,8 +114,7 @@ def validation_loop(val_loader, network, network_final, epoch, parameters, timer
 
         loss = Loss_Error.criterion_pretrain(y_estimated=network_final(network(x_val_batch)),
                                              y=y_val_batch,
-                                             parameters=parameters,
-                                             global_IoU_modif=False)
+                                             parameters=parameters)
 
         loss = ["validation", epoch, loss.data[0]]
 
@@ -260,8 +258,8 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
     # If the network was not train, we start from scratch
     else:
         # Define all the parameters
-        parameters = Parameters.Parameters(nColumns=8,
-                                           nFeatMaps=[16, 32, 64, 128, 256],
+        parameters = Parameters.Parameters(nColumns=6,
+                                           nFeatMaps=[16, 32, 64, 128],
                                            nFeatureMaps_init=3,
                                            number_classes=20 - 1,
                                            label_DF=Label.create_label(),
@@ -276,22 +274,22 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
                                            beta1=0.9,
                                            beta2=0.999,
                                            epsilon=1 * 10 ** (-8),
-                                           batch_size=5,
-                                           batch_size_val=5,
-                                           epoch_total=400,
+                                           batch_size=10,
+                                           batch_size_val=10,
+                                           epoch_total=100,
                                            actual_epoch=0,
                                            ratio=(1, 1),
                                            weight_grad=None,
-                                           loss="IoU_Lovasz",
+                                           loss="cross_entropy_pretrain",
                                            momentum_IoU=0,
 
                                            path_save_net="./Model/",
-                                           name_network="Lovasz",
+                                           name_network="pretrain_test",
                                            train_number=0,
                                            path_CSV="./CSV/",
-                                           path_data="/home_expes/collections/Cityscapes/",
-                                           # "/home_expes/collections/imagenet_10dir/"
-                                           path_print="./Python_print_lovasz.txt",
+                                           #path_data="/home_expes/collections/Cityscapes/",
+                                           path_data = "/home_expes/collections/imagenet_10dir/",
+                                           path_print="./Python_print_pretrain_test.txt",
                                            path_result="./Result",
                                            num_workers=2)
         # Define the GridNet
