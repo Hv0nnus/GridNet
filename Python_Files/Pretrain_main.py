@@ -202,7 +202,8 @@ def train(parameters, network, network_final, train_loader, val_loader):
         if (epoch % 10) == 0:
             Save_import.organise_CSV(path_CSV=parameters.path_CSV,
                                      name_network=parameters.name_network,
-                                     train_number=parameters.train_number)
+                                     train_number=parameters.train_number,
+                                     both=False)
 
         # Increase the actual epoch
         parameters.actual_epoch += 1
@@ -223,7 +224,7 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
     :return: Nothing but train the network and save CSV files for the error and also save the network regularly
     """
     # Manual seed of the network to have reproducible experiment
-    torch.manual_seed(26542461)
+    torch.manual_seed(945682461)
 
     # If the network was already train we import it
     if path_continue_learning is not None:
@@ -274,12 +275,12 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
                                            beta1=0.9,
                                            beta2=0.999,
                                            epsilon=1 * 10 ** (-8),
-                                           batch_size=10,
-                                           batch_size_val=10,
+                                           batch_size=3,
+                                           batch_size_val=3,
                                            epoch_total=100,
                                            actual_epoch=0,
                                            ratio=(1, 1),
-                                           weight_grad=None,
+                                           weight_grad=torch.FloatTensor([1 for i in range(19)]),
                                            loss="cross_entropy_pretrain",
                                            momentum_IoU=0,
 
@@ -345,15 +346,17 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
         with open(parameters.path_print, 'a') as txtfile:
             txtfile.write("\nLet's use " + str(torch.cuda.device_count()) + " GPUs! \n")
         network = torch.nn.DataParallel(network)
+        network_final = torch.nn.DataParallel(network_final)
     else:
         with open(parameters.path_print, 'a') as txtfile:
             txtfile.write("\nWe don t have more than one GPU \n")
         # ... But we still use it in this case ? ... TODO try without to check if it is still working
-        network = torch.nn.DataParallel(network)
+        # network = torch.nn.DataParallel(network)
 
     # Put the network on GPU if possible
     if torch.cuda.is_available():
         network.cuda()
+        network_final.cuda()
     else:
         with open(parameters.path_print, 'a') as txtfile:
             txtfile.write("\nAccording to torch Cuda is not even available \n")

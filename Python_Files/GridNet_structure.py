@@ -380,22 +380,29 @@ class pretrain_end_network(nn.Module):
                                            ceil_mode=False)
 
         self.Linear1 = nn.Linear(in_features=19*9*9,
-                                 out_features=1000,
+                                 out_features=50,
                                  bias=True)
 
-        self.Sigmoid1 = nn.Sigmoid()
+        self.ReLU1 = nn.ReLU()
 
-        self.Linear2 = nn.Linear(in_features=1000,
-                                 out_features=10,
+        self.Linear2 = nn.Linear(in_features=50,
+                                 out_features=nOutputs,
                                  bias=True)
 
     def forward(self, x):
-        print(x.size())
+        #print(x)
         x = self.MaxPool1(x)
-        print(x.size())
+        #print(x)
         x=x.view(-1, 19*9*9)
-        print(x.size())
+        with open("Python_print_pretrain_test.txt", 'a') as txtfile:
+            txtfile.write("x_before linear" + str(x))
         x = self.Linear1(x)
-        x = self.Sigmoid1(x)
+        with open("Python_print_pretrain_test.txt", 'a') as txtfile:
+            txtfile.write("x before ReLU" + str(x))
+        x = self.ReLU1(x)
+        with open("Python_print_pretrain_test.txt", 'a') as txtfile:
+            txtfile.write("x before Linear2" + str(x))
         x = self.Linear2(x)
+        with open("Python_print_pretrain_test.txt", 'a') as txtfile:
+            txtfile.write("x_final" + str(x))
         return x
