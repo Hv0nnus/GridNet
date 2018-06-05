@@ -441,9 +441,8 @@ def checkpoint(validation_error, validation_error_min, index_save_best,
 
 
 
-def organise_CSV(path_CSV, name_network, train_number):
+def organise_CSV(path_CSV, name_network, train_number, both = True):
     """
-
     :param path_CSV: Path to the CSV files that will be used
     :param name_network: name of the network associated with the CSV file
     :param train_number: number of the network associated with the CSV file
@@ -458,14 +457,15 @@ def organise_CSV(path_CSV, name_network, train_number):
     loss_DF = loss_DF.groupby(['Set', 'Epoch'])['Value'].mean().reset_index()
     # Recreate the CSV file
     loss_DF.to_csv(path_CSV + "CSV_loss_" + name_network + str(train_number) + ".csv", index=False)
-
-    # Import the CSV file into pandas DataFrame
-    conf_DF = pd.read_csv(path_CSV + "CSV_confMat_" + name_network + str(train_number) + ".csv")
-    # This Groupby will regroupe all line that have the same 'Target','Prediction','Epoch','Set'
-    # and compute the mean over the "Values"
-    conf_DF = conf_DF.groupby(['Target', 'Prediction', 'Epoch', 'Set'])['Value'].mean().reset_index()
-    # Recreate the CSV file
-    conf_DF.to_csv(path_CSV + "CSV_confMat_" + name_network + str(train_number) + ".csv", index=False)
+    
+    if both:
+        # Import the CSV file into pandas DataFrame
+        conf_DF = pd.read_csv(path_CSV + "CSV_confMat_" + name_network + str(train_number) + ".csv")
+        # This Groupby will regroupe all line that have the same 'Target','Prediction','Epoch','Set'
+        # and compute the mean over the "Values"
+        conf_DF = conf_DF.groupby(['Target', 'Prediction', 'Epoch', 'Set'])['Value'].mean().reset_index()
+        # Recreate the CSV file
+        conf_DF.to_csv(path_CSV + "CSV_confMat_" + name_network + str(train_number) + ".csv", index=False)
 
 
 def time_to_string(time):

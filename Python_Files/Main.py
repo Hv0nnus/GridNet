@@ -213,10 +213,12 @@ def train(parameters, network, train_loader, val_loader):
 
         # Update the optimizer
 
-        #if epoch > 300:
-        #    optimizer.param_groups[0]['lr'] = parameters.learning_rate/(1 + (epoch-300)*parameters.learning_rate_decay)
-        # else:
-        #    optimizer.param_groups[0]['lr'] = parameters.learning_rate/(1 + (epoch-800)*parameters.learning_rate_decay)
+        if epoch > 700:
+            optimizer.param_groups[0]['lr'] = parameters.learning_rate / 10
+        elif epoch > 500:
+            optimizer.param_groups[0]['lr'] = parameters.learning_rate_decay * (epoch-500) + parameters.learning_rate
+        else:
+            optimizer.param_groups[0]['lr'] = parameters.learning_rate
 
         # if epoch < 600:
         #    optimizer.param_groups[0]['lr'] = parameters.learning_rate/(1 - (epoch-600)*parameters.learning_rate_decay)
@@ -266,12 +268,12 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
 
         # Here we can change some parameters, the only one necessary is the total_epoch
         parameters.epoch_total = total_epoch
-        #parameters.learning_rate_decay = 0.5 * (10 ** (-2))
-        parameters.batch_size = 5
-        parameters.batch_size_val = 5
+        parameters.learning_rate_decay = - 4.5 * 10**(-5)
+        parameters.batch_size = 4
+        parameters.batch_size_val = 4
         #parameters.learning_rate = 0.01
-        parameters.momentum_IoU = 0
-        parameters.loss = "IoU_Lovasz"
+        #parameters.momentum_IoU = 0
+        #parameters.loss = "IoU_Lovasz"
 
         # Put weight to GPU
         if torch.cuda.is_available():
