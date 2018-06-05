@@ -372,7 +372,7 @@ class pretrain_end_network(nn.Module):
 
         super(pretrain_end_network, self).__init__()
 
-        self.MaxPool1 = torch.nn.MaxPool2d(29, # padding de 2 : (257 + 4) / 29 = 9
+        self.MaxPool1 = torch.nn.MaxPool2d(29,  # padding de 2 : (257 + 4) / 29 = 9
                                            stride=None,
                                            padding=2,
                                            dilation=1,
@@ -390,11 +390,8 @@ class pretrain_end_network(nn.Module):
                                  bias=True)
 
     def forward(self, x):
-        print(x.size())
         x = self.MaxPool1(x)
-        print(x.size())
-        x=x.view(-1, 19*9*9)
-        print(x.size())
+        x = x.view(-1, 19*9*9)
         x = self.Linear1(x)
         x = self.Sigmoid1(x)
         x = self.Linear2(x)
