@@ -28,7 +28,7 @@ import Parameters
 import Label
 
 
-def batch_loop(optimizer, train_loader, network, network_final, epoch, parameters, timer_batch, timer_epoch):
+def batch_loop(optimizer, train_loader, network, epoch, parameters, timer_batch, timer_epoch, network_final=None):
     """
     :param optimizer: The optimiser that containt parameter of Adam optimizer
     :param train_loader: Dataloader which contains input and target of the train dataset
@@ -54,7 +54,10 @@ def batch_loop(optimizer, train_loader, network, network_final, epoch, parameter
             x_batch, y_batch = Variable(x_batch), Variable(y_batch)
 
         # Compute the forward function
-        y_batch_estimated = network_final(network(x_batch))
+        if network_final is not None:
+            y_batch_estimated = network_final(network(x_batch))
+        else:
+            y_batch_estimated = network(x_batch)
 
         # Get the error
         loss = Loss_Error.criterion_pretrain(y_estimated=y_batch_estimated,
@@ -93,7 +96,7 @@ def batch_loop(optimizer, train_loader, network, network_final, epoch, parameter
     return ()
 
 
-def validation_loop(val_loader, network, network_final, epoch, parameters, timer_epoch):
+def validation_loop(val_loader, network, epoch, parameters, timer_epoch, network_final=None):
     """
     validation_loop do a loop over the validation set
     :param val_loader: Dataloader which contains input and target of the validation dataset
@@ -112,11 +115,17 @@ def validation_loop(val_loader, network, network_final, epoch, parameters, timer
         else:
             x_val_batch, y_val_batch = Variable(x_val_batch), Variable(y_val_batch)
 
-        loss = Loss_Error.criterion_pretrain(y_estimated=network_final(network(x_val_batch)),
+        if network_final is not None:
+            loss = Loss_Error.criterion_pretrain(y_estimated=network_final(network(x_val_batch)),
+                                             y=y_val_batch,
+                                             parameters=parameters)
+        else:
+            loss = Loss_Error.criterion_pretrain(y_estimated=network(x_val_batch),
                                              y=y_val_batch,
                                              parameters=parameters)
 
-        loss = ["validation", epoch, loss.data[0]]
+
+            loss = ["validation", epoch, loss.data[0]]
 
         # Save the loss
         with open(parameters.path_CSV + "CSV_loss_" + parameters.name_network +
@@ -131,7 +140,7 @@ def validation_loop(val_loader, network, network_final, epoch, parameters, timer
                 ".\nTime total batch : " + Save_import.time_to_string(time.time() - timer_epoch) + "\n \n")
 
 
-def train(parameters, network, network_final, train_loader, val_loader):
+def train(parameters, network, train_loader, val_loader, network_final=None):
     """
     :param parameters: List of parameters of the network
     :param network: Network that will be learned
@@ -144,16 +153,23 @@ def train(parameters, network, network_final, train_loader, val_loader):
     timer_init = time.time()
 
     # create your optimizer
-    optimizer = [optim.Adam(params=network.parameters(),
-                            lr=parameters.learning_rate,
-                            betas=(parameters.beta1, parameters.beta2),
-                            eps=parameters.epsilon,
-                            weight_decay=parameters.weight_decay),
-                 optim.Adam(params=network_final.parameters(),
-                            lr=parameters.learning_rate,
-                            betas=(parameters.beta1, parameters.beta2),
-                            eps=parameters.epsilon,
-                            weight_decay=parameters.weight_decay)]
+    if network_final is not None:
+        optimizer = [optim.Adam(params=network.parameters(),
+                                lr=parameters.learning_rate,
+                                betas=(parameters.beta1, parameters.beta2),
+                                eps=parameters.epsilon,
+                                weight_decay=parameters.weight_decay),
+                     optim.Adam(params=network_final.parameters(),
+                                lr=parameters.learning_rate,
+                                betas=(parameters.beta1, parameters.beta2),
+                                eps=parameters.epsilon,
+                                weight_decay=parameters.weight_decay)]
+    else:
+        optimizer = [optim.Adam(params=network.parameters(),
+                                lr=parameters.learning_rate,
+                                betas=(parameters.beta1, parameters.beta2),
+                                eps=parameters.epsilon,
+                                weight_decay=parameters.weight_decay)]
 
     # Store the index of the next checkpoint. This value is 0 or 1. We always keep one checkpoint untouched
     # while the other one is changed.
@@ -167,21 +183,38 @@ def train(parameters, network, network_final, train_loader, val_loader):
         timer_epoch = time.time()
         timer_batch = time.time()
 
-        batch_loop(optimizer=optimizer,
-                   train_loader=train_loader,
-                   network=network,
-                   network_final=network_final,
-                   epoch=epoch,
-                   parameters=parameters,
-                   timer_batch=timer_batch,
-                   timer_epoch=timer_epoch)
+        if network_final is not None:
+            batch_loop(optimizer=optimizer,
+                       train_loader=train_loader,
+                       network=network,
+                       network_final=network_final,
+                       epoch=epoch,
+                       parameters=parameters,
+                       timer_batch=timer_batch,
+                       timer_epoch=timer_epoch)
 
-        validation_loop(val_loader=val_loader,
-                        network=network,
-                        network_final=network_final,
-                        epoch=epoch,
-                        parameters=parameters,
-                        timer_epoch=timer_epoch)
+            validation_loop(val_loader=val_loader,
+                            network=network,
+                            network_final=network_final,
+                            epoch=epoch,
+                            parameters=parameters,
+                            timer_epoch=timer_epoch)
+        else:
+            batch_loop(optimizer=optimizer,
+                       train_loader=train_loader,
+                       network=network,
+                       network_final=network_final,
+                       epoch=epoch,
+                       parameters=parameters,
+                       timer_batch=timer_batch,
+                       timer_epoch=timer_epoch)
+
+            validation_loop(val_loader=val_loader,
+                            network=network,
+                            network_final=network_final,
+                            epoch=epoch,
+                            parameters=parameters,
+                            timer_epoch=timer_epoch)
 
         # checkpoint will save the network if needed
         validation_error_min, index_save_best, index_save_regular = \
@@ -230,11 +263,11 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
     if path_continue_learning is not None:
         # Load the trained Network
         parameters, network = Save_import.load_from_checkpoint(path_checkpoint=path_continue_learning)
-        network_final = Save_import.load_from_checkpoint(path_checkpoint=(parameters.path_save_net
-                                                                          + "best0"
-                                                                          + parameters.name_network
-                                                                          + str(parameters.train_number)
-                                                                          + "final_part.pth.tar"))
+        #network_final = Save_import.load_from_checkpoint(path_checkpoint=(parameters.path_save_net
+        #                                                                  + "best0"
+        #                                                                  + parameters.name_network
+        #                                                                  + str(parameters.train_number)
+        #                                                                  + "final_part.pth.tar"))
 
         # Here we can change some parameters, the only one necessary is the total_epoch
         parameters.epoch_total = total_epoch
@@ -299,9 +332,10 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
                                                      nColumns=parameters.nColumns,
                                                      nFeatMaps=parameters.nFeatMaps,
                                                      dropFactor=parameters.dropFactor)
+        network = GridNet_structure.ResNet18(nOutputs=len(Label.create_label()))
 
-        network_final = GridNet_structure.pretrain_end_network(nInputs=parameters.nFeatMaps[-1],
-                                                               nOutputs=len(Label.create_imagenet_class()))
+        network_final = None  #GridNet_structure.pretrain_end_network(nInputs=parameters.nFeatMaps[-1],
+                                                               #nOutputs=len(Label.create_imagenet_class()))
 
         with open(parameters.path_print, 'w') as txtfile:
             txtfile.write('\n               Start of the program \n')
@@ -346,7 +380,8 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
         with open(parameters.path_print, 'a') as txtfile:
             txtfile.write("\nLet's use " + str(torch.cuda.device_count()) + " GPUs! \n")
         network = torch.nn.DataParallel(network)
-        network_final = torch.nn.DataParallel(network_final)
+        if network_final is not None:
+            network_final = torch.nn.DataParallel(network_final)
     else:
         with open(parameters.path_print, 'a') as txtfile:
             txtfile.write("\nWe don t have more than one GPU \n")
@@ -356,17 +391,24 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
     # Put the network on GPU if possible
     if torch.cuda.is_available():
         network.cuda()
-        network_final.cuda()
+        if network_final is not None:
+            network_final.cuda()
     else:
         with open(parameters.path_print, 'a') as txtfile:
             txtfile.write("\nAccording to torch Cuda is not even available \n")
 
     # Train the network
-    train(network=network,
-          network_final=network_final,
-          parameters=parameters,
-          train_loader=train_loader,
-          val_loader=val_loader)
+    if network_final is not None:
+        train(network=network,
+              network_final=network_final,
+              parameters=parameters,
+              train_loader=train_loader,
+              val_loader=val_loader)
+    else:
+        train(network=network,
+              parameters=parameters,
+              train_loader=train_loader,
+              val_loader=val_loader)
 
 
 # Check if there is argument and run the main program with good argument, load previous Data or not.

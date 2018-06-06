@@ -3,6 +3,7 @@
 import torch.nn as nn
 import torch
 import random
+import torchvision
 
 
 class firstConv(nn.Module):
@@ -533,3 +534,24 @@ class gridNet_imagenet(nn.Module):
                 txtfile.write("\n  In Model: input size" + str(x.size()) + "output size" + str(x_final.size()) + "\n")
 
         return x_final
+
+
+class ResNet18(nn.Module):
+    def __init__(self, nOutputs=1000):
+        super(ResNet18, self).__init__()
+        resnet18 = torchvision.models.resnet18(pretrained=True)
+        child_counter = 0
+        list_child = []
+        for child in resnet18.children():
+            if child_counter < 9:
+                for param in child.parameters():
+                    param.requires_grad = False
+                list_child.append(child)
+            else:
+                list_child.append(nn.Linear(in_features=512, out_features=nOutputs, bias=True))
+            child_counter += 1
+        self.resnet_and_10_classes = nn.Sequential(*list(list_child))
+
+    def forward(self, x):
+        x = self.resnet_and_10_classes(x)
+        return x
