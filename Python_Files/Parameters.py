@@ -11,6 +11,8 @@ class Parameters:
     It is really usefull to just Parameters as argument to the other function
     """
     def __init__(self,
+                 # If we are on pretrain or not
+                 pretrain=False,
                  # Number of columns of the grid
                  nColumns=2,
                  # Number of features map at each rows
@@ -73,6 +75,8 @@ class Parameters:
                  ):
 
         super(Parameters, self).__init__()
+        # pretrain or train
+        self.pretrain = pretrain
         # Image
         self.number_classes = number_classes
         self.label_DF = label_DF

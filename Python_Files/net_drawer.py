@@ -107,11 +107,6 @@ style = {"BatchNormalization": batchNormalization,
          "Relu": relu,
          }
 
-
-
-
-
-
 def GetOpNodeProducer(embed_docstring=False, **kwargs):
     def ReallyGetOpNode(op, op_id):
         if op.name:

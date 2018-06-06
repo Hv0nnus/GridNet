@@ -283,22 +283,22 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
                                            weight_grad=torch.FloatTensor([1 for i in range(19)]),
                                            loss="cross_entropy_pretrain",
                                            momentum_IoU=0,
-
+                                           pretrain=True,
                                            path_save_net="./Model/",
                                            name_network="pretrain_test",
                                            train_number=0,
                                            path_CSV="./CSV/",
-                                           #path_data="/home_expes/collections/Cityscapes/",
-                                           path_data = "/home_expes/collections/imagenet_10dir/",
+                                           # path_data="/home_expes/collections/Cityscapes/",
+                                           path_data="/home_expes/collections/imagenet_10dir/",
                                            path_print="./Python_print_pretrain_test.txt",
                                            path_result="./Result",
                                            num_workers=2)
         # Define the GridNet
-        network = GridNet_structure.gridNet(nInputs=parameters.nFeatureMaps_init,
-                                            nOutputs=parameters.number_classes,
-                                            nColumns=parameters.nColumns,
-                                            nFeatMaps=parameters.nFeatMaps,
-                                            dropFactor=parameters.dropFactor)
+        network = GridNet_structure.gridNet_imagenet(nInputs=parameters.nFeatureMaps_init,
+                                                     nOutputs=parameters.number_classes,
+                                                     nColumns=parameters.nColumns,
+                                                     nFeatMaps=parameters.nFeatMaps,
+                                                     dropFactor=parameters.dropFactor)
 
         network_final = GridNet_structure.pretrain_end_network(nInputs=parameters.number_classes,
                                                                nOutputs=len(Label.create_imagenet_class()))
@@ -350,8 +350,8 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
     else:
         with open(parameters.path_print, 'a') as txtfile:
             txtfile.write("\nWe don t have more than one GPU \n")
-        # ... But we still use it in this case ? ... TODO try without to check if it is still working
-        # network = torch.nn.DataParallel(network)
+            # ... But we still use it in this case ? ... TODO try without to check if it is still working
+            # network = torch.nn.DataParallel(network)
 
     # Put the network on GPU if possible
     if torch.cuda.is_available():
