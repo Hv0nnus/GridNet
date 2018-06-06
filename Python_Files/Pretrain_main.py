@@ -275,8 +275,8 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
                                            beta1=0.9,
                                            beta2=0.999,
                                            epsilon=1 * 10 ** (-8),
-                                           batch_size=3,
-                                           batch_size_val=3,
+                                           batch_size=10,
+                                           batch_size_val=10,
                                            epoch_total=100,
                                            actual_epoch=0,
                                            ratio=(1, 1),
@@ -300,7 +300,7 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
                                                      nFeatMaps=parameters.nFeatMaps,
                                                      dropFactor=parameters.dropFactor)
 
-        network_final = GridNet_structure.pretrain_end_network(nInputs=parameters.number_classes,
+        network_final = GridNet_structure.pretrain_end_network(nInputs=parameters.nFeatMaps[-1],
                                                                nOutputs=len(Label.create_imagenet_class()))
 
         with open(parameters.path_print, 'w') as txtfile:

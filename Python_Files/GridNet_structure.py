@@ -371,16 +371,16 @@ class pretrain_end_network(nn.Module):
 
         super(pretrain_end_network, self).__init__()
 
-        self.MaxPool1 = torch.nn.MaxPool2d(11,
+        self.AvgPool1 = torch.nn.AvgPool2d(11,
                                            stride=None,
                                            padding=0,
-                                           dilation=1,
-                                           return_indices=False,
                                            ceil_mode=False)
 
         self.Linear1 = nn.Linear(in_features=nInputs*3*3,
                                  out_features=50,
                                  bias=True)
+
+        self.BatchNorm = torch.nn.BatchNorm1d(50, eps=1e-05, momentum=0.1, affine=True)
 
         self.ReLU1 = nn.ReLU()
 
@@ -389,19 +389,21 @@ class pretrain_end_network(nn.Module):
                                  bias=True)
 
     def forward(self, x):
-        x = self.MaxPool1(x)
+        x = self.AvgPool1(x)
         x = x.view(-1, 128*3*3)
-        with open("Python_print_pretrain_test.txt", 'a') as txtfile:
-            txtfile.write("x_before linear" + str(x))
+        #with open("Python_print_pretrain_test.txt", 'a') as txtfile:
+        #    txtfile.write("x_before linear" + str(x))
         x = self.Linear1(x)
-        with open("Python_print_pretrain_test.txt", 'a') as txtfile:
-            txtfile.write("x before ReLU" + str(x))
+        #with open("Python_print_pretrain_test.txt", 'a') as txtfile:
+        #    txtfile.write("x before ReLU" + str(x))
+        x = self.BatchNorm(x)
+
         x = self.ReLU1(x)
-        with open("Python_print_pretrain_test.txt", 'a') as txtfile:
-            txtfile.write("x before Linear2" + str(x))
+        #with open("Python_print_pretrain_test.txt", 'a') as txtfile:
+        #    txtfile.write("x before Linear2" + str(x))
         x = self.Linear2(x)
-        with open("Python_print_pretrain_test.txt", 'a') as txtfile:
-            txtfile.write("x_final" + str(x))
+        #with open("Python_print_pretrain_test.txt", 'a') as txtfile:
+        #    txtfile.write("x_final" + str(x))
         return x
 
 
