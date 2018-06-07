@@ -11,7 +11,7 @@ from torchvision import transforms
 
 # cuda related package
 import torch.cuda
-#import torch.backends.cudnn as cudnn
+# import torch.backends.cudnn as cudnn
 
 # Other package
 import time
@@ -23,7 +23,9 @@ import Save_import
 import Loss_Error
 import Parameters
 import Label
-#import Copy_GridNet_structure
+
+
+# import Copy_GridNet_structure
 
 
 # # Commentaire pour la suite (TODO)
@@ -72,25 +74,17 @@ def batch_loop(optimizer, train_loader, network, epoch, parameters, timer_batch,
         # Compute the forward function
         y_batch_estimated = network(x_batch)
 
-        if torch.cuda.is_available():
-            with open("/home_expes/kt82128h/GridNet/Python_Files/Python_print.txt", 'a') as txtfile:
-                txtfile.write("\n " "Outside: input size" + str(x_batch.size()) +
-                              "output_size" + str(y_batch_estimated.size()) + "\n")
-
         # Get the error
         loss = Loss_Error.criterion(y_estimated=y_batch_estimated,
                                     y=y_batch,
                                     parameters=parameters,
                                     global_IoU_modif=False)
-        
+
         # Compute the backward function
         loss.backward()
 
         # Does the update according to the optimizer define above
         optimizer.step()
-
-        # Update the optimizer
-        # optimizer.param_groups[0]['lr'] = parameters.learning_rate/(1 + (epoch-390) * parameters.learning_rate_decay)
 
         # Save error of the training DataSet
         train_error += Save_import.save_error(x=x_batch, y=y_batch,
@@ -177,7 +171,6 @@ def train(parameters, network, train_loader, val_loader):
     # Store the index of the next checkpoint. This value is 0 or 1. We always keep one checkpoint untouched
     # while the other one is changed.
     index_save_regular = 0
-    index_save_best = 0
 
     # Loop from the actual epoch (not 0 if we already train) to the last epoch
     initial_epoch = parameters.actual_epoch
@@ -201,32 +194,15 @@ def train(parameters, network, train_loader, val_loader):
                                            timer_epoch=timer_epoch)
 
         # checkpoint will save the network if needed
-        index = Save_import.checkpoint(validation_error=validation_error,
-                                       validation_error_min=validation_error_min,
-                                       index_save_best=index_save_best,
-                                       index_save_regular=index_save_regular,
-                                       epoch=epoch,
-                                       network=network,
-                                       parameters=parameters)
-
-        validation_error_min, index_save_best, index_save_regular = index
+        validation_error_min, index_save_regular = Save_import.checkpoint(validation_error=validation_error,
+                                                                          validation_error_min=validation_error_min,
+                                                                          index_save_regular=index_save_regular,
+                                                                          epoch=epoch,
+                                                                          network=network,
+                                                                          parameters=parameters)
 
         # Update the optimizer
-
-        if epoch > 700:
-            optimizer.param_groups[0]['lr'] = parameters.learning_rate / 10
-        elif epoch > 500:
-            optimizer.param_groups[0]['lr'] = parameters.learning_rate_decay * (epoch-500) + parameters.learning_rate
-        else:
-            optimizer.param_groups[0]['lr'] = parameters.learning_rate
-
-        # if epoch < 600:
-        #    optimizer.param_groups[0]['lr'] = parameters.learning_rate/(1 - (epoch-600)*parameters.learning_rate_decay)
-        # elif epoch  < 800:
-        #    optimizer.param_groups[0]['lr'] = parameters.learning_rate
-        # else:
-        #    parameters.learning_rate_decay = 5*(10**(-3))
-        #    optimizer.param_groups[0]['lr'] = parameters.learning_rate/((1 + (epoch-800)*parameters.learning_rate_decay))
+        # optimizer.param_groups[0]['lr'] = parameters.learning_rate / 10
 
         # Similar to a "print" but in a text file
         with open(parameters.path_print, 'a') as txtfile:
@@ -235,6 +211,7 @@ def train(parameters, network, train_loader, val_loader):
                           ".\nTime Epoch :" + Save_import.time_to_string(time.time() - timer_epoch) +
                           ".\nTime total : " + Save_import.time_to_string(time.time() - timer_init) +
                           ".\n \n")
+
         if (epoch % 10) == 0:
             Save_import.organise_CSV(path_CSV=parameters.path_CSV,
                                      name_network=parameters.name_network,
@@ -268,12 +245,12 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
 
         # Here we can change some parameters, the only one necessary is the total_epoch
         parameters.epoch_total = total_epoch
-        parameters.learning_rate_decay = - 4.5 * 10**(-5)
+        parameters.learning_rate_decay = - 4.5 * 10 ** (-5)
         parameters.batch_size = 4
         parameters.batch_size_val = 4
-        #parameters.learning_rate = 0.01
-        #parameters.momentum_IoU = 0
-        #parameters.loss = "IoU_Lovasz"
+        # parameters.learning_rate = 0.01
+        # parameters.momentum_IoU = 0
+        # parameters.loss = "IoU_Lovasz"
 
         # Put weight to GPU
         if torch.cuda.is_available():
@@ -281,7 +258,6 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
 
         # If a new name is define, we create new CSV files associated and change the name of the network
         if new_name is not None:
-                
             # Init the csv file that will store the error, this time we make a copy of the existing error
             Save_import.duplicated_csv(path_CSV=parameters.path_CSV,
                                        old_name_network=parameters.name_network,

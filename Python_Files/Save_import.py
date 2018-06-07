@@ -218,17 +218,22 @@ def colorize_mask(mask):
 
 
 def make_dataset(quality, mode, path_data, only_image):
-    assert (quality == 'fine' and mode in ['train', 'val', 'test']) \
-           or (quality == 'coarse' and mode in ['train', 'train_extra', 'val'])
+    assert quality in ['fine','coarse', 'both']
+    assert mode in ['train', 'train_extra', 'val']
+
     img_dir_name = 'leftImg8bit'
 
     if quality == 'coarse':
         mask_path = os.path.join(path_data, 'gtCoarse', mode)
         mask_postfix = '_gtCoarse_labelIds.png'
-    else:
+    elif quality == 'fine':
         if not only_image:
             mask_path = os.path.join(path_data, 'gtFine', mode)
             mask_postfix = '_gtFine_labelIds.png'
+    if quality == 'both':
+        image_f, image_f_name = make_dataset(quality='fine', mode=mode, path_data=path_data, only_image=only_image)
+        image_c, image_c_name = make_dataset(quality='coarse', mode=mode, path_data=path_data, only_image=only_image)
+        return [image_f, image_c], [image_f_name, image_c_name]
 
     img_path = os.path.join(path_data, img_dir_name, mode)
 
@@ -281,6 +286,11 @@ class cityscapes_create_dataset(data.Dataset):
                               28: 15, 29: ignore_label, 30: ignore_label, 31: 16, 32: 17, 33: 18}
 
     def __getitem__(self, index):
+
+        if self.quality == 'both':
+            image_f, image_c = self.imgs[index]
+            img_path_f, mask_path_f = image_f
+            img_path_f, mask_path_f = image_c
 
         img_path, mask_path = self.imgs[index]
 
@@ -373,12 +383,11 @@ class cityscapes_create_dataset_pretrain(data.Dataset):
         return len(self.imgs)
 
 
-def checkpoint(validation_error, validation_error_min, index_save_best,
-               index_save_regular, epoch, network, parameters, network_final = None):
+def checkpoint(validation_error, validation_error_min,
+               index_save_regular, epoch, network, parameters, optimizer):
     """
     :param validation_error: The error on the validation DataSet
     :param validation_error_min: The last best validation error
-    :param index_save_best: Index is 0 or 1, there is always a checkpoint untouched (best0 or best1)
     :param index_save_regular: Index is 0 or 1, there is always a checkpoint untouched(regular0 or regular1)
     :param epoch: Epoch of the algorithm
     :param network: GridNet with all parameter that will be saved
@@ -392,53 +401,38 @@ def checkpoint(validation_error, validation_error_min, index_save_best,
         # Save the entire model with parameter, network and optimizer
         save_checkpoint({'epoch': epoch + 1,  # +1 because we start to count at 0
                          'parameters': parameters,
+                         'optimizer': optimizer,
                          'state_dict': network.state_dict(),
                          },
-                        filename=parameters.path_save_net + "best" + str(index_save_best) + parameters.name_network +
+                        filename=parameters.path_save_net + "best" + str(0) + parameters.name_network +
                                  str(parameters.train_number) + "checkpoint.pth.tar")
-        if network_final is not None:
-            save_checkpoint({'state_dict': network_final.state_dict(),
-                             },
-                            filename=parameters.path_save_net + "best" + str(
-                                index_save_best) + parameters.name_network +
-                                     str(parameters.train_number) + "final_part.pth.tar")
 
         validation_error_min = validation_error
 
         with open(parameters.path_print, 'a') as txtfile:
             txtfile.write("The network as been saved at the epoch " + str(epoch) + " (best score) " +
-                          str(index_save_best) + '\n')
-
-        index_save_best = (index_save_best + 1) % 2
+                          str(0) + '\n')
 
     else:
         # Maybe useless to save the network in this way
         # Save the entire model with parameter, network and optimizer
         save_checkpoint({'epoch': epoch + 1,  # +1 because we start to count at 0
                          'parameters': parameters,
+                         'optimizer': optimizer,
                          'state_dict': network.state_dict(),
                          },
                         filename=parameters.path_save_net + "save" + str(index_save_regular) +
                                  parameters.name_network + str(parameters.train_number) + "checkpoint.pth.tar")
 
-        if network_final is not None:
-            save_checkpoint({'state_dict': network_final.state_dict(),
-                             },
-                            filename=parameters.path_save_net + "save" + str(
-                                index_save_regular) + parameters.name_network +
-                                     str(parameters.train_number) + "final_part.pth.tar")
-
         validation_error_min = validation_error
 
-        print("The network as been saved at the epoch " + str(epoch) + "(regular save)" + str(index_save_regular))
         with open(parameters.path_print, 'a') as txtfile:
             txtfile.write("The network as been saved at the epoch " + str(epoch) + "(regular save)" +
-                          str(index_save_regular) +  '\n')
+                          str(index_save_regular) + '\n')
 
         index_save_regular = (index_save_regular + 1) % 2
 
-    return validation_error_min, index_save_best, index_save_regular
-
+    return validation_error_min, index_save_regular
 
 
 def organise_CSV(path_CSV, name_network, train_number, both = True):
