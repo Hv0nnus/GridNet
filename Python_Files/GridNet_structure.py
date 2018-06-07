@@ -547,11 +547,11 @@ class ResNet18(nn.Module):
                 for param in child.parameters():
                     param.requires_grad = False
                 list_child.append(child)
-            else:
-                list_child.append(nn.Linear(in_features=512, out_features=nOutputs, bias=True))
             child_counter += 1
         self.resnet_and_10_classes = nn.Sequential(*list(list_child))
-
+        self.Linear1 = nn.Linear(in_features=512, out_features=nOutputs, bias=True)
     def forward(self, x):
         x = self.resnet_and_10_classes(x)
+        x = x.view(-1,512)
+        x = self.Linear1(x)
         return x

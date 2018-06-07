@@ -59,6 +59,15 @@ def batch_loop(optimizer, train_loader, network, epoch, parameters, timer_batch,
         else:
             y_batch_estimated = network(x_batch)
 
+        #count = 0
+        #for child in network.children():
+            #if count == 0:
+                #for param in child.parameters():
+                    #with open(parameters.path_print, 'a') as txtfile:
+                        #txtfile.write("param of linear1"+str(param)+"\n")
+                    #break
+            #count += 1
+
         # Get the error
         loss = Loss_Error.criterion_pretrain(y_estimated=y_batch_estimated,
                                              y=y_batch,
@@ -165,7 +174,7 @@ def train(parameters, network, train_loader, val_loader, network_final=None):
                                 eps=parameters.epsilon,
                                 weight_decay=parameters.weight_decay)]
     else:
-        optimizer = [optim.Adam(params=network.parameters(),
+        optimizer = [optim.Adam(params=filter(lambda p: p.requires_grad, network.parameters()),
                                 lr=parameters.learning_rate,
                                 betas=(parameters.beta1, parameters.beta2),
                                 eps=parameters.epsilon,
@@ -318,12 +327,12 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
                                            momentum_IoU=0,
                                            pretrain=True,
                                            path_save_net="./Model/",
-                                           name_network="pretrain_test",
+                                           name_network="resnet18",
                                            train_number=0,
                                            path_CSV="./CSV/",
                                            # path_data="/home_expes/collections/Cityscapes/",
                                            path_data="/home_expes/collections/imagenet_10dir/",
-                                           path_print="./Python_print_pretrain_test.txt",
+                                           path_print="./Python_print_resnet18.txt",
                                            path_result="./Result",
                                            num_workers=2)
         # Define the GridNet
@@ -332,7 +341,7 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
                                                      nColumns=parameters.nColumns,
                                                      nFeatMaps=parameters.nFeatMaps,
                                                      dropFactor=parameters.dropFactor)
-        network = GridNet_structure.ResNet18(nOutputs=len(Label.create_label()))
+        network = GridNet_structure.ResNet18(nOutputs=len(Label.create_imagenet_class()))
 
         network_final = None  #GridNet_structure.pretrain_end_network(nInputs=parameters.nFeatMaps[-1],
                                                                #nOutputs=len(Label.create_imagenet_class()))
@@ -351,7 +360,7 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
                                                                    parameters=parameters,
                                                                    sliding_crop=None,
                                                                    transform=transforms.Compose([
-                                                                       transforms.RandomResizedCrop(257),
+                                                                       transforms.RandomResizedCrop(224),
                                                                        transforms.RandomHorizontalFlip(),
                                                                        transforms.ToTensor(),
                                                                    ]))
@@ -359,7 +368,7 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
                                                                  parameters=parameters,
                                                                  sliding_crop=None,
                                                                  transform=transforms.Compose([
-                                                                     transforms.RandomResizedCrop(257),
+                                                                     transforms.RandomResizedCrop(224),
                                                                      transforms.ToTensor(),
                                                                  ]))
 
