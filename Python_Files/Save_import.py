@@ -103,7 +103,7 @@ def save_error(x, y, network, epoch, set_type, parameters, loss=None, y_estimate
 
     # Store the IoU confusion matrix into a CSV file
     with open(parameters.path_CSV + "CSV_confMat_" + parameters.name_network +
-              str(parameters.train_number) + ".csv", 'a') as csvfile:
+                      str(parameters.train_number) + ".csv", 'a') as csvfile:
         writer = csv.writer(csvfile, quoting=csv.QUOTE_NONNUMERIC)
         writer.writerows(conf_mat)
 
@@ -122,7 +122,7 @@ def save_error(x, y, network, epoch, set_type, parameters, loss=None, y_estimate
 
     # Save the loss
     with open(parameters.path_CSV + "CSV_loss_" + parameters.name_network +
-              str(parameters.train_number) + ".csv", 'a') as csvfile:
+                      str(parameters.train_number) + ".csv", 'a') as csvfile:
         writer = csv.writer(csvfile, quoting=csv.QUOTE_NONNUMERIC)
         writer.writerows([loss])
 
@@ -218,7 +218,7 @@ def colorize_mask(mask):
 
 
 def make_dataset(quality, mode, path_data, only_image):
-    assert quality in ['fine','coarse', 'both']
+    assert quality in ['fine', 'coarse', 'both']
     assert mode in ['train', 'train_extra', 'val']
 
     img_dir_name = 'leftImg8bit'
@@ -226,6 +226,22 @@ def make_dataset(quality, mode, path_data, only_image):
     if quality == 'coarse':
         mask_path = os.path.join(path_data, 'gtCoarse', mode)
         mask_postfix = '_gtCoarse_labelIds.png'
+        image_c_extra, image_c_name_extra = make_dataset(quality='coarse',
+                                                         mode='train_extra',
+                                                         path_data=path_data,
+                                                         only_image=only_image)
+
+        image_c_val, image_c_name_val = make_dataset(quality='coarse',
+                                                     mode='val',
+                                                     path_data=path_data,
+                                                     only_image=only_image)
+
+        image_c_train, image_c_name_train = make_dataset(quality='coarse',
+                                                         mode='train',
+                                                         path_data=path_data,
+                                                         only_image=only_image)
+        return image_c_train + image_c_val + image_c_extra, image_c_name_train + image_c_name_val + image_c_name_extra
+
     elif quality == 'fine':
         if not only_image:
             mask_path = os.path.join(path_data, 'gtFine', mode)
@@ -233,7 +249,7 @@ def make_dataset(quality, mode, path_data, only_image):
     if quality == 'both':
         image_f, image_f_name = make_dataset(quality='fine', mode=mode, path_data=path_data, only_image=only_image)
         image_c, image_c_name = make_dataset(quality='coarse', mode=mode, path_data=path_data, only_image=only_image)
-        return [image_f, image_c], [image_f_name, image_c_name]
+        return 6 * image_f + image_c, 6 * image_f_name + image_c_name
 
     img_path = os.path.join(path_data, img_dir_name, mode)
 
@@ -287,11 +303,6 @@ class cityscapes_create_dataset(data.Dataset):
 
     def __getitem__(self, index):
 
-        if self.quality == 'both':
-            image_f, image_c = self.imgs[index]
-            img_path_f, mask_path_f = image_f
-            img_path_f, mask_path_f = image_c
-
         img_path, mask_path = self.imgs[index]
 
         img = Image.open(img_path).convert('RGB')
@@ -321,12 +332,22 @@ class cityscapes_create_dataset(data.Dataset):
 
             mask = torch.squeeze(mask)
 
+            if self.mode == "both" and index >= 6*2975:
+                mask = random_pixel_in_picture(image=mask, mode='coarse')
+            elif self.mode == "both":
+                mask = random_pixel_in_picture(image=mask, mode='fine')
+
             return img, mask.long(), self.image_names
         else:
             return img, self.image_names[index]
 
     def __len__(self):
         return len(self.imgs)
+
+
+def random_pixel_in_picture(image, mode):
+    
+    return image
 
 
 def make_dataset_pretrain(mode, path_data):
@@ -435,7 +456,7 @@ def checkpoint(validation_error, validation_error_min,
     return validation_error_min, index_save_regular
 
 
-def organise_CSV(path_CSV, name_network, train_number, both = True):
+def organise_CSV(path_CSV, name_network, train_number, both=True):
     """
     :param path_CSV: Path to the CSV files that will be used
     :param name_network: name of the network associated with the CSV file
@@ -451,7 +472,7 @@ def organise_CSV(path_CSV, name_network, train_number, both = True):
     loss_DF = loss_DF.groupby(['Set', 'Epoch'])['Value'].mean().reset_index()
     # Recreate the CSV file
     loss_DF.to_csv(path_CSV + "CSV_loss_" + name_network + str(train_number) + ".csv", index=False)
-    
+
     if both:
         # Import the CSV file into pandas DataFrame
         conf_DF = pd.read_csv(path_CSV + "CSV_confMat_" + name_network + str(train_number) + ".csv")

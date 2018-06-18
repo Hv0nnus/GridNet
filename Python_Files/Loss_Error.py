@@ -163,6 +163,38 @@ def cross_entropy_loss(y_estimated, y, parameters, mask=None, number_of_used_pix
     return nllcrit(y_estimated, y) / number_of_used_pixel
 
 
+def focal_loss(y_estimated, y, parameters, mask=None, number_of_used_pixel=None, gamma=2):
+    """
+    :param y_estimated: result of train(x) which is the forward action
+    :param y: Label associated with x
+    :param parameters: List of parameters of the network
+    :param mask: Image with 1 were there is a class to predict, and 0 if not.
+    :param number_of_used_pixel: Number of pixel with 1 in the mask. Useful to normalize the loss
+    :return: difference between y_estimated and y, according to the cross entropy
+    """
+    # http://pytorch.org/docs/master/nn.html : torch.nn.NLLLoss
+    nllcrit = nn.NLLLoss2d(weight=parameters.weight_grad, size_average=False)
+
+    # Apply softmax on the prediction
+    y_estimated = F.softmax(input=y_estimated, dim=1)
+
+    # Apply softmax then the log on the result, we use the idea in the article https://arxiv.org/pdf/1708.02002.pdf
+    # This is a small modification of the algorithm
+    y_estimated = ((1 - y_estimated) ** gamma) * torch.log(y_estimated)
+
+    # Apply the mask
+    y_estimated = y_estimated * mask
+
+    # Set all target value of number_classes to 0 (we could have choose another class.
+    # The nllcrit will do y_estimated[k,0,i,j]*y[k,i,j]
+    # It will be 0 if the class is parameters.number_classes : which is exactly what is expect for this class
+    # The other classes remain unchanged
+    y = y * (y != parameters.number_classes).long()
+
+    # Apply the criterion define in the first line
+    return nllcrit(y_estimated, y) / number_of_used_pixel
+
+
 def hinge_multidimensional_loss(y_estimated, y, parameters, mask=None, number_of_used_pixel=None):
     """
     :param y_estimated: result of train(x) which is the forward action
