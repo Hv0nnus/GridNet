@@ -44,8 +44,7 @@ def batch_loop(optimizer, train_loader, network, epoch, parameters, timer_batch,
     for i, (x_batch, y_batch) in enumerate(train_loader):
 
         # zero the gradient buffers
-        for opt in optimizer:
-            opt.zero_grad()
+        optimizer.zero_grad()
 
         # Transform into Variable
         if torch.cuda.is_available():
@@ -152,7 +151,7 @@ def train(parameters, network, train_loader, val_loader):
     timer_init = time.time()
 
     # create your optimizer
-    optimizer = optim.Adam(params=network.parameters(),
+    optimizer = optim.Adam(params=filter(lambda p: p.requires_grad,network.parameters()),
                            lr=parameters.learning_rate,
                            betas=(parameters.beta1, parameters.beta2),
                            eps=parameters.epsilon,
@@ -192,7 +191,8 @@ def train(parameters, network, train_loader, val_loader):
                                    index_save_regular=index_save_regular,
                                    epoch=epoch,
                                    network=network,
-                                   parameters=parameters)
+                                   parameters=parameters,
+                                   optimizer=optimizer)
 
         # Similar to a "print" but in a text file
         with open(parameters.path_print, 'a') as txtfile:
@@ -237,7 +237,7 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
         # parameters.learning_rate_decay = 0.5 * (10 ** (-2))
         # parameters.batch_size = 5
         # parameters.batch_size_val = 5
-        # parameters.learning_rate = 0.01
+        parameters.learning_rate = 0.001
         # parameters.momentum_IoU = 0.9
 
         # If a new name is define, we create new CSV files associated and change the name of the network
@@ -265,14 +265,14 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
                                            size_image_crop=401,
 
                                            dropFactor=0.1,
-                                           learning_rate=0.01,
+                                           learning_rate=0.00001,
                                            learning_rate_decay=1 * (10 ** (-2)),
                                            weight_decay=0,
                                            beta1=0.9,
                                            beta2=0.999,
                                            epsilon=1 * 10 ** (-8),
-                                           batch_size=10,
-                                           batch_size_val=10,
+                                           batch_size=40,
+                                           batch_size_val=40,
                                            epoch_total=100,
                                            actual_epoch=0,
                                            ratio=(1, 1),
@@ -281,12 +281,12 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
                                            momentum_IoU=0,
                                            pretrain=True,
                                            path_save_net="./Model/",
-                                           name_network="resnet18",
+                                           name_network="resnet18_low_lr",
                                            train_number=0,
                                            path_CSV="./CSV/",
                                            # path_data="/home_expes/collections/Cityscapes/",
                                            path_data="/home_expes/collections/imagenet_10dir/",
-                                           path_print="./Python_print_resnet18.txt",
+                                           path_print="./Python_print_resnet18_low_lr.txt",
                                            path_result="./Result",
                                            num_workers=2)
         # Define the GridNet

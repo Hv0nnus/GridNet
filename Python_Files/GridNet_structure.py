@@ -543,9 +543,11 @@ class ResNet18(nn.Module):
         child_counter = 0
         list_child = []
         for child in resnet18.children():
-            if child_counter < 9:
+            if child_counter < 8:
                 for param in child.parameters():
                     param.requires_grad = False
+                list_child.append(child)
+            elif child_counter < 9:
                 list_child.append(child)
             child_counter += 1
         self.resnet_and_10_classes = nn.Sequential(*list(list_child))
