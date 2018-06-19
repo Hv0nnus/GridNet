@@ -163,7 +163,7 @@ def cross_entropy_loss(y_estimated, y, parameters, mask=None, number_of_used_pix
     return nllcrit(y_estimated, y) / number_of_used_pixel
 
 
-def focal_loss(y_estimated, y, parameters, mask=None, number_of_used_pixel=None, gamma=2):
+def focal_loss(y_estimated, y, parameters, mask=None, number_of_used_pixel=None, gamma=0):
     """
     :param y_estimated: result of train(x) which is the forward action
     :param y: Label associated with x
@@ -176,14 +176,23 @@ def focal_loss(y_estimated, y, parameters, mask=None, number_of_used_pixel=None,
     nllcrit = nn.NLLLoss2d(weight=parameters.weight_grad, size_average=False)
 
     # Apply softmax on the prediction
-    y_estimated = F.softmax(input=y_estimated, dim=1)
-
+    y_estimated = F.log_softmax(input=y_estimated, dim=1)
+    if (y_estimated != y_estimated).any() > 0:
+        print("y_estimated", y_estimated)
+        print("torch.exp(y_estimated)", torch.exp(y_estimated))
+        assert(False)
     # Apply softmax then the log on the result, we use the idea in the article https://arxiv.org/pdf/1708.02002.pdf
     # This is a small modification of the algorithm
-    y_estimated = ((1 - y_estimated) ** gamma) * torch.log(y_estimated)
+    y_estimated_2 = ((1 - torch.exp(y_estimated)) ** gamma) * y_estimated
+    if (y_estimated != y_estimated).any() > 0:
+        print("y_estimated", y_estimated)
+        print("torch.exp(y_estimated)", torch.exp(y_estimated))
+        print("y_estimated_2", y_estimated_2)
+        assert(False)
 
+    # print(y_estimated)
     # Apply the mask
-    y_estimated = y_estimated * mask
+    y_estimated = y_estimated_2 * mask
 
     # Set all target value of number_classes to 0 (we could have choose another class.
     # The nllcrit will do y_estimated[k,0,i,j]*y[k,i,j]
@@ -262,6 +271,14 @@ def criterion(y_estimated, y, parameters, global_IoU_modif=False):
     # unsqueeze add a dimension to allowed multiplication and float transform the Variable to a float Variable
     mask = (y != parameters.number_classes).unsqueeze(1).float()
     number_of_used_pixel = torch.sum(mask)
+
+    if parameters.loss == "focal_loss":
+        return focal_loss(y_estimated=y_estimated,
+                                  y=y,
+                                  parameters=parameters,
+                                  mask=mask,
+                                  number_of_used_pixel=number_of_used_pixel)
+
 
     if parameters.loss == "cross_entropy":
         return cross_entropy_loss(y_estimated=y_estimated,
