@@ -157,7 +157,6 @@ def train(parameters, network, train_loader, val_loader):
                            eps=parameters.epsilon,
                            weight_decay=parameters.weight_decay)
 
-
     # Store the index of the next checkpoint. This value is 0 or 1. We always keep one checkpoint untouched
     # while the other one is changed.
     index_save_regular = 0
@@ -168,7 +167,6 @@ def train(parameters, network, train_loader, val_loader):
         # Store the time at the begining of each epoch
         timer_epoch = time.time()
         timer_batch = time.time()
-
 
         batch_loop(optimizer=optimizer,
                    train_loader=train_loader,

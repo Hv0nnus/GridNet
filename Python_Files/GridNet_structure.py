@@ -536,7 +536,7 @@ class gridNet_imagenet(nn.Module):
         return x_final
 
 
-class ResNet18(nn.Module):
+class ResNet18_test(nn.Module):
     def __init__(self, nOutputs=1000):
         super(ResNet18, self).__init__()
         resnet18 = torchvision.models.resnet18(pretrained=True)
@@ -552,8 +552,27 @@ class ResNet18(nn.Module):
             child_counter += 1
         self.resnet_and_10_classes = nn.Sequential(*list(list_child))
         self.Linear1 = nn.Linear(in_features=512, out_features=nOutputs, bias=True)
+
     def forward(self, x):
         x = self.resnet_and_10_classes(x)
-        x = x.view(-1,512)
+        x = x.view(x.size(0), -1)
         x = self.Linear1(x)
         return x
+
+
+class ResNet18(nn.Module):
+    def __init__(self, nOutputs=1000):
+        super(ResNet18, self).__init__()
+        resnet18 = torchvision.models.resnet18(pretrained=True)
+        for i, param in enumerate(resnet18.parameters()):
+            if i < 60:
+                param.requires_grad = False
+        self.resnet18 = resnet18
+        #self.Linear1 = nn.Linear(in_features=512, out_features=nOutputs, bias=True)
+
+    def forward(self, x):
+        x = self.resnet18(x)
+        #x = x.view(x.size(0), -1)
+        #x = self.Linear1(x)
+        return x
+
