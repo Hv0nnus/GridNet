@@ -358,7 +358,7 @@ def make_dataset_pretrain(mode, path_data):
     items = []
     image_names = []
 
-    fichier_classes_imagesnet = open("./image_net_only_classes_small.txt").read()
+    fichier_classes_imagesnet = open("./image_net_only_classes.txt").read()
     list_classes_imagesnet = []
     for i, ligne in enumerate(fichier_classes_imagesnet.split('\n')):
         list_classes_imagesnet.append(ligne)

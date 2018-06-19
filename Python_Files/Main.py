@@ -79,7 +79,9 @@ def batch_loop(optimizer, train_loader, network, epoch, parameters, timer_batch,
                                     y=y_batch,
                                     parameters=parameters,
                                     global_IoU_modif=False)
-
+        if (loss != loss).any():
+            print(loss)
+            assert(False)
         # Compute the backward function
         loss.backward()
 
@@ -199,7 +201,8 @@ def train(parameters, network, train_loader, val_loader):
                                                                           index_save_regular=index_save_regular,
                                                                           epoch=epoch,
                                                                           network=network,
-                                                                          parameters=parameters)
+                                                                          parameters=parameters,
+                                                                          optimizer=optimizer)
 
         # Update the optimizer
         # optimizer.param_groups[0]['lr'] = parameters.learning_rate / 10
@@ -288,17 +291,17 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
         weight_grad = torch.FloatTensor([1 for i in range(19)])
 
         # Define all the parameters
-        parameters = Parameters.Parameters(nColumns=8,
-                                           nFeatMaps=[16, 32, 64, 128, 256],
+        parameters = Parameters.Parameters(nColumns=4,
+                                           nFeatMaps=[16, 32, 64],
                                            nFeatureMaps_init=3,
                                            number_classes=20 - 1,
                                            label_DF=Label.create_label(),
 
                                            width_image_initial=2048, height_image_initial=1024,
-                                           size_image_crop=401,
+                                           size_image_crop=101,
 
                                            dropFactor=0.1,
-                                           learning_rate=0.01,
+                                           learning_rate=0.1,
                                            learning_rate_decay=1 * (10 ** (-2)),
                                            weight_decay=0,
                                            beta1=0.9,
@@ -310,15 +313,15 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
                                            actual_epoch=0,
                                            ratio=(1, 1),
                                            weight_grad=weight_grad,
-                                           loss="IoU_Lovasz",
+                                           loss="focal_loss",
                                            momentum_IoU=0,
 
                                            path_save_net="./Model/",
-                                           name_network="Lovasz",
+                                           name_network="focal_loss_small",
                                            train_number=0,
                                            path_CSV="./CSV/",
                                            path_data="/home_expes/collections/Cityscapes/",
-                                           path_print="./Python_print_lovasz.txt",
+                                           path_print="./Python_print_focal_loss_small.txt",
                                            path_result="./Result",
                                            num_workers=2)
         # Define the GridNet
