@@ -25,9 +25,12 @@ def main_test(path_learning, dataset="train"):
     h = 993
     w = 801
     h = 801
+
+    w = 101
+    h = 101
     position_crop = []
-    for k in range(5):
-        for l in range(2):
+    for k in range(1):
+        for l in range(1):
             # i est l axe des x
             i = k * w//2
             j = l * h//2
@@ -37,7 +40,7 @@ def main_test(path_learning, dataset="train"):
                 j = parameters.height_image_initial - h
             position_crop.append((i, j, w, h))
 
-    for r in range(10):
+    for r in range(1):
         i = random.randint(0, parameters.width_image_initial - w)
         j = random.randint(0, parameters.height_image_initial - h)
         position_crop.append((i, j, w, h))

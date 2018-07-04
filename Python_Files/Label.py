@@ -175,11 +175,9 @@ def train_id2label(labels):
     """
     return({ label.trainId : label for label in reversed(labels) })
 
-# category to list of label objects
-category2labels = {}
-for label in labels:
-    category = label.category
-    if category in category2labels:
-        category2labels[category].append(label)
-    else:
-        category2labels[category] = [label]
+print(train_id2label(create_label_plot()))
+print(train_id2label(create_label_plot())[0
+      ].color)
+
+for i in range(-1,20):
+    print(train_id2label(create_label_plot())[i].color)

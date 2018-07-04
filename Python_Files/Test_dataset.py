@@ -67,10 +67,20 @@ def test_loop(parameters, network, dataset, test_dataset, position_crop):
         timer_image = time.time()
 
         # Load the path k
-        x_batch_PIL_path, _ = test_dataset.imgs[k]
+        x_batch_PIL_path, y_batch_PIL_path = test_dataset.imgs[k]
 
         # Load the image in RGB format
         x_batch_PIL = Image.open(x_batch_PIL_path).convert('RGB')
+        mask = np.array(Image.open(x_batch_PIL_path))
+        mask_copy = mask.copy()
+
+        for k, v in test_dataset.id_to_trainid.items():
+
+            if v == parameters.number_classes:
+                mask_copy[mask == k] = 1
+
+            if v != parameters.number_classes:
+                mask_copy[mask == k] = 0
 
         # Create a numpy array that have the size of the entire image and parameters.number_classes channel
         x_batch_np = np.zeros((parameters.number_classes,
@@ -124,6 +134,9 @@ def test_loop(parameters, network, dataset, test_dataset, position_crop):
         # Add one to each value to have the right format (from 1 to 19)
         x_batch_np = x_batch_np + 1
 
+        # Apply mask over the data to put 0 to the area where we don't care about the prediction
+        x_batch_np = x_batch_np * mask
+
         # Transform numpy array to PIL
         x_batch_np = Image.fromarray(x_batch_np.astype('uint8'))
 
@@ -169,4 +182,3 @@ def main_test_dataset(parameters, network, position_crop, path_learning=None, da
               test_dataset=test_dataset,
               dataset=dataset,
               position_crop=position_crop)
-
