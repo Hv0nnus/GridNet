@@ -248,9 +248,9 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
 
         # Here we can change some parameters, the only one necessary is the total_epoch
         parameters.epoch_total = total_epoch
-        parameters.learning_rate_decay = - 4.5 * 10 ** (-5)
-        parameters.batch_size = 4
-        parameters.batch_size_val = 4
+        #parameters.learning_rate_decay = - 4.5 * 10 ** (-5)
+        #parameters.batch_size = 4
+        #parameters.batch_size_val = 4
         # parameters.learning_rate = 0.01
         # parameters.momentum_IoU = 0
         # parameters.loss = "IoU_Lovasz"
@@ -291,17 +291,17 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
         weight_grad = torch.FloatTensor([1 for i in range(19)])
 
         # Define all the parameters
-        parameters = Parameters.Parameters(nColumns=4,
-                                           nFeatMaps=[16, 32, 64],
+        parameters = Parameters.Parameters(nColumns=8,
+                                           nFeatMaps=[16, 32, 64, 128, 256],
                                            nFeatureMaps_init=3,
                                            number_classes=20 - 1,
                                            label_DF=Label.create_label(),
 
                                            width_image_initial=2048, height_image_initial=1024,
-                                           size_image_crop=101,
+                                           size_image_crop=401,
 
                                            dropFactor=0.1,
-                                           learning_rate=0.1,
+                                           learning_rate=0.01,
                                            learning_rate_decay=1 * (10 ** (-2)),
                                            weight_decay=0,
                                            beta1=0.9,
@@ -317,11 +317,11 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
                                            momentum_IoU=0,
 
                                            path_save_net="./Model/",
-                                           name_network="focal_loss_small",
+                                           name_network="focal_loss2",
                                            train_number=0,
                                            path_CSV="./CSV/",
                                            path_data="/home_expes/collections/Cityscapes/",
-                                           path_print="./Python_print_focal_loss_small.txt",
+                                           path_print="./Python_print_focal_loss.txt",
                                            path_result="./Result",
                                            num_workers=2)
         # Define the GridNet

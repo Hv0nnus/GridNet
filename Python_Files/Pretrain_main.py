@@ -263,7 +263,7 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
                                            size_image_crop=401,
 
                                            dropFactor=0.1,
-                                           learning_rate=0.0000001,
+                                           learning_rate=0.0001,
                                            learning_rate_decay=1 * (10 ** (-2)),
                                            weight_decay=0,
                                            beta1=0.9,
@@ -304,6 +304,8 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
                              path_CSV=parameters.path_CSV,
                              path_print=parameters.path_print)
 
+    normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+
     # Import both DataSets with the transformation
     train_dataset = Save_import.cityscapes_create_dataset_pretrain(mode="train",
                                                                    parameters=parameters,
@@ -312,6 +314,7 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
                                                                        transforms.RandomResizedCrop(224),
                                                                        transforms.RandomHorizontalFlip(),
                                                                        transforms.ToTensor(),
+                                                                       normalize,
                                                                    ]))
     val_dataset = Save_import.cityscapes_create_dataset_pretrain(mode="val",
                                                                  parameters=parameters,
@@ -319,6 +322,7 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
                                                                  transform=transforms.Compose([
                                                                      transforms.RandomResizedCrop(224),
                                                                      transforms.ToTensor(),
+                                                                     normalize,
                                                                  ]))
 
     # Create the DataSets for Pytorch used

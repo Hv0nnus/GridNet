@@ -163,7 +163,7 @@ def cross_entropy_loss(y_estimated, y, parameters, mask=None, number_of_used_pix
     return nllcrit(y_estimated, y) / number_of_used_pixel
 
 
-def focal_loss(y_estimated, y, parameters, mask=None, number_of_used_pixel=None, gamma=0):
+def focal_loss(y_estimated, y, parameters, mask=None, number_of_used_pixel=None, gamma=2):
     """
     :param y_estimated: result of train(x) which is the forward action
     :param y: Label associated with x
@@ -174,6 +174,8 @@ def focal_loss(y_estimated, y, parameters, mask=None, number_of_used_pixel=None,
     """
     # http://pytorch.org/docs/master/nn.html : torch.nn.NLLLoss
     nllcrit = nn.NLLLoss2d(weight=parameters.weight_grad, size_average=False)
+    if (y_estimated != y_estimated).any() > 0:
+        print("y_estimated_before_logsoftmax, there is a problem, already some NaN", y_estimated)
 
     # Apply softmax on the prediction
     y_estimated = F.log_softmax(input=y_estimated, dim=1)
@@ -183,6 +185,9 @@ def focal_loss(y_estimated, y, parameters, mask=None, number_of_used_pixel=None,
         assert(False)
     # Apply softmax then the log on the result, we use the idea in the article https://arxiv.org/pdf/1708.02002.pdf
     # This is a small modification of the algorithm
+    print("y_estimated",y_estimated)
+    print("exp y_estimated", torch.exp(y_estimated))
+    print("puissance gamma = ",((1-torch.exp(y_estimated))**gamma))
     y_estimated_2 = ((1 - torch.exp(y_estimated)) ** gamma) * y_estimated
     if (y_estimated != y_estimated).any() > 0:
         print("y_estimated", y_estimated)

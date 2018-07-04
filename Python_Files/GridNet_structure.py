@@ -563,7 +563,7 @@ class ResNet18_test(nn.Module):
 class ResNet18(nn.Module):
     def __init__(self, nOutputs=1000):
         super(ResNet18, self).__init__()
-        resnet18 = torchvision.models.resnet18(pretrained=True)
+        resnet18 = torchvision.models.resnet18(pretrained="imagenet")
         for i, param in enumerate(resnet18.parameters()):
             if i < 60:
                 param.requires_grad = False
