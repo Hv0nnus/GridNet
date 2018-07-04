@@ -52,7 +52,7 @@ def main_test(path_learning, dataset="train"):
                                         mode=dataset,
                                         from_picture=0,
                                         to_picture=11,
-                                        end_name="prediction.png")
+                                        end_name=end_name)
 
     # end_name="labelTrainIds.png")
 

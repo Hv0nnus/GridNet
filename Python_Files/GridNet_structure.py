@@ -529,10 +529,6 @@ class gridNet_imagenet(nn.Module):
 
         x_final = self.lastConv(X[0][self.nColumns - 1])
 
-        if torch.cuda.is_available():
-            with open("/home_expes/kt82128h/GridNet/Python_Files/Python_print.txt", 'a') as txtfile:
-                txtfile.write("\n  In Model: input size" + str(x.size()) + "output size" + str(x_final.size()) + "\n")
-
         return x_final
 
 
@@ -569,6 +565,8 @@ class ResNet18(nn.Module):
                 param.requires_grad = False
         self.resnet18 = resnet18
         #self.Linear1 = nn.Linear(in_features=512, out_features=nOutputs, bias=True)
+        #num_ftrs = model_conv.fc.in_features
+        #model_conv.fc = nn.Linear(num_ftrs, n_class)
 
     def forward(self, x):
         x = self.resnet18(x)

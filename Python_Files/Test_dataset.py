@@ -129,7 +129,7 @@ def test_loop(parameters, network, dataset, test_dataset, position_crop):
 
         # Get the name of the image and change it to have the new name
         image_name = test_dataset.image_names[k]
-        end_name = 'prediction.png'
+        end_name = 'prediction' + parameters.name_network + '.png'
         image_name = image_name.replace("leftImg8bit.png", end_name)
 
         print("./Result/" + dataset + "/" + image_name)
