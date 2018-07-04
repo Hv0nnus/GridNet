@@ -413,6 +413,7 @@ def checkpoint(validation_error, validation_error_min,
     :param epoch: Epoch of the algorithm
     :param network: GridNet with all parameter that will be saved
     :param parameters: instance of the parameter class that store many usefull information of the network
+    :param optimizer: Optimizer of the network, ADAM most of the time
     :return: The new validation_error_min, the next index_save_best and index_save_regular.
     It also save the network if there is a better validation error
     """

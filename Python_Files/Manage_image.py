@@ -137,6 +137,8 @@ def transform_image_to_RGB(path_data,
         # Create the Picture type
         picture = Picture(path_image=paths[i])
 
+        print(type(picture.image_array))
+
         print(picture.width_image_array)
         print(picture.height_image_array)
         # Transform into RGB
@@ -154,8 +156,3 @@ def transform_image_to_RGB(path_data,
 
         # Save the file
         RGB.save(path_export_color)
-
-
-
-
-
