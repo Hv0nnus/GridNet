@@ -175,9 +175,9 @@ def train_id2label(labels):
     """
     return({ label.trainId : label for label in reversed(labels) })
 
-print(train_id2label(create_label_plot()))
-print(train_id2label(create_label_plot())[0
-      ].color)
-
-for i in range(-1,20):
-    print(train_id2label(create_label_plot())[i].color)
+#print(train_id2label(create_label_plot()))
+#print(train_id2label(create_label_plot())[0
+#      ].color)
+#
+#for i in range(-1,20):
+#    print(train_id2label(create_label_plot())[i].color)

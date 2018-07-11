@@ -123,31 +123,24 @@ def transform_image_to_RGB(path_data,
     names.sort()
 
     # Reduce the number of image
-    paths = paths[from_picture:to_picture]
-    names = names[from_picture:to_picture]
+    paths = paths#[from_picture:to_picture]
+    names = names#[from_picture:to_picture]
 
     # Create the dictionary that will transform 1D to RBG image
     labels = Label.create_label_plot()
     train_id2label = Label.train_id2label(labels)
-
-    print(paths)
 
     # Loop over each picture
     for i in range(len(paths)):
         # Create the Picture type
         picture = Picture(path_image=paths[i])
 
-        print(type(picture.image_array))
-
-        print(picture.width_image_array)
-        print(picture.height_image_array)
         # Transform into RGB
         RGB = picture.classes_to_color(id_to_label=train_id2label)
 
         # Change the name
         path_export_color = paths[i].replace(end_name, 'prediction_color.png')
 
-        print(path_export_color)
         # transform into PIL image
         RGB = np.uint8(RGB)
         RGB = Image.fromarray(RGB)
@@ -156,3 +149,5 @@ def transform_image_to_RGB(path_data,
 
         # Save the file
         RGB.save(path_export_color)
+        with open("/home_expes/kt82128h/GridNet/Python_Files/Python_print_test.txt", 'a') as txtfile:
+            txtfile.write("image saved " + path_export_color + "\n")
