@@ -162,11 +162,11 @@ labels = create_label_plot()
 # Please refer to the main method below for example usages!
 
 # name to label object
-name2label      = { label.name    : label for label in labels           }
+#name2label      = { label.name    : label for label in labels           }
 # name to color
 # name2color      = { label.name    : color for label in labels           }
 # id to label object
-id2label        = { label.id      : label for label in labels           }
+#id2label        = { label.id      : label for label in labels           }
 
 # trainId to label object
 def train_id2label(labels):
@@ -175,9 +175,3 @@ def train_id2label(labels):
     """
     return({ label.trainId : label for label in reversed(labels) })
 
-print(train_id2label(create_label_plot()))
-print(train_id2label(create_label_plot())[0
-      ].color)
-
-for i in range(-1,20):
-    print(train_id2label(create_label_plot())[i].color)
