@@ -56,13 +56,19 @@ def test_loop(parameters, network, dataset, test_dataset, position_crop):
 
     # Store the time at the begining of the test
     timer_init = time.time()
+    with open("/home_expes/kt82128h/GridNet/Python_Files/Python_print_test.txt", 'a') as txtfile:
+        txtfile.write("\n " + str(test_dataset.imgs) + "\n")
+    test_dataset.imgs[0] = ('/home_expes/collections/Cityscapes/leftImg8bit/val/munster/munster_000076_000019_leftImg8bit.png', '/home_expes/collections/Cityscapes/gtFine/val/munster/munster_000076_000019_gtFine_labelIds.png')
+    
 
-    for k in range(len(test_dataset.imgs)):
+    test_dataset.image_names[0] = 'munster/munster_000076_000019_leftImg8bit.png'
+    
+    for iteration in range(len(test_dataset.imgs)):
         with open("/home_expes/kt82128h/GridNet/Python_Files/Python_print_test.txt", 'a') as txtfile:
-            txtfile.write("\n " "First loop" + str(k) + "\n")
-
-        print(k)
-
+            txtfile.write("\n " + "First loop" + str(iteration) + "\n")
+        
+        np.random.seed(iteration*20)
+        k = iteration #np.random.randint(len(test_dataset.imgs))
         # Store the time at the begining of each image
         timer_image = time.time()
 
@@ -71,16 +77,32 @@ def test_loop(parameters, network, dataset, test_dataset, position_crop):
 
         # Load the image in RGB format
         x_batch_PIL = Image.open(x_batch_PIL_path).convert('RGB')
-        mask = np.array(Image.open(x_batch_PIL_path))
+        
+
+        # Get the name of the image and change it to have the new name
+        image_name = test_dataset.image_names[k]
+        # Save the image in png
+        x_batch_PIL.save("./Result/" + dataset + "/" + image_name)
+
+
+        # Load the image in RGB format
+        y_batch_PIL_color = Image.open(y_batch_PIL_path.replace("labelIds","color")).convert('RGB')
+        # Save the image in png
+        y_batch_PIL_color.save("./Result/" + dataset + "/" + image_name.replace("leftImg8bit","color"))
+
+
+
+
+        mask = np.array(Image.open(y_batch_PIL_path))
         mask_copy = mask.copy()
 
-        for k, v in test_dataset.id_to_trainid.items():
+        for j, v in test_dataset.id_to_trainid.items():
 
             if v == parameters.number_classes:
-                mask_copy[mask == k] = 1
+                mask_copy[mask == j] = 0
 
             if v != parameters.number_classes:
-                mask_copy[mask == k] = 0
+                mask_copy[mask == j] = 1
 
         # Create a numpy array that have the size of the entire image and parameters.number_classes channel
         x_batch_np = np.zeros((parameters.number_classes,
@@ -89,7 +111,7 @@ def test_loop(parameters, network, dataset, test_dataset, position_crop):
 
         for i, j, w, h in position_crop:
             with open("/home_expes/kt82128h/GridNet/Python_Files/Python_print_test.txt", 'a') as txtfile:
-                txtfile.write("\n " "Before i j w h " + str(i) + str(j) + str(w) + str(h) + "\n")
+                txtfile.write("\n " "Before i" + str(i) + " j "+  str(j) +" w " + str(w) + " h " + str(h) + "\n")
             assert (i+w) <= parameters.width_image_initial
             assert (j+h) <= parameters.height_image_initial
 
@@ -126,37 +148,37 @@ def test_loop(parameters, network, dataset, test_dataset, position_crop):
             x_batch_np[:, j_used:j_used + h_used, i_used:i_used + w_used] = x_batch_np[:,j_used:j_used + h_used, i_used:i_used + w_used] +  y_batch_estimated
 
         with open("/home_expes/kt82128h/GridNet/Python_Files/Python_print_test.txt", 'a') as txtfile:
-            txtfile.write("\n " "After the loop" + str(k) + "\n")
+            txtfile.write("\n " "After the loop" + str(iteration))
 
         # Keep only the highest probability, that will be the predicted class
         x_batch_np = x_batch_np.argmax(axis=0)
+
 
         # Add one to each value to have the right format (from 1 to 19)
         x_batch_np = x_batch_np + 1
 
         # Apply mask over the data to put 0 to the area where we don't care about the prediction
-        x_batch_np = x_batch_np * mask
+        x_batch_np = x_batch_np * mask_copy
 
         # Transform numpy array to PIL
         x_batch_np = Image.fromarray(x_batch_np.astype('uint8'))
 
         # Get the name of the image and change it to have the new name
         image_name = test_dataset.image_names[k]
-        end_name = 'prediction' + parameters.name_network + '.png'
+        end_name = 'prediction.png'
         image_name = image_name.replace("leftImg8bit.png", end_name)
 
-        print("./Result/" + dataset + "/" + image_name)
         # Save the image in png
         x_batch_np.save("./Result/" + dataset + "/" + image_name)
 
-        with open(parameters.path_print, 'a') as txtfile:
+        with open("/home_expes/kt82128h/GridNet/Python_Files/Python_print_test.txt", 'a') as txtfile:
             txtfile.write("Time for one image : " + str(time.time() - timer_image) + "\n")
 
-        if k == 10:
-            break
+        if iteration == 0:
+            return end_name
 
-    with open(parameters.path_print, 'a') as txtfile:
-        txtfile.write("Finish. Total time : " + str((time.time() - timer_init)) + "\n")
+    with open("/home_expes/kt82128h/GridNet/Python_Files/Python_print_test.txt", 'a') as txtfile:
+        txtfile.write("Finish. Total time : " + str((time.time() - timer_init)) + "\n" + str(end_name))
 
     return end_name
 
@@ -175,7 +197,9 @@ def main_test_dataset(parameters, network, position_crop, path_learning=None, da
                                                          mode=dataset,
                                                          parameters=parameters,
                                                          transform=parameters.transforms_test,
-                                                         only_image=True)
+                                                         only_image=False)
+    with open("/home_expes/kt82128h/GridNet/Python_Files/Python_print_test.txt", 'w') as txtfile:
+        txtfile.write(str(test_dataset.imgs[0]) + "\n" + str(test_dataset.imgs[1]))
 
     test_loop(network=network,
               parameters=parameters,

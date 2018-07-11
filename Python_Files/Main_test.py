@@ -26,11 +26,11 @@ def main_test(path_learning, dataset="train"):
     w = 801
     h = 801
 
-    w = 101
-    h = 101
+    #w = 401
+    #h = 401
     position_crop = []
-    for k in range(1):
-        for l in range(1):
+    for k in range(2*(int(parameters.width_image_initial/w)) + 1):
+        for l in range(2*(int(parameters.height_image_initial/h)) + 1):
             # i est l axe des x
             i = k * w//2
             j = l * h//2
@@ -40,7 +40,7 @@ def main_test(path_learning, dataset="train"):
                 j = parameters.height_image_initial - h
             position_crop.append((i, j, w, h))
 
-    for r in range(1):
+    for r in range(20):
         i = random.randint(0, parameters.width_image_initial - w)
         j = random.randint(0, parameters.height_image_initial - h)
         position_crop.append((i, j, w, h))
@@ -55,13 +55,13 @@ def main_test(path_learning, dataset="train"):
                                         mode=dataset,
                                         from_picture=0,
                                         to_picture=11,
-                                        end_name=end_name)
+                                        end_name="prediction.png")
 
     # end_name="labelTrainIds.png")
 
 if len(sys.argv) == 3:
     main_test(path_learning=sys.argv[1], dataset=sys.argv[2])
-if len(sys.argv) == 2:
+elif len(sys.argv) == 2:
     main_test(path_learning=sys.argv[1])
 else:
     raise ValueError('No path define to load the network or too many argument')
