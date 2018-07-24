@@ -126,7 +126,7 @@ def validation_loop(val_loader, network, epoch, parameters, timer_epoch):
     # Save the error of the validation DataSet
     for i, (x_val_batch, y_val_batch, _) in enumerate(val_loader):
 
-        if torch.cuda.is_available():
+        if torch.cuda.is_available(): # TODO It is useless to creat a Variable for y
             x_val_batch, y_val_batch = Variable(x_val_batch.cuda()), Variable(y_val_batch.cuda())
         else:
             x_val_batch, y_val_batch = Variable(x_val_batch), Variable(y_val_batch)

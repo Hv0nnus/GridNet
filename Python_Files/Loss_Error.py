@@ -284,7 +284,6 @@ def criterion(y_estimated, y, parameters, global_IoU_modif=False):
                                   mask=mask,
                                   number_of_used_pixel=number_of_used_pixel)
 
-
     if parameters.loss == "cross_entropy":
         return cross_entropy_loss(y_estimated=y_estimated,
                                   y=y,
