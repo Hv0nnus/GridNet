@@ -55,19 +55,13 @@ def test_loop(parameters, network, dataset, test_dataset, position_crop):
     """
 
     # Store the time at the begining of the test
-    timer_init = time.time()
-    with open("/home_expes/kt82128h/GridNet/Python_Files/Python_print_test.txt", 'a') as txtfile:
-        txtfile.write("\n " + str(test_dataset.imgs) + "\n")
-    test_dataset.imgs[0] = ('/home_expes/collections/Cityscapes/leftImg8bit/val/munster/munster_000076_000019_leftImg8bit.png', '/home_expes/collections/Cityscapes/gtFine/val/munster/munster_000076_000019_gtFine_labelIds.png')
-    
-
-    test_dataset.image_names[0] = 'munster/munster_000076_000019_leftImg8bit.png'
+    timer_init = time.time() 
     
     for iteration in range(len(test_dataset.imgs)):
         with open("/home_expes/kt82128h/GridNet/Python_Files/Python_print_test.txt", 'a') as txtfile:
             txtfile.write("\n " + "First loop" + str(iteration) + "\n")
         
-        np.random.seed(iteration*20)
+        #np.random.seed(iteration*20)
         k = iteration #np.random.randint(len(test_dataset.imgs))
         # Store the time at the begining of each image
         timer_image = time.time()
@@ -174,7 +168,7 @@ def test_loop(parameters, network, dataset, test_dataset, position_crop):
         with open("/home_expes/kt82128h/GridNet/Python_Files/Python_print_test.txt", 'a') as txtfile:
             txtfile.write("Time for one image : " + str(time.time() - timer_image) + "\n")
 
-        if iteration == 0:
+        if iteration == 50:
             return end_name
 
     with open("/home_expes/kt82128h/GridNet/Python_Files/Python_print_test.txt", 'a') as txtfile:
