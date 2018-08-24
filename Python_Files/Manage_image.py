@@ -74,31 +74,6 @@ def make_dataset(mode, path_data, end_name):
     return items, image_names
 
 
-def add_1_to_array(path_data,
-                   mode="test",
-                   end_name='leftImg8bit.png'):
-    """
-    Change every prediction to the right format, the prediction were from 0 to 18 but should have been from 1 to 19
-    :param path_data: path to the folder that contain all the data
-    :param mode: train val or test
-    :param end_name: end of the name of image that you want to keep
-    :return: Nothing but save all the image into the right format
-    """
-    # Make the DataSet and the names
-    paths, _ = make_dataset(mode=mode,
-                            path_data=path_data,
-                            end_name=end_name)
-
-    # Loop over each picture
-    for i in range(len(paths)):
-        # Create the Picture type
-        picture = Picture(path_image=paths[i])
-
-        # We add 1 to every pixel in the array and export the new image associated to the array
-        new_image = picture.image_array + 1
-        new_image = Image.fromarray(new_image)
-        new_image.save(picture.path_image)
-
 
 def transform_image_to_RGB(path_data,
                            from_picture=0, to_picture=2,
@@ -144,8 +119,6 @@ def transform_image_to_RGB(path_data,
         # transform into PIL image
         RGB = np.uint8(RGB)
         RGB = Image.fromarray(RGB)
-
-        # RGB.show("Example")
 
         # Save the file
         RGB.save(path_export_color)

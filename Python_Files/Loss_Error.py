@@ -14,6 +14,7 @@ def IoU_loss(y_estimated, y, parameters, mask=None, global_IoU_modif=False):
     :param y: Label associated with x
     :param parameters: List of parameters of the network
     :param mask: Image with 1 were there is a class to predict, and 0 if not.
+    :param global_IoU_modif: If global_IoU_modif is True then the momentum of the IoU will be used
     :return: difference between y_estimated and y, according to the continuous IoU loss
     """
     # Apply softmax the log on the result
@@ -24,6 +25,7 @@ def IoU_loss(y_estimated, y, parameters, mask=None, global_IoU_modif=False):
 
     IoU = 0
 
+    # We use the momentum if global_IoU_modif is True and the parameter ofr the momentum is define
     if parameters.momentum_IoU != 0 and global_IoU_modif:
 
         # Ugly hack that check if we are at the first epoch and first iteration of batch
@@ -47,6 +49,7 @@ def IoU_loss(y_estimated, y, parameters, mask=None, global_IoU_modif=False):
 
             IoU += parameters.weight_grad[k] * inter / union
 
+            # Keep the memory of the values for the momentum for the next iteration
             parameters.inter_union[0, k] = inter.data
             parameters.inter_union[1, k] = union.data
     else:
@@ -73,6 +76,7 @@ def IoU_Lovasz(y_estimated, y, parameters, mask=None, global_IoU_modif=False):
     :param y: Label associated with x
     :param parameters: List of parameters of the network
     :param mask: Image with 1 were there is a class to predict, and 0 if not.
+    :param global_IoU_modif: If global_IoU_modif is True then the momentum of the IoU will be used
     :return: difference between y_estimated and y, according to the approximation of IoU : Lovasz function
     """
     # Apply softmax the log on the result
@@ -90,15 +94,16 @@ def IoU_Lovasz(y_estimated, y, parameters, mask=None, global_IoU_modif=False):
             momentum = 0
         else:
             momentum = parameters.momentum_IoU
+            # TODO This part is not completly done. The momentum didn t work with the Lovasz extention for the moment.
 
     else:
-        # Permute the prediction and the ground truth so that there is only 1 dimension for the groudn truth
+        # Permute the prediction and the ground truth so that there is only 1 dimension for the ground truth
         # and parameters.number_class for the estimated
         y_estimated = y_estimated.permute(0, 2, 3, 1).contiguous()
         y_estimated = y_estimated.view(-1, parameters.number_classes)
         y = y.contiguous().view(-1)
 
-        # We will divide by the the number of classes present in the dataset.
+        # We will divide by the the number of classes present in the batch.
         number_class_used = 0
         # Compute the IoU for each class
         for k in range(parameters.number_classes):
@@ -115,9 +120,10 @@ def IoU_Lovasz(y_estimated, y, parameters, mask=None, global_IoU_modif=False):
                                                     dim=0,
                                                     descending=True)
 
-                y_only_k = y_only_k[y_order, ]
+                # Same permutation for the ground truth.
+                y_only_k = y_only_k[y_order,]
 
-                # Compute the intersection and union according to the algorithm :
+                # Compute the intersection and the union according to the algorithm :
                 # The Lovasz-Softmax loss: A tractable surrogate for the optimization of the
                 # intersection-over-union measure in neural networks
                 inter = torch.cumsum(y_only_k, dim=0)
@@ -174,28 +180,14 @@ def focal_loss(y_estimated, y, parameters, mask=None, number_of_used_pixel=None,
     """
     # http://pytorch.org/docs/master/nn.html : torch.nn.NLLLoss
     nllcrit = nn.NLLLoss2d(weight=parameters.weight_grad, size_average=False)
-    if (y_estimated != y_estimated).any() > 0:
-        print("y_estimated_before_logsoftmax, there is a problem, already some NaN", y_estimated)
 
     # Apply softmax on the prediction
     y_estimated = F.log_softmax(input=y_estimated, dim=1)
-    if (y_estimated != y_estimated).any() > 0:
-        print("y_estimated", y_estimated)
-        print("torch.exp(y_estimated)", torch.exp(y_estimated))
-        assert(False)
+
     # Apply softmax then the log on the result, we use the idea in the article https://arxiv.org/pdf/1708.02002.pdf
     # This is a small modification of the algorithm
-    print("y_estimated",y_estimated)
-    print("exp y_estimated", torch.exp(y_estimated))
-    print("puissance gamma = ",((1-torch.exp(y_estimated))**gamma))
     y_estimated_2 = ((1 - torch.exp(y_estimated)) ** gamma) * y_estimated
-    if (y_estimated != y_estimated).any() > 0:
-        print("y_estimated", y_estimated)
-        print("torch.exp(y_estimated)", torch.exp(y_estimated))
-        print("y_estimated_2", y_estimated_2)
-        assert(False)
 
-    # print(y_estimated)
     # Apply the mask
     y_estimated = y_estimated_2 * mask
 
@@ -254,8 +246,6 @@ def criterion_pretrain(y_estimated, y, parameters):
     :param parameters: List of parameters of the network
     :return: difference between y_estimated and y, according to some function
     """
-    with open(parameters.path_print, 'a') as txtfile:
-        txtfile.write(str(y_estimated.data) + "\n" + str(y.data))
 
     cross_entropy = torch.nn.CrossEntropyLoss(weight=None, size_average=True, ignore_index=-100, reduce=True)
 
@@ -267,8 +257,8 @@ def criterion(y_estimated, y, parameters, global_IoU_modif=False):
     """
     :param y_estimated: result of train(x) which is the forward action
     :param y: Label associated with x
-    :param inter_union: List of the sum of Intersection and Union for each classes
     :param parameters: List of parameters of the network
+    :param global_IoU_modif: If global_IoU_modif is True then the momentum of the IoU will be used
     :return: difference between y_estimated and y, according to some function
     """
     # (y!= parameters.number_classes) is a matrix with 0 on position were the target is class
@@ -279,10 +269,10 @@ def criterion(y_estimated, y, parameters, global_IoU_modif=False):
 
     if parameters.loss == "focal_loss":
         return focal_loss(y_estimated=y_estimated,
-                                  y=y,
-                                  parameters=parameters,
-                                  mask=mask,
-                                  number_of_used_pixel=number_of_used_pixel)
+                          y=y,
+                          parameters=parameters,
+                          mask=mask,
+                          number_of_used_pixel=number_of_used_pixel)
 
     if parameters.loss == "cross_entropy":
         return cross_entropy_loss(y_estimated=y_estimated,
@@ -310,6 +300,7 @@ def criterion(y_estimated, y, parameters, global_IoU_modif=False):
                           parameters=parameters,
                           mask=mask)
 
+    # Start the algorithm with the cross entropy then slowly change to the IoU loss
     if parameters.loss == "cross_entropy_to_IoU":
         if parameters.actual_epoch < 470:
             return cross_entropy_loss(y_estimated=y_estimated,
