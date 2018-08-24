@@ -25,26 +25,6 @@ import Parameters
 import Label
 
 
-# import Copy_GridNet_structure
-
-
-# # Commentaire pour la suite (TODO)
-
-
-# 
-# Idee: reregarder comment on fait de la segmentation avec les champs de Markov, ca peut donner des idees
-#
-# Indice qui indique si une fonction est derivable informatiquement, et prendre uen fonction qui se rapproche de l IoU
-# 
-# Corrélation entre IoU et le logsoftmax
-# 
-# distance entre deux fonctions 
-#
-# Taille en octet de ce que j'importe et du réseau
-#
-# Dans les fully connected, pourquoi prendre des images de tailles 400
-# *400 plutot que 200*200. Difference...
-
 def batch_loop(optimizer, train_loader, network, epoch, parameters, timer_batch, timer_epoch, inter_union=None):
     """
     :param optimizer: The optimiser that containt parameter of Adam optimizer
@@ -79,9 +59,7 @@ def batch_loop(optimizer, train_loader, network, epoch, parameters, timer_batch,
                                     y=y_batch,
                                     parameters=parameters,
                                     global_IoU_modif=False)
-        if (loss != loss).any():
-            print(loss)
-            assert(False)
+
         # Compute the backward function
         loss.backward()
 
@@ -126,7 +104,7 @@ def validation_loop(val_loader, network, epoch, parameters, timer_epoch):
     # Save the error of the validation DataSet
     for i, (x_val_batch, y_val_batch, _) in enumerate(val_loader):
 
-        if torch.cuda.is_available():
+        if torch.cuda.is_available(): # TODO It is useless to creat a Variable for y
             x_val_batch, y_val_batch = Variable(x_val_batch.cuda()), Variable(y_val_batch.cuda())
         else:
             x_val_batch, y_val_batch = Variable(x_val_batch), Variable(y_val_batch)
@@ -248,9 +226,9 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
 
         # Here we can change some parameters, the only one necessary is the total_epoch
         parameters.epoch_total = total_epoch
-        #parameters.learning_rate_decay = - 4.5 * 10 ** (-5)
-        #parameters.batch_size = 4
-        #parameters.batch_size_val = 4
+        # parameters.learning_rate_decay = - 4.5 * 10 ** (-5)
+        # parameters.batch_size = 4
+        # parameters.batch_size_val = 4
         # parameters.learning_rate = 0.01
         # parameters.momentum_IoU = 0
         # parameters.loss = "IoU_Lovasz"
@@ -365,7 +343,7 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
                                              num_workers=parameters.num_workers,
                                              drop_last=False)
 
-    # If there is more than one GPU we can sue them
+    # If there is more than one GPU we can use them
     if torch.cuda.device_count() > 1:
         with open(parameters.path_print, 'a') as txtfile:
             txtfile.write("\nLet's use " + str(torch.cuda.device_count()) + " GPUs! \n")
@@ -381,7 +359,7 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
         network.cuda()
     else:
         with open(parameters.path_print, 'a') as txtfile:
-            txtfile.write("\nAccording to torch Cuda is not even available \n")
+            txtfile.write("\nAccording to torch Cuda is not available \n")
 
     # Train the network
     train(network=network,
@@ -392,7 +370,6 @@ def main(path_continue_learning=None, total_epoch=0, new_name=None):
 
 # Check if there is argument and run the main program with good argument, load previous Data or not.
 if len(sys.argv) == 4:
-    print("4 arguments")
     main(path_continue_learning=sys.argv[1], total_epoch=int(sys.argv[2]), new_name=sys.argv[3])
 elif len(sys.argv) == 3:
     main(path_continue_learning=sys.argv[1], total_epoch=int(sys.argv[2]))

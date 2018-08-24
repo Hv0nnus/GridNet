@@ -392,19 +392,11 @@ class pretrain_end_network(nn.Module):
     def forward(self, x):
         x = self.AvgPool1(x)
         x = x.view(-1, 128*3*3)
-        #with open("Python_print_pretrain_test.txt", 'a') as txtfile:
-        #    txtfile.write("x_before linear" + str(x))
         x = self.Linear1(x)
-        #with open("Python_print_pretrain_test.txt", 'a') as txtfile:
-        #    txtfile.write("x before ReLU" + str(x))
         x = self.BatchNorm(x)
 
         x = self.ReLU1(x)
-        #with open("Python_print_pretrain_test.txt", 'a') as txtfile:
-        #    txtfile.write("x before Linear2" + str(x))
         x = self.Linear2(x)
-        #with open("Python_print_pretrain_test.txt", 'a') as txtfile:
-        #    txtfile.write("x_final" + str(x))
         return x
 
 
@@ -534,7 +526,7 @@ class gridNet_imagenet(nn.Module):
 
 class ResNet18_test(nn.Module):
     def __init__(self, nOutputs=1000):
-        super(ResNet18, self).__init__()
+        super(ResNet18_test, self).__init__()
         resnet18 = torchvision.models.resnet18(pretrained=True)
         child_counter = 0
         list_child = []

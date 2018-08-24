@@ -7,8 +7,8 @@ import torch.cuda
 
 class Parameters:
     """
-    Parameters contains many information usefull for the training
-    It is really usefull to just Parameters as argument to the other function
+    Parameters contains many information useful for the training
+    It is really useful to just pass Parameters as argument to the other function
     """
     def __init__(self,
                  # If we are on pretrain or not
@@ -130,13 +130,6 @@ class Parameters:
 
         # Transformation that will be apply on the input just after the import
         self.transforms_input = transforms.Compose([
-            # transforms.CenterCrop(parameters.width_image_crop),
-            # We keep ratio that are given by default
-            # And put scale in order to always have an image smaller than 1024 for the crop.
-            # With 0.2 and 0.37 for scale value we can always crop into the image
-            # transforms.RandomResizedCrop(5, scale=(0.2, 0.37), ratio=(0.75, 1.3333333333333333)),
-            # TODO choisir laquel des deux solution
-            # Autre option, pas de ratio car cela n a pas de sens de deformer l image
             transforms.RandomResizedCrop(size_image_crop, scale=self.scale, ratio=ratio),
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),

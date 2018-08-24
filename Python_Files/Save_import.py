@@ -33,9 +33,9 @@ def init_csv(path_CSV, name_network, train_number, path_print):
         with open(path_print, 'a') as txtfile:
             txtfile.write("We don t want to delete the files that already exist \n")
             # raise RuntimeError('We don t want to delete the files that already exist')
-            # TODO ici il faudra faire arreter le programme !
+            # Put the Error if the file already exist
 
-    # header of the futur Pandas DataFrames
+    # header of the futur Pandas DataFrames, be careful about the order !
     header_confMat = ['Target', 'Prediction', 'Epoch', 'Set', 'Value']
     header_loss = ["Set", "Epoch", "Value"]
 
@@ -60,7 +60,7 @@ def duplicated_csv(path_CSV, old_name_network, new_name_network, train_number):
     :param old_name_network: name of the network associated with the CSV files
     :param new_name_network: name of the new network
     :param train_number: number of train associated with the CSV files
-    :return: Nothing but copy the actual CSV with the the name of the network
+    :return: Nothing but make a copy of the actual CSV with the name of the new network
     """
     # Import the CSV file into pandas DataFrame
     loss_DF = pd.read_csv(path_CSV + "CSV_loss_" + old_name_network + str(train_number) + ".csv")
@@ -90,6 +90,7 @@ def save_error(x, y, network, epoch, set_type, parameters, loss=None, y_estimate
     :param y_estimated: Value of y_predicted by the network
     :return: the loss and save the error in CSV : Confusion matrix and loss for the set_type
     """
+    # y_estimated is sometime known, during the training part for exemple.
     if y_estimated is None:
         # Result of the network
         y_estimated = network(x)
@@ -223,6 +224,7 @@ def make_dataset(quality, mode, path_data, only_image):
 
     img_dir_name = 'leftImg8bit'
 
+    # TODO coarse not done yet
     if quality == 'coarse':
         mask_path = os.path.join(path_data, 'gtCoarse', mode)
         mask_postfix = '_gtCoarse_labelIds.png'
@@ -243,9 +245,11 @@ def make_dataset(quality, mode, path_data, only_image):
         return image_c_train + image_c_val + image_c_extra, image_c_name_train + image_c_name_val + image_c_name_extra
 
     elif quality == 'fine':
+        # If we want to look at the ground truth y
         if not only_image:
             mask_path = os.path.join(path_data, 'gtFine', mode)
             mask_postfix = '_gtFine_labelIds.png'
+    # TODO both not done yet
     if quality == 'both':
         image_f, image_f_name = make_dataset(quality='fine', mode=mode, path_data=path_data, only_image=only_image)
         image_c, image_c_name = make_dataset(quality='coarse', mode=mode, path_data=path_data, only_image=only_image)
@@ -257,17 +261,23 @@ def make_dataset(quality, mode, path_data, only_image):
         assert (len(set(os.listdir(img_path)) - set(os.listdir(mask_path))) +
                 len(set(os.listdir(mask_path)) - set(os.listdir(img_path)))) == 0
 
+    # This entire bloc make the list of the path to each image.
     items = []
     image_names = []
     categories = os.listdir(img_path)
+    # Loop over the directory
     for c in categories:
         c_items = [name.split('_leftImg8bit.png')[0] for name in os.listdir(os.path.join(img_path, c))]
+        # Loop over each image
         for it in c_items:
+            # The path to x and y are store together
             if not only_image:
                 item = (os.path.join(img_path, c, it + '_leftImg8bit.png'),
                         os.path.join(mask_path, c, it + mask_postfix))
+            # Only the path to the initial image issaved
             else:
                 item = (os.path.join(img_path, c, it + '_leftImg8bit.png'), None)
+            # We keep the name of the image (usefull to keep the name)
             image_names.append(os.path.join(c, it + '_leftImg8bit.png'))
             items.append(item)
     return items, image_names
@@ -302,36 +312,51 @@ class cityscapes_create_dataset(data.Dataset):
                               28: 15, 29: ignore_label, 30: ignore_label, 31: 16, 32: 17, 33: 18}
 
     def __getitem__(self, index):
+        """
+        :param index: index is the indice of the image. index=0 mean we are looking for the first image
+        :return: The image and the ground truth associated that have been crop and modify according to
+        transforms_input and transforms_output.
+        """
 
+        # Get the right paths in the list
         img_path, mask_path = self.imgs[index]
 
+        # Open the image
         img = Image.open(img_path).convert('RGB')
 
-        seed = np.random.randint(2147483647)  # make a seed with numpy generator
+        # Make a seed with NUMPY generator
+        seed = np.random.randint(2147483647)
 
+        # Transformation for the initial image
         if self.transform is not None:
             random.seed(seed)  # apply this seed to img transforms
             img = self.transform(img)
 
+        # If we care about the groudn truth
         if mask_path is not None:
+            # mask isn t a good choice of name. mask is the ground truth.
             mask = Image.open(mask_path)
 
             mask = np.array(mask)
 
             mask_copy = mask.copy()
 
+            # Modify the value in the groudn truth to delet some classes and keep only 19 of them
             for k, v in self.id_to_trainid.items():
                 mask_copy[mask == k] = v
 
             mask = Image.fromarray(mask_copy.astype(np.uint8))
 
             if self.transform_target is not None:
-                random.seed(seed)  # apply this seed to mask transforms
+                random.seed(seed)  # apply the SAME seed to the mask transforms
+                # crop and modify the groudn truth according to the transormation
                 mask = self.transform_target(mask)
+                # Automatically the value is between 0 and 1, we bring it back between 0 and 19
                 mask = (mask * 255).round()
 
             mask = torch.squeeze(mask)
 
+            # TODO both doesn t work yet.
             if self.mode == "both" and index >= 6*2975:
                 mask = random_pixel_in_picture(image=mask, mode='coarse')
             elif self.mode == "both":
@@ -346,10 +371,11 @@ class cityscapes_create_dataset(data.Dataset):
 
 
 def random_pixel_in_picture(image, mode):
-    
+    # TODO not done yet
     return image
 
 
+# TODO not done yet
 def make_dataset_pretrain(mode, path_data):
     assert (mode in ['train', 'val'])
 
@@ -375,6 +401,7 @@ def make_dataset_pretrain(mode, path_data):
     return items
 
 
+# TODO not done yet
 class cityscapes_create_dataset_pretrain(data.Dataset):
     def __init__(self,
                  mode,
@@ -462,6 +489,7 @@ def organise_CSV(path_CSV, name_network, train_number, both=True):
     :param path_CSV: Path to the CSV files that will be used
     :param name_network: name of the network associated with the CSV file
     :param train_number: number of the network associated with the CSV file
+    :param both: if both is false we don t look at the CSV with the confusion matrix
     :return: organise_CSV import two CSV files and delete all duplicate row. Because the algorithme work with
         mini_batch there is many value for the loss for one epoch and one data set. We compute here the mean
         of all this loss that have the same epoch and data set. We did the same with the confusion matrix.

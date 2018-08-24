@@ -14,6 +14,9 @@ def create_label():
     return pd.DataFrame(data=label_name)
 
 def create_imagenet_class():
+    """
+    :return: A list of classes used in ImageNet
+    """
     fichier_classes_imagesnet = open("./image_net_only_classes.txt").read()
     list_classes_imagesnet = []
     for i, ligne in enumerate(fichier_classes_imagesnet.split('\n')):
@@ -21,9 +24,6 @@ def create_imagenet_class():
     list_classes_imagesnet = list_classes_imagesnet[:-1]
     return list_classes_imagesnet
 
-# --------------------------------------------------------------------------------
-# Definitions
-# --------------------------------------------------------------------------------
 
 # a label and all meta information
 Label = namedtuple( 'Label', [
@@ -112,6 +112,8 @@ def create_label_plot_copy():
         Label(  'license plate'        , -1 ,       -1 , 'vehicle'         , 7       , False        , True         , (  0,  0,142) ),
     ]
     return labels
+
+
 def create_label_plot():
     labels = [
         #       name                     id    trainId   category            catId     hasInstances   ignoreInEval   color
