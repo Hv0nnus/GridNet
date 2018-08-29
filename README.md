@@ -12,4 +12,6 @@ The program Plot.ipnb show all the result with graphs.
 "Pretrain main.py" doesn't work well. It try to pretrain on imagenet.
 "export onnx.py" and "net drawer.py" have work during my internship but I didn't spend too much time in it so it's messy and doesn't work everytime. It should use "Grid Net copy.py", "net drawer.py", "export onnx.py".
 
+Version : Python3.6.3 Pytorch0.3 (there will probably be some bug with "Variable" with the recent Pytorch version).
+
 For any questions you can contact me : tanguy.kerdoncuff@laposte.net
